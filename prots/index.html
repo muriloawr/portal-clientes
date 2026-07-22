@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cronograma do Projeto - PROTS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-grotesk@600&display=swap">
+<style>
+  :root{
+    --bg:#F2F6FC;
+    --panel:#FFFFFF;
+    --ink:#0B1C33;
+    --ink-soft:#5A6B85;
+    --line:#DCE5F0;
+    --brand:#015EC5;
+    --tint-1:#EAF1FC;
+    --tint-2:#C7DCF5;
+  }
+  *{box-sizing:border-box;}
+  html{overflow-x:hidden;}
+  body{
+    margin:0;color:var(--ink);font-family:'Inter',sans-serif;font-weight:500;padding:0 0 90px;
+    background:
+      radial-gradient(circle at 88% -8%, rgba(1,94,197,0.16), transparent 42%),
+      radial-gradient(circle at -6% 18%, rgba(1,94,197,0.08), transparent 38%),
+      var(--bg);
+    background-attachment:fixed;
+    position:relative;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;
+    background-image:radial-gradient(rgba(11,28,51,0.07) 1px, transparent 1px);
+    background-size:22px 22px;pointer-events:none;z-index:0;
+    mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.15) 60%, transparent 100%);
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 24px 0;position:relative;z-index:1;}
+  .topbar{height:5px;width:100%;background:linear-gradient(90deg, var(--tint-1), var(--brand) 50%, var(--ink));background-size:200% 100%;animation:flow 7s ease-in-out infinite alternate;position:relative;z-index:1;}
+  @keyframes flow{0%{background-position:0% 0;}100%{background-position:100% 0;}}
+
+  .head{margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
+  .logo{height:34px;}
+  .eyebrow{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:#2FBE6C;flex-shrink:0;box-shadow:0 0 0 0 rgba(47,190,108,0.6);animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,190,108,0.55);}70%{box-shadow:0 0 0 7px rgba(47,190,108,0);}100%{box-shadow:0 0 0 0 rgba(47,190,108,0);}}
+  h1{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:32px;margin:0;line-height:1.1;color:var(--ink);outline:none;}
+  [contenteditable="true"]{cursor:text;border-radius:4px;}
+  [contenteditable="true"]:hover{background:rgba(1,94,197,0.06);}
+  [contenteditable="true"]:focus{background:var(--tint-1);}
+
+  /* barra com o intervalo do projeto, e etapa atual + contador logo abaixo */
+  .bar-wrap{margin-bottom:34px;}
+  .bar-edges{display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+  .bar-caption{display:flex;justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:14px;}
+  .status-side{display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
+  .status-side.right{align-items:flex-end;text-align:right;}
+  .cap-label{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--ink-soft);}
+  .cap-value{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:17px;color:var(--brand);line-height:1.2;}
+  .cap-value.muted{color:var(--ink);font-size:15px;}
+  .status-next{font-size:11.5px;color:var(--ink-soft);}
+  .overview-track-wrap{position:relative;height:8px;}
+  .overview-track{height:8px;border-radius:4px;background:var(--line);overflow:hidden;position:relative;}
+  .overview-fill{position:absolute;top:0;left:0;height:100%;width:0%;background:var(--brand);border-radius:4px;transition:width .7s ease;}
+  .tick{position:absolute;top:50%;width:9px;height:9px;border-radius:50%;background:var(--panel);border:2px solid var(--brand);transform:translate(-50%,-50%);z-index:2;}
+  .tick .tick-tip{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:'Inter',sans-serif;font-size:10.5px;padding:4px 9px;border-radius:7px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease;}
+  .tick:hover .tick-tip{opacity:1;}
+  .tick:hover{background:var(--brand);}
+  .now-marker{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--ink);border:2px solid var(--panel);transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(11,28,51,0.35);z-index:3;}
+
+  .stage-block{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-top:22px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .stage-block-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 16px;margin-bottom:6px;}
+  .stage-block h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:17px;margin:0;}
+  .stage-block .sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;}
+  .stage-tag{font-family:'Inter',sans-serif;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--bg);color:var(--ink-soft);white-space:nowrap;flex-shrink:0;}
+
+  .phase-row{display:grid;grid-template-columns:200px 1fr 150px;gap:16px;align-items:center;padding:13px 0;border-top:1px solid var(--line);}
+  .phase-row:first-of-type{border-top:none;}
+  .phase-name{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14.5px;}
+  .phase-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .bar-track{position:relative;height:36px;background:var(--bg);border-radius:8px;overflow:hidden;}
+  .bar{position:absolute;top:0;bottom:0;left:0;width:100%;border-radius:8px;display:flex;align-items:center;padding:0 12px;font-size:12.5px;font-weight:500;white-space:nowrap;background:var(--tint-2);color:#0B1C33;}
+  .bar.solid{background:var(--brand);color:#fff;}
+  .bar.optional{background:var(--bg);color:var(--ink-soft);border:1px dashed var(--line);}
+  .phase-dates{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);text-align:right;}
+  .phase-dates b{color:var(--ink);font-weight:500;}
+
+  .meetings{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin-top:32px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .meetings h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:18px;margin:0 0 4px;}
+  .meetings .sub{font-size:13px;color:var(--ink-soft);margin-bottom:14px;}
+  .meeting-row{display:grid;grid-template-columns:130px 1fr auto;gap:16px;align-items:center;padding:12px 0;border-top:1px solid var(--line);}
+  .meeting-row:first-of-type{border-top:none;}
+  .m-date{font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--brand);}
+  .m-title{font-size:14px;}
+  .m-tag{font-family:'Inter',sans-serif;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--tint-1);color:var(--brand);white-space:nowrap;}
+  .m-tag.final{background:var(--ink);color:#fff;}
+
+  .footnote{margin-top:26px;font-size:12px;color:var(--ink-soft);text-align:center;}
+
+  @media (max-width:640px){
+    .phase-row{grid-template-columns:1fr;gap:6px;}
+    .phase-dates{text-align:left;}
+    .meeting-row{grid-template-columns:1fr;gap:4px;}
+    body{
+      background-attachment:scroll;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(1,94,197,0.10), transparent 32%),
+        var(--bg);
+    }
+    .bar-caption{flex-direction:column;gap:8px;}
+    .status-side.right{align-items:flex-start;text-align:left;}
+  }
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<div class="wrap">
+
+  <div class="head">
+    <svg class="logo" viewBox="0 0 334 183" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM69.0009 32.5515H75.3891L77.2882 10.0425L69.0009 32.5515ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/>
+      <path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/>
+    </svg>
+    <div class="eyebrow"><span class="live-dot"></span>Cronograma do Projeto</div>
+    <h1 contenteditable="true">PROTS</h1>
+  </div>
+
+  <div class="bar-wrap">
+    <div class="bar-edges">
+      <div><span class="cap-label">Kick-off</span><br><span class="cap-value muted" id="edgeStart">-</span></div>
+      <div style="text-align:right;"><span class="cap-label">Integrações finais</span><br><span class="cap-value muted" id="edgeEnd">-</span></div>
+    </div>
+    <div class="overview-track-wrap">
+      <div class="overview-track"><div class="overview-fill" id="overviewFill"></div></div>
+      <div id="overviewTicks"></div>
+    </div>
+    <div class="bar-caption">
+      <div class="status-side">
+        <span class="cap-label">Etapa atual</span>
+        <span class="cap-value" id="capCurrent">-</span>
+        <span class="status-next" id="capNext">-</span>
+      </div>
+      <div class="status-side right">
+        <span class="cap-label">Faltam para a entrega final</span>
+        <span class="cap-value"><span id="kpiDaysLeft">0</span> dias</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage-block">
+    <div class="stage-block-head">
+      <h2>Protótipo</h2>
+      <span class="stage-tag">03/07 - 15/07</span>
+    </div>
+    <div class="phase-row">
+      <div><div class="phase-name">1ª Entrega</div><div class="phase-sub">Identidade visual</div></div>
+      <div class="bar-track"><div class="bar solid">Aprovação da identidade visual</div></div>
+      <div class="phase-dates"><b>10/07</b></div>
+    </div>
+    <div class="phase-row">
+      <div><div class="phase-name">Entrega Final</div><div class="phase-sub">Figma completo</div></div>
+      <div class="bar-track"><div class="bar solid">Fechamento do protótipo</div></div>
+      <div class="phase-dates"><b>15/07</b></div>
+    </div>
+  </div>
+
+  <div class="stage-block">
+    <div class="stage-block-head">
+      <h2>Desenvolvimento</h2>
+      <span class="stage-tag">até 29/07</span>
+    </div>
+    <div class="phase-row">
+      <div><div class="phase-name">Desenvolvimento</div><div class="phase-sub">Home, PDP, Componentes e Páginas Adicionais</div></div>
+      <div class="bar-track"><div class="bar solid">Construção da loja</div></div>
+      <div class="phase-dates"><b>até 29/07</b></div>
+    </div>
+  </div>
+
+  <div class="stage-block">
+    <div class="stage-block-head">
+      <h2>Integrações</h2>
+      <span class="stage-tag">27/07 - 31/07</span>
+    </div>
+    <div class="phase-row">
+      <div><div class="phase-name">Gateway de Pagamento</div><div class="phase-sub">Appmax</div></div>
+      <div class="bar-track"><div class="bar">Configuração do gateway</div></div>
+      <div class="phase-dates"><b>27/07</b> &rarr; 31/07</div>
+    </div>
+    <div class="phase-row">
+      <div><div class="phase-name">ERP</div><div class="phase-sub">Olist ou Bling</div></div>
+      <div class="bar-track"><div class="bar">Integração do ERP</div></div>
+      <div class="phase-dates"><b>27/07</b> &rarr; 31/07</div>
+    </div>
+    <div class="phase-row">
+      <div><div class="phase-name">Hub de Frete</div><div class="phase-sub">Frenet</div></div>
+      <div class="bar-track"><div class="bar">Integração de frete</div></div>
+      <div class="phase-dates"><b>27/07</b> &rarr; 31/07</div>
+    </div>
+    <div class="phase-row">
+      <div><div class="phase-name">CRM</div><div class="phase-sub">Reportana - opcional</div></div>
+      <div class="bar-track"><div class="bar optional">Integração opcional</div></div>
+      <div class="phase-dates"><b>27/07</b> &rarr; 31/07</div>
+    </div>
+  </div>
+
+  <div class="meetings">
+    <h2>Reuniões previstas</h2>
+    <div class="sub">A reunião de integrações marca a data final do projeto.</div>
+    <div id="meetingList"></div>
+  </div>
+
+  <div class="footnote">Todas as datas deste cronograma são fixas para este projeto</div>
+
+</div>
+
+<script>
+  function fmtFull(date){
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+  function fmtShort(date){
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+  }
+
+  const kickoff      = new Date('2026-07-03T12:00:00');
+  const entrega1      = new Date('2026-07-10T12:00:00');
+  const entregaFinal  = new Date('2026-07-15T12:00:00');
+  const devEnd        = new Date('2026-07-29T12:00:00');
+  const integEnd       = new Date('2026-07-31T12:00:00');
+
+  const totalSpan = integEnd - kickoff;
+  const pct = (date) => Math.min(100, Math.max(0, ((date - kickoff) / totalSpan) * 100));
+  const now = new Date(); now.setHours(12,0,0,0);
+
+  function animateCounter(el, target) {
+    const start = performance.now();
+    const duration = 900;
+    function step(t) {
+      const p = Math.min((t - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(eased * target);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  const daysLeft = Math.max(0, Math.round((integEnd - now) / 86400000));
+  document.getElementById('edgeStart').textContent = fmtFull(kickoff);
+  document.getElementById('edgeEnd').textContent = fmtFull(integEnd);
+  animateCounter(document.getElementById('kpiDaysLeft'), daysLeft);
+  document.getElementById('overviewFill').style.width = pct(now).toFixed(1) + '%';
+
+  const ticks = [
+    { date: entrega1,     label: '1ª Entrega' },
+    { date: entregaFinal, label: 'Entrega Final (Figma)' },
+    { date: devEnd,       label: 'Desenvolvimento pronto' },
+    { date: integEnd,     label: 'Integrações finais' },
+  ];
+  document.getElementById('overviewTicks').innerHTML = ticks.map(t => `
+    <div class="tick" style="left:${pct(t.date).toFixed(1)}%;">
+      <div class="tick-tip"><b>${t.label}</b> &middot; ${fmtShort(t.date)}</div>
+    </div>
+  `).join('');
+
+  if (now >= kickoff && now <= integEnd) {
+    const marker = document.createElement('div');
+    marker.className = 'now-marker';
+    marker.style.left = pct(now).toFixed(1) + '%';
+    document.querySelector('.overview-track-wrap').appendChild(marker);
+  }
+
+  // etapas reais, para dizer com clareza onde o projeto está agora
+  const stages = [
+    { name: 'Protótipo',       start: kickoff,     end: entregaFinal },
+    { name: 'Desenvolvimento', start: entregaFinal, end: devEnd },
+    { name: 'Integrações',     start: new Date('2026-07-27T12:00:00'), end: integEnd },
+  ];
+  let stageIdx = -2; // -2 = ainda não começou, -1 = finalizado
+  if (now < kickoff) stageIdx = -2;
+  else if (now >= integEnd) stageIdx = -1;
+  else {
+    for (let i = 0; i < stages.length; i++) if (now >= stages[i].start) stageIdx = i;
+  }
+
+  const capCurrent = document.getElementById('capCurrent');
+  const capNext = document.getElementById('capNext');
+  if (stageIdx === -2) {
+    capCurrent.textContent = 'Ainda não começou';
+    capNext.textContent = stages[0].name + ' · ' + fmtShort(stages[0].start);
+  } else if (stageIdx === -1) {
+    capCurrent.textContent = 'Projeto entregue';
+    capNext.textContent = '-';
+  } else {
+    capCurrent.textContent = stages[stageIdx].name + ' · até ' + fmtShort(stages[stageIdx].end);
+    capNext.textContent = stageIdx + 1 < stages.length
+      ? stages[stageIdx + 1].name + ' · ' + fmtShort(stages[stageIdx + 1].start)
+      : 'Entrega final · ' + fmtShort(integEnd);
+  }
+
+  const meetings = [
+    { date: kickoff,     title: 'Kick-off',                  sub: 'Briefing inicial do projeto',        tag: 'Kickoff',  final: false },
+    { date: entrega1,    title: '1ª Entrega',                 sub: 'Apresentação da identidade visual',  tag: 'Revisão',  final: false },
+    { date: devEnd,      title: 'Apresentação',               sub: 'Apresentação do desenvolvimento',    tag: 'Revisão',  final: false },
+    { date: integEnd,    title: 'Integrações',                sub: 'Entrega final do projeto',           tag: 'Final',    final: true },
+  ];
+  document.getElementById('meetingList').innerHTML = meetings.map(m => `
+    <div class="meeting-row">
+      <div class="m-date">${fmtFull(m.date)}</div>
+      <div class="m-title">${m.title}<div class="phase-sub">${m.sub}</div></div>
+      <div class="m-tag${m.final ? ' final' : ''}">${m.tag}</div>
+    </div>
+  `).join('');
+</script>
+</body>
+</html>
