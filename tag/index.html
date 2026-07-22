@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Project timeline - TAG Grading Brazil</title>
+<title>Timeline - TAG Grading</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-grotesk@600&display=swap">
@@ -19,6 +19,7 @@
     --tint-2:#C7DCF5;
   }
   *{box-sizing:border-box;}
+  html{overflow-x:hidden;}
   body{
     margin:0;color:var(--ink);font-family:'Inter',sans-serif;font-weight:500;padding:0 0 90px;
     background:
@@ -38,7 +39,13 @@
   .topbar{height:5px;width:100%;background:linear-gradient(90deg, var(--tint-1), var(--brand) 50%, var(--ink));background-size:200% 100%;animation:flow 7s ease-in-out infinite alternate;position:relative;z-index:1;}
   @keyframes flow{0%{background-position:0% 0;}100%{background-position:100% 0;}}
 
-  .head{margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
+  .lang-toggle{display:flex;border:1px solid var(--line);border-radius:20px;padding:3px;flex-shrink:0;}
+  .lang-toggle button{
+    font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;color:var(--ink-soft);
+    background:none;border:none;border-radius:16px;padding:5px 13px;cursor:pointer;
+  }
+  .lang-toggle button.active{background:var(--brand);color:#fff;}
   .logo{height:34px;}
   .eyebrow{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
   .live-dot{width:7px;height:7px;border-radius:50%;background:#2FBE6C;flex-shrink:0;box-shadow:0 0 0 0 rgba(47,190,108,0.6);animation:pulse 1.8s infinite;}
@@ -64,7 +71,7 @@
   .track-label span{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);}
 
   .stage-block{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-top:14px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
-  .stage-block-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:6px;}
+  .stage-block-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 16px;margin-bottom:6px;}
   .stage-block h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:17px;margin:0;}
   .stage-block .sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;}
   .stage-tag{font-family:'Inter',sans-serif;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--bg);color:var(--ink-soft);white-space:nowrap;flex-shrink:0;}
@@ -111,18 +118,24 @@
 <div class="wrap">
 
   <div class="head">
-    <svg class="logo" viewBox="0 0 334 183" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM69.0009 32.5515H75.3891L77.2882 10.0425L69.0009 32.5515ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/>
-      <path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/>
-    </svg>
-    <div class="eyebrow"><span class="live-dot"></span>Project timeline</div>
-    <h1>TAG Grading Brazil</h1>
+    <div>
+      <svg class="logo" viewBox="0 0 334 183" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM69.0009 32.5515H75.3891L77.2882 10.0425L69.0009 32.5515ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/>
+        <path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/>
+      </svg>
+      <div class="eyebrow"><span class="live-dot"></span><span data-en="Project timeline" data-pt="Cronograma do projeto"></span></div>
+      <h1>TAG Grading Brazil</h1>
+    </div>
+    <div class="lang-toggle">
+      <button id="btnPT" onclick="setLang('pt')">PT</button>
+      <button id="btnEN" onclick="setLang('en')">EN</button>
+    </div>
   </div>
 
   <div class="bar-wrap">
     <div class="bar-edges">
-      <div><span class="cap-label">Kickoff</span><br><span class="cap-value" id="edgeStart">-</span></div>
-      <div style="text-align:right;"><span class="cap-label">Integrations complete</span><br><span class="cap-value" id="edgeEnd">-</span></div>
+      <div><span class="cap-label" id="edgeKickoffLabel">Kickoff</span><br><span class="cap-value" id="edgeStart">-</span></div>
+      <div style="text-align:right;"><span class="cap-label" id="edgeEndLabel">Integrations complete</span><br><span class="cap-value" id="edgeEnd">-</span></div>
     </div>
     <div class="overview-track-wrap">
       <div class="overview-track"><div class="overview-fill" id="overviewFill"></div></div>
@@ -130,78 +143,100 @@
     </div>
   </div>
 
-  <div class="track-label"><span class="dot" style="background:var(--brand);"></span><span>Track 1 - Shopify</span></div>
+  <div class="track-label"><span class="dot" style="background:var(--brand);"></span><span data-en="Track 1 - Shopify" data-pt="Frente 1 - Shopify"></span></div>
 
   <div class="stage-block">
     <div class="stage-block-head">
-      <h2>Development</h2>
-      <span class="stage-tag">until Aug 21</span>
+      <h2 data-en="Development" data-pt="Desenvolvimento"></h2>
+      <span class="stage-tag" data-en="until Aug 21" data-pt="até 21/08"></span>
     </div>
-    <div class="sub">Rebuilding the theme on Dawn using the international store's Liquid as reference - no formal prototype phase (only if needed, in parallel, for specific sections).</div>
+    <div class="sub" data-en="Rebuilding the theme on Dawn using the international store's Liquid as reference." data-pt="Reconstrução do tema sobre o Dawn a partir do Liquid da loja internacional."></div>
     <div class="phase-row">
-      <div><div class="phase-name">Home</div><div class="phase-sub">Module 1</div></div>
-      <div class="bar-track"><div class="bar solid">Home module</div></div>
-      <div class="phase-dates"><b>until Aug 7</b></div>
-    </div>
-    <div class="phase-row">
-      <div><div class="phase-name">Services page</div><div class="phase-sub">Module 2</div></div>
-      <div class="bar-track"><div class="bar solid">Services module</div></div>
-      <div class="phase-dates"><b>until Aug 14</b></div>
+      <div><div class="phase-name">Home</div><div class="phase-sub" data-en="Module 1" data-pt="Módulo 1"></div></div>
+      <div class="bar-track"><div class="bar solid" data-en="Home module" data-pt="Módulo Home"></div></div>
+      <div class="phase-dates"><b data-en="until Aug 7" data-pt="até 07/08"></b></div>
     </div>
     <div class="phase-row">
-      <div><div class="phase-name">Components &amp; Additional Pages</div><div class="phase-sub">Module 3</div></div>
-      <div class="bar-track"><div class="bar solid">Components &amp; pages module</div></div>
-      <div class="phase-dates"><b>until Aug 21</b></div>
+      <div><div class="phase-name" data-en="Services page" data-pt="Página de Serviços"></div><div class="phase-sub" data-en="Module 2" data-pt="Módulo 2"></div></div>
+      <div class="bar-track"><div class="bar solid" data-en="Services module" data-pt="Módulo de Serviços"></div></div>
+      <div class="phase-dates"><b data-en="until Aug 14" data-pt="até 14/08"></b></div>
+    </div>
+    <div class="phase-row">
+      <div><div class="phase-name" data-en="Components & Additional Pages" data-pt="Componentes e Páginas Adicionais"></div><div class="phase-sub" data-en="Module 3" data-pt="Módulo 3"></div></div>
+      <div class="bar-track"><div class="bar solid" data-en="Components & pages module" data-pt="Módulo de componentes e páginas"></div></div>
+      <div class="phase-dates"><b data-en="until Aug 21" data-pt="até 21/08"></b></div>
     </div>
   </div>
 
   <div class="stage-block">
     <div class="stage-block-head">
-      <h2>Integrations</h2>
-      <span class="stage-tag">Aug 24 - Sep 4</span>
+      <h2 data-en="Integrations" data-pt="Integrações"></h2>
+      <span class="stage-tag" data-en="Aug 24 - Sep 4" data-pt="24/08 - 04/09"></span>
     </div>
-    <div class="sub">OMS, ERP, CRM, payment gateway and shipping hub - specific tools still being defined.</div>
+    <div class="sub" data-en="OMS, ERP, CRM, payment gateway and shipping hub - specific tools still being defined." data-pt="OMS, ERP, CRM, gateway de pagamento e hub de frete - ferramentas específicas ainda em definição."></div>
     <div class="phase-row">
-      <div><div class="phase-name">System integrations</div><div class="phase-sub">OMS - ERP - CRM - payment - shipping</div></div>
-      <div class="bar-track"><div class="bar">Connecting corporate systems</div></div>
-      <div class="phase-dates"><b>Aug 24</b> &rarr; Sep 4</div>
+      <div><div class="phase-name" data-en="System integrations" data-pt="Integrações de sistemas"></div><div class="phase-sub" data-en="OMS - ERP - CRM - payment - shipping" data-pt="OMS - ERP - CRM - pagamento - frete"></div></div>
+      <div class="bar-track"><div class="bar" data-en="Connecting the necessary systems" data-pt="Conexão com os sistemas necessários"></div></div>
+      <div class="phase-dates"><b data-en="Aug 24" data-pt="24/08"></b> &rarr; <span data-en="Sep 4" data-pt="04/09"></span></div>
     </div>
   </div>
 
-  <div class="track-label"><span class="dot" style="background:var(--ink);"></span><span>Track 2 - OMS (Order Management System)</span></div>
+  <div class="track-label"><span class="dot" style="background:var(--ink);"></span><span data-en="Track 2 - OMS (Order Management System)" data-pt="Frente 2 - OMS (Order Management System)"></span></div>
 
   <div class="stage-block">
     <div class="stage-block-head">
-      <h2>OMS adaptation &amp; integration</h2>
-      <span class="stage-tag">scope in progress</span>
+      <h2 data-en="OMS adaptation & integration" data-pt="Adaptação e integração do OMS"></h2>
+      <span class="stage-tag" data-en="scope in progress" data-pt="escopo em definição"></span>
     </div>
-    <div class="sub">Track run in parallel, coordinated directly with the international (US) team. Final timeline depends on this alignment.</div>
+    <div class="sub" data-en="Track run in parallel, coordinated directly with the international (US) team. Final timeline depends on this alignment." data-pt="Track conduzido em paralelo, alinhado diretamente com o time internacional (EUA). Prazo final depende dessa validação."></div>
     <ul class="scope-list">
-      <li>Mapping and validation of data flowing between Shopify and OMS</li>
-      <li>Definition and configuration of the fields required for the Brazilian operation</li>
-      <li>Adjustment of operational flows and OMS business rules</li>
-      <li>Technical support and alignment with the international team</li>
-      <li>Integrated testing, functional homologation and flow validation</li>
-      <li>Validation of the OMS-CRM event integration via API</li>
+      <li data-en="Mapping and validation of data flowing between Shopify and OMS" data-pt="Mapeamento e validação dos dados trafegados entre Shopify e OMS"></li>
+      <li data-en="Definition and configuration of the fields required for the Brazilian operation" data-pt="Definição e parametrização dos campos necessários para a operação brasileira"></li>
+      <li data-en="Adjustment of operational flows and OMS business rules" data-pt="Adequação dos fluxos operacionais e das regras de negócio do OMS"></li>
+      <li data-en="Technical support and alignment with the international team" data-pt="Suporte técnico e alinhamento junto à equipe internacional"></li>
+      <li data-en="Integrated testing, functional homologation and flow validation" data-pt="Execução de testes integrados, homologação funcional e validação dos fluxos"></li>
+      <li data-en="Validation of the OMS-CRM event integration via API" data-pt="Validação da integração dos eventos do OMS com o CRM via API"></li>
     </ul>
   </div>
 
   <div class="meetings">
-    <h2>Upcoming meetings</h2>
-    <div class="sub">Alignment to kick off both tracks.</div>
+    <h2 data-en="Upcoming meetings" data-pt="Próximas reuniões"></h2>
+    <div class="sub" data-en="Alignment to kick off both tracks." data-pt="Alinhamento para iniciar as duas frentes."></div>
     <div id="meetingList"></div>
   </div>
 
-  <div class="footnote">Development and Integrations dates are fixed (closed scope) - OMS scope is still being defined with the US team</div>
+  <div class="footnote" data-en="Development and Integrations dates are fixed (closed scope) - OMS scope is still being defined with the US team" data-pt="As datas de Desenvolvimento e Integrações são fixas (escopo fechado) - o escopo do OMS ainda está em definição com o time dos EUA"></div>
 
 </div>
 
 <script>
+  const dict = {
+    en: {
+      locale: 'en-US',
+      tickLabels: ['Home', 'Services page', 'Components & Additional Pages', 'Integrations complete'],
+      edgeKickoff: 'Kickoff',
+      edgeEnd: 'Integrations complete',
+      meetingTitle: 'Kickoff',
+      meetingSub: 'Alignment with the US team to kick off both tracks',
+      meetingTag: 'Kickoff',
+    },
+    pt: {
+      locale: 'pt-BR',
+      tickLabels: ['Home', 'Página de Serviços', 'Componentes e Páginas Adicionais', 'Integrações concluídas'],
+      edgeKickoff: 'Kick-off',
+      edgeEnd: 'Integrações concluídas',
+      meetingTitle: 'Kick-off',
+      meetingSub: 'Alinhamento com o time dos EUA para iniciar as duas frentes',
+      meetingTag: 'Kick-off',
+    },
+  };
+  let lang = 'en';
+
   function fmtShort(date){
-    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    return date.toLocaleDateString(dict[lang].locale, { day: 'numeric', month: 'short' });
   }
   function fmtFull(date){
-    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    return date.toLocaleDateString(dict[lang].locale, { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   const kickoff  = new Date('2026-07-24T12:00:00');
@@ -214,36 +249,55 @@
   const pct = (date) => Math.min(100, Math.max(0, ((date - kickoff) / totalSpan) * 100));
   const now = new Date(); now.setHours(12,0,0,0);
 
-  document.getElementById('edgeStart').textContent = fmtFull(kickoff);
-  document.getElementById('edgeEnd').textContent = fmtFull(integEnd);
-  document.getElementById('overviewFill').style.width = pct(now).toFixed(1) + '%';
-
-  const ticks = [
-    { date: home,     label: 'Home' },
-    { date: services,  label: 'Services page' },
-    { date: modules,   label: 'Components & Additional Pages' },
-    { date: integEnd,  label: 'Integrations complete' },
-  ];
-  document.getElementById('overviewTicks').innerHTML = ticks.map(t => `
-    <div class="tick" style="left:${pct(t.date).toFixed(1)}%;">
-      <div class="tick-tip"><b>${t.label}</b> &middot; ${fmtShort(t.date)}</div>
-    </div>
-  `).join('');
-
-  if (now >= kickoff && now <= integEnd) {
-    const marker = document.createElement('div');
-    marker.className = 'now-marker';
-    marker.style.left = pct(now).toFixed(1) + '%';
-    document.querySelector('.overview-track-wrap').appendChild(marker);
+  function applyStaticI18n(){
+    document.querySelectorAll('[data-en]').forEach(el => {
+      el.textContent = lang === 'en' ? el.dataset.en : el.dataset.pt;
+    });
   }
 
-  document.getElementById('meetingList').innerHTML = `
-    <div class="meeting-row">
-      <div class="m-date">${fmtFull(kickoff)}</div>
-      <div class="m-title">Kickoff<div class="phase-sub">Alignment with the US team to kick off both tracks</div></div>
-      <div class="m-tag">Kickoff</div>
-    </div>
-  `;
+  function renderDynamic(){
+    const d = dict[lang];
+
+    document.getElementById('edgeKickoffLabel').textContent = d.edgeKickoff;
+    document.getElementById('edgeEndLabel').textContent = d.edgeEnd;
+    document.getElementById('edgeStart').textContent = fmtFull(kickoff);
+    document.getElementById('edgeEnd').textContent = fmtFull(integEnd);
+    document.getElementById('overviewFill').style.width = pct(now).toFixed(1) + '%';
+
+    const dates = [home, services, modules, integEnd];
+    document.getElementById('overviewTicks').innerHTML = dates.map((date, i) => `
+      <div class="tick" style="left:${pct(date).toFixed(1)}%;">
+        <div class="tick-tip"><b>${d.tickLabels[i]}</b> &middot; ${fmtShort(date)}</div>
+      </div>
+    `).join('');
+
+    const oldMarker = document.querySelector('.now-marker');
+    if (oldMarker) oldMarker.remove();
+    if (now >= kickoff && now <= integEnd) {
+      const marker = document.createElement('div');
+      marker.className = 'now-marker';
+      marker.style.left = pct(now).toFixed(1) + '%';
+      document.querySelector('.overview-track-wrap').appendChild(marker);
+    }
+
+    document.getElementById('meetingList').innerHTML = `
+      <div class="meeting-row">
+        <div class="m-date">${fmtFull(kickoff)}</div>
+        <div class="m-title">${d.meetingTitle}<div class="phase-sub">${d.meetingSub}</div></div>
+        <div class="m-tag">${d.meetingTag}</div>
+      </div>
+    `;
+  }
+
+  function setLang(l){
+    lang = l;
+    document.getElementById('btnPT').classList.toggle('active', lang === 'pt');
+    document.getElementById('btnEN').classList.toggle('active', lang === 'en');
+    applyStaticI18n();
+    renderDynamic();
+  }
+
+  setLang('en');
 </script>
 </body>
 </html>
