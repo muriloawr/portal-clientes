@@ -285,14 +285,14 @@
   const capNext = document.getElementById('capNext');
   if (stageIdx === -2) {
     capCurrent.textContent = 'Ainda não começou';
-    capNext.textContent = stages[0].name + ' · ' + fmtShort(stages[0].start);
+    capNext.textContent = stages[0].name + ' · inicia em ' + fmtShort(stages[0].start);
   } else if (stageIdx === -1) {
     capCurrent.textContent = 'Projeto entregue';
     capNext.textContent = '-';
   } else {
     capCurrent.textContent = stages[stageIdx].name + ' · até ' + fmtShort(stages[stageIdx].end);
     capNext.textContent = stageIdx + 1 < stages.length
-      ? stages[stageIdx + 1].name + ' · ' + fmtShort(stages[stageIdx + 1].start)
+      ? stages[stageIdx + 1].name + ' · inicia em ' + fmtShort(stages[stageIdx + 1].start)
       : 'Entrega final · ' + fmtShort(integEnd);
   }
 
