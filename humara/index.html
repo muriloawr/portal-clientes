@@ -91,10 +91,19 @@
   .footnote{margin-top:26px;font-size:12px;color:var(--ink-soft);text-align:center;}
 
   @media (max-width:720px){
-    .demand-row{grid-template-columns:1fr;gap:6px;padding:16px 0;}
+    .demand-row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      grid-template-areas:"main main" "owner deadline" "status status";
+      gap:8px;padding:16px 0;
+    }
     .demand-head{display:none;}
-    .status{justify-self:start;width:fit-content;}
-    .d-deadline{text-align:left;}
+    .d-main{grid-area:main;}
+    .d-owner{grid-area:owner;}
+    .d-owner::before{content:"Responsável";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
+    .d-deadline{grid-area:deadline;text-align:left;}
+    .d-deadline::before{content:"Prazo";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
+    .status{grid-area:status;justify-self:start;width:fit-content;}
   }
 </style>
 </head>
@@ -129,13 +138,13 @@
         { title: 'Correção dos números dos endereços de pedidos antigos', deadline: '28/07', status: 'a-fazer', owner: 'Murilo' },
         { title: 'Quiz: Qual momento você se encontra', deadline: '30/07', status: 'em-analise', owner: 'Tiago' },
         { title: 'B2B para as Clínicas', deadline: '31/07', status: 'a-fazer', owner: 'Murilo' },
-        { title: 'Aprovação do cadastro de prescritor, e envio para o CRM via API', deadline: null, status: 'em-analise', owner: 'Erik' },
       ],
     },
     {
       key: '2026-08',
       label: 'Agosto 2026',
       demands: [
+        { title: 'Aprovação do cadastro de prescritor, e envio para o CRM via API', deadline: '05/08', status: 'em-andamento', owner: 'Erik' },
         { title: 'Modelo de Assinatura', deadline: '10/08', status: 'em-analise', owner: 'Murilo' },
       ],
     },
@@ -174,7 +183,7 @@
           </div>
         ` + m.demands.map(d => `
           <div class="demand-row">
-            <div><div class="d-title">${d.title}</div><div class="d-desc">${d.desc || ''}</div></div>
+            <div class="d-main"><div class="d-title">${d.title}</div><div class="d-desc">${d.desc || ''}</div></div>
             <div class="d-owner">${d.owner ? `<span class="owner-avatar">${d.owner.charAt(0)}</span>${d.owner}` : '-'}</div>
             <div class="d-deadline">${d.deadline || '-'}</div>
             <div class="status ${d.status}">${statusLabel[d.status] || '-'}</div>
