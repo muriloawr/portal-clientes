@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relatório de Acompanhamento - Humara</title>
+<title>Acompanhamento - Humara</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-grotesk@600&display=swap">
@@ -71,13 +71,11 @@
 
   /* demands list */
   .demands{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
-  .demand-row{display:grid;grid-template-columns:1fr 130px 90px 130px;gap:14px;align-items:center;padding:16px 0;border-top:1px solid var(--line);}
+  .demand-row{display:grid;grid-template-columns:1fr 90px 130px;gap:14px;align-items:center;padding:16px 0;border-top:1px solid var(--line);}
   .demand-row:first-of-type{border-top:none;}
   .demand-head{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--ink-soft);padding:12px 0 6px;}
   .d-title{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);}
   .d-desc{font-size:12px;color:var(--ink-soft);margin-top:2px;}
-  .d-owner{font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:7px;}
-  .owner-avatar{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:10.5px;font-weight:500;flex-shrink:0;}
   .d-deadline{font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);text-align:center;}
   .status{font-size:11px;padding:4px 10px;border-radius:20px;text-align:center;white-space:nowrap;}
   .status.a-fazer{background:var(--tint-1);color:var(--ink-soft);}
@@ -94,16 +92,15 @@
     .demand-row{
       display:grid;
       grid-template-columns:1fr 1fr;
-      grid-template-areas:"main main" "owner deadline" "status status";
+      grid-template-areas:"main main" "deadline status";
       gap:8px;padding:16px 0;
     }
     .demand-head{display:none;}
+    .demand-head + .demand-row{border-top:none;}
     .d-main{grid-area:main;}
-    .d-owner{grid-area:owner;}
-    .d-owner::before{content:"Responsável";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
     .d-deadline{grid-area:deadline;text-align:left;}
     .d-deadline::before{content:"Prazo";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
-    .status{grid-area:status;justify-self:start;width:fit-content;}
+    .status{grid-area:status;justify-self:start;width:fit-content;align-self:end;}
   }
 </style>
 </head>
@@ -179,12 +176,11 @@
         ? `<div class="empty-state"><b>Nenhuma solicitação registrada ainda</b>Assim que houverem solicitações ou pontos da reunião mensal, eles aparecem aqui.</div>`
         : `
           <div class="demand-row demand-head">
-            <div>Demanda</div><div>Responsável</div><div style="text-align:center;">Prazo</div><div>Status</div>
+            <div>Demanda</div><div style="text-align:center;">Prazo</div><div>Status</div>
           </div>
         ` + m.demands.map(d => `
           <div class="demand-row">
             <div class="d-main"><div class="d-title">${d.title}</div><div class="d-desc">${d.desc || ''}</div></div>
-            <div class="d-owner">${d.owner ? `<span class="owner-avatar">${d.owner.charAt(0)}</span>${d.owner}` : '-'}</div>
             <div class="d-deadline">${d.deadline || '-'}</div>
             <div class="status ${d.status}">${statusLabel[d.status] || '-'}</div>
           </div>
