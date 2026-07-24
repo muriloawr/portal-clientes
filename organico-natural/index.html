@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acompanhamento - Orgânico Natural</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-grotesk@600&display=swap">
+<style>
+  :root{
+    --bg:#F2F6FC;
+    --panel:#FFFFFF;
+    --ink:#0B1C33;
+    --ink-soft:#5A6B85;
+    --line:#DCE5F0;
+    --brand:#015EC5;
+    --tint-1:#EAF1FC;
+    --tint-2:#C7DCF5;
+  }
+  *{box-sizing:border-box;}
+  html{overflow-x:hidden;}
+  body{
+    margin:0;color:var(--ink);font-family:'Inter',sans-serif;font-weight:500;padding:0 0 90px;
+    background:var(--bg);
+    position:relative;overflow-x:hidden;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(circle at 88% -8%, rgba(1,94,197,0.16), transparent 42%),
+      radial-gradient(circle at -6% 18%, rgba(1,94,197,0.08), transparent 38%);
+  }
+  body::before{
+    content:"";position:fixed;inset:0;
+    background-image:radial-gradient(rgba(11,28,51,0.07) 1px, transparent 1px);
+    background-size:22px 22px;pointer-events:none;z-index:0;
+    mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.15) 60%, transparent 100%);
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 24px 0;position:relative;z-index:1;}
+  .topbar{height:5px;width:100%;background:linear-gradient(90deg, var(--tint-1), var(--brand) 50%, var(--ink));background-size:200% 100%;animation:flow 7s ease-in-out infinite alternate;position:relative;z-index:1;}
+  @keyframes flow{0%{background-position:0% 0;}100%{background-position:100% 0;}}
+
+  .head{margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
+  .logo{height:34px;}
+  .eyebrow{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:#2FBE6C;flex-shrink:0;box-shadow:0 0 0 0 rgba(47,190,108,0.6);animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,190,108,0.55);}70%{box-shadow:0 0 0 7px rgba(47,190,108,0);}100%{box-shadow:0 0 0 0 rgba(47,190,108,0);}}
+  h1{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:32px;margin:0;line-height:1.1;color:var(--ink);}
+  .subtitle{font-family:'Inter',sans-serif;font-size:14px;color:var(--ink-soft);margin-top:4px;}
+
+  /* month tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;}
+  .tab-btn{
+    font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:13.5px;
+    background:var(--panel);color:var(--ink-soft);border:1px solid var(--line);
+    padding:9px 18px;border-radius:20px;cursor:pointer;transition:all .15s ease;
+  }
+  .tab-btn:hover{border-color:var(--brand);color:var(--brand);}
+  .tab-btn.active{background:var(--brand);color:#fff;border-color:var(--brand);}
+  .tab-btn .current-mark{display:inline-block;width:6px;height:6px;border-radius:50%;background:#2FBE6C;margin-left:7px;vertical-align:middle;}
+
+  .month-panel{display:none;}
+  .month-panel.active{display:block;animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  /* summary strip */
+  .summary{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:24px;}
+  .summary-item{display:flex;flex-direction:column;gap:2px;}
+  .summary-label{font-family:'Inter',sans-serif;font-size:11px;color:var(--ink-soft);white-space:nowrap;}
+  .summary-value{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:20px;color:var(--brand);}
+  .summary-value.ink{color:var(--ink);}
+
+  /* demands list */
+  .demands{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .demand-row{display:grid;grid-template-columns:1fr 130px 90px 130px;gap:14px;align-items:center;padding:16px 0;border-top:1px solid var(--line);}
+  .demand-row:first-of-type{border-top:none;}
+  .demand-head{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--ink-soft);padding:12px 0 6px;}
+  .d-title{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);}
+  .d-desc{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .d-owner{font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:7px;}
+  .owner-avatar{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:10.5px;font-weight:500;flex-shrink:0;}
+  .d-deadline{font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);text-align:center;}
+  .status{font-size:11px;padding:4px 10px;border-radius:20px;text-align:center;white-space:nowrap;}
+  .status.a-fazer{background:var(--tint-1);color:var(--ink-soft);}
+  .status.em-andamento{background:var(--tint-2);color:var(--brand);}
+  .status.feito{background:var(--brand);color:#fff;}
+  .status.em-analise{background:var(--panel);color:var(--ink-soft);border:1px dashed var(--line);}
+
+  .empty-state{padding:40px 0;text-align:center;color:var(--ink-soft);font-size:13.5px;}
+  .empty-state b{display:block;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--ink);margin-bottom:6px;}
+
+  .footnote{margin-top:26px;font-size:12px;color:var(--ink-soft);text-align:center;}
+
+  @media (max-width:720px){
+    .demand-row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      grid-template-areas:"main main" "owner deadline" "status status";
+      gap:8px;padding:16px 0;
+    }
+    .demand-head{display:none;}
+    .demand-head + .demand-row{border-top:none;}
+    .d-main{grid-area:main;}
+    .d-owner{grid-area:owner;}
+    .d-deadline{grid-area:deadline;text-align:left;}
+    .d-deadline::before{content:"Prazo";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
+    .status{grid-area:status;justify-self:start;width:fit-content;}
+    .summary{gap:14px;flex-wrap:nowrap;}
+    .summary-label{font-size:10px;}
+  }
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<div class="wrap">
+
+  <div class="head">
+    <svg class="logo" viewBox="0 0 334 183" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM69.0009 32.5515H75.3891L77.2882 10.0425L69.0009 32.5515ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/>
+      <path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/>
+    </svg>
+    <div class="eyebrow"><span class="live-dot"></span>Relatório de Acompanhamento - CRM</div>
+    <h1 contenteditable="true">Orgânico Natural</h1>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div id="monthPanels"></div>
+
+  <div class="footnote">Atualizado sempre que uma solicitação muda de status</div>
+
+</div>
+
+<script>
+  // --- dados: um objeto por mês. Sincronizado automaticamente a partir do ClickUp. ---
+  const months = [
+    {
+      key: '2026-07',
+      label: 'Julho 2026',
+      demands: [],
+    },
+  ];
+
+  const statusLabel = { 'a-fazer': 'A fazer', 'em-andamento': 'Em andamento', 'feito': 'Feito', 'em-analise': 'Em análise' };
+
+  function renderTabs(currentKey) {
+    document.getElementById('tabs').innerHTML = months.map(m => `
+      <button class="tab-btn${m.key === currentKey ? ' active' : ''}" data-key="${m.key}">
+        ${m.label}${isRealCurrentMonth(m.key) ? '<span class="current-mark"></span>' : ''}
+      </button>
+    `).join('');
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => showMonth(btn.dataset.key));
+    });
+  }
+
+  function isRealCurrentMonth(key) {
+    const now = new Date();
+    const nowKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    return key === nowKey;
+  }
+
+  function renderPanels() {
+    document.getElementById('monthPanels').innerHTML = months.map(m => {
+      const total = m.demands.length;
+      const done = m.demands.filter(d => d.status === 'feito').length;
+      const doing = m.demands.filter(d => d.status === 'em-andamento').length;
+
+      const rowsHtml = total === 0
+        ? `<div class="empty-state"><b>Nenhuma solicitação registrada ainda</b>Assim que houverem solicitações ou pontos da reunião mensal, eles aparecem aqui.</div>`
+        : `
+          <div class="demand-row demand-head">
+            <div>Demanda</div><div>Responsável</div><div style="text-align:center;">Prazo</div><div>Status</div>
+          </div>
+        ` + m.demands.map(d => `
+          <div class="demand-row">
+            <div class="d-main"><div class="d-title">${d.title}</div><div class="d-desc">${d.desc || ''}</div></div>
+            <div class="d-owner">${d.owner ? `<span class="owner-avatar">${d.owner.charAt(0)}</span>${d.owner}` : '-'}</div>
+            <div class="d-deadline">${d.deadline || '-'}</div>
+            <div class="status ${d.status}">${statusLabel[d.status] || '-'}</div>
+          </div>
+        `).join('');
+
+      return `
+        <div class="month-panel" id="panel-${m.key}">
+          <div class="summary">
+            <div class="summary-item"><span class="summary-value">${total}</span><span class="summary-label">solicitações</span></div>
+            <div class="summary-item"><span class="summary-value ink">${doing}</span><span class="summary-label">em andamento</span></div>
+            <div class="summary-item"><span class="summary-value ink">${done}</span><span class="summary-label">feitas</span></div>
+          </div>
+          <div class="demands">${rowsHtml}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function showMonth(key) {
+    document.querySelectorAll('.month-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + key));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.key === key));
+  }
+
+  // escolhe a aba do mês atual real, se existir; senão, a última cadastrada
+  const now = new Date();
+  const nowKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const defaultKey = months.some(m => m.key === nowKey) ? nowKey : months[months.length - 1].key;
+
+  renderTabs(defaultKey);
+  renderPanels();
+  showMonth(defaultKey);
+</script>
+</body>
+</html>

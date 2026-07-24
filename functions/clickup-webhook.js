@@ -15,6 +15,7 @@ const CLIENTS = [
   { name: 'Uplift Fitness', taskId: '86aewgr7t', filePath: 'uplift-fitness/index.html' },
   { name: 'InfinitAge', taskId: '86aeu720q', filePath: 'infinitage/index.html' },
   { name: 'A Confiteria', taskId: 'wdpu2ydp1t', filePath: 'a-confiteria/index.html' },
+  { name: 'Orgânico Natural', taskId: 'wdpu2ydp1u', filePath: 'organico-natural/index.html' },
   {
     name: 'Adah Beauty Tech',
     filePath: 'adah-beauty-tech/index.html',
