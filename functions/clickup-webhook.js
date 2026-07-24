@@ -114,7 +114,7 @@ async function buildMonths(token) {
   const monthsMap = new Map();
 
   for (const t of subtasks) {
-    const statusRaw = (t.status || '').toLowerCase();
+    const statusRaw = (t.status && t.status.status ? t.status.status : '').toLowerCase();
     const status = STATUS_MAP[statusRaw];
     if (!status) continue; // 'fechado' ou status não mapeado: não entra no relatório
 
