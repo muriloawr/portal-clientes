@@ -39,13 +39,23 @@
   .topbar{height:5px;width:100%;background:linear-gradient(90deg, var(--tint-1), var(--brand) 50%, var(--ink));background-size:200% 100%;animation:flow 7s ease-in-out infinite alternate;position:relative;z-index:1;}
   @keyframes flow{0%{background-position:0% 0;}100%{background-position:100% 0;}}
 
-  .head{margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
+  .head{margin-bottom:20px;padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
   .logo{height:34px;}
   .eyebrow{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
   .live-dot{width:7px;height:7px;border-radius:50%;background:#2FBE6C;flex-shrink:0;box-shadow:0 0 0 0 rgba(47,190,108,0.6);animation:pulse 1.8s infinite;}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,190,108,0.55);}70%{box-shadow:0 0 0 7px rgba(47,190,108,0);}100%{box-shadow:0 0 0 0 rgba(47,190,108,0);}}
   h1{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:32px;margin:0;line-height:1.1;color:var(--ink);}
   .subtitle{font-family:'Inter',sans-serif;font-size:14px;color:var(--ink-soft);margin-top:4px;}
+
+  /* service tabs (CRO / CRM) */
+  .service-tabs{display:flex;gap:22px;margin-bottom:22px;}
+  .service-tab-btn{
+    font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;
+    background:none;color:var(--ink-soft);border:none;border-bottom:2px solid transparent;
+    padding:6px 2px 10px;cursor:pointer;transition:all .15s ease;
+  }
+  .service-tab-btn:hover{color:var(--ink);}
+  .service-tab-btn.active{color:var(--ink);border-bottom-color:var(--brand);}
 
   /* month tabs */
   .tabs{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;}
@@ -121,9 +131,11 @@
       <path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM69.0009 32.5515H75.3891L77.2882 10.0425L69.0009 32.5515ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/>
       <path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/>
     </svg>
-    <div class="eyebrow"><span class="live-dot"></span>Relatório de Acompanhamento - CRO</div>
+    <div class="eyebrow"><span class="live-dot"></span><span id="eyebrowText">Relatório de Acompanhamento</span></div>
     <h1 contenteditable="true">Adah Beauty Tech</h1>
   </div>
+
+  <div class="service-tabs" id="serviceTabs"></div>
 
   <div class="tabs" id="tabs"></div>
 
@@ -134,24 +146,33 @@
 </div>
 
 <script>
-  // --- dados: um objeto por mês. Sincronizado automaticamente a partir do ClickUp. ---
-  const months = [
+  // --- dados: um objeto por serviço, cada um com seus meses. Sincronizado automaticamente a partir do ClickUp. ---
+  const services = [
     {
-      key: '2026-07',
-      label: 'Julho 2026',
-      demands: [
-        { title: 'Ajustar tamanhos, espaçamentos e legibilidade das fontes no menu responsivo;', deadline: '', status: 'a-fazer', owner: 'Tiago', hours: null },
-        { title: 'Corrigir e otimizar a responsividade das tags exibidas nos produtos;', deadline: '', status: 'em-andamento', owner: 'Tiago', hours: null },
-        { title: 'Melhorar o layout, a organização e a responsividade dos cards de produtos;', deadline: '', status: 'a-fazer', owner: 'Tiago', hours: null },
-        { title: 'Revisar e aprimorar a responsividade geral das páginas de produto (PDP);', deadline: '', status: 'a-fazer', owner: 'Tiago', hours: null },
-        { title: 'Melhorar a estrutura e a responsividade do rodapé em diferentes dispositivos;', deadline: '', status: 'feito', owner: 'Tiago', hours: 1 },
-        { title: 'Conectar o Popup direto com o Bevean CRM', deadline: '', status: 'a-fazer', owner: 'Tiago', hours: null },
-        { title: 'No Geral todas as sessões de section store remover e deixar nativa no padrão', deadline: '', status: 'a-fazer', owner: 'Tiago', hours: null },
-        { title: 'Comunicação da Oferta das Fórmulas para 30% OFF (Acima de R$500) e 40% OFF (Acima de R$1000);', deadline: '14/07', status: 'feito', owner: 'Tiago', hours: 3.5 },
-        { title: 'Revisar, melhorar e padronizar todos os indicadores de navegação (dots) do site;', deadline: '14/07', status: 'feito', owner: 'Ian', hours: null },
-        { title: 'Aprimorar a responsividade da seção de especialistas;', deadline: '14/07', status: 'feito', owner: 'Ian', hours: 0.33 },
-        { title: 'Adicionar o icones na barra de progresso de desconto', deadline: '', status: 'feito', owner: '', hours: null },
-        { title: 'Otimizar todos os WEBPs com mais de 500kb', deadline: '17/07', status: 'a-fazer', owner: 'Ian', hours: null },
+      key: 'cro',
+      label: 'CRO',
+      months: [
+        {
+          key: '2026-07',
+          label: 'Julho 2026',
+          demands: [
+            { title: 'Deixar os descontos mais dinâmicos', deadline: '24/07', status: 'a-fazer', owner: 'Murilo', hours: 0.5 },
+            { title: 'Correção dos números dos endereços de pedidos antigos', deadline: '28/07', status: 'a-fazer', owner: 'Murilo', hours: null },
+            { title: 'Quiz: Qual momento você se encontra', deadline: '30/07', status: 'em-analise', owner: 'Tiago', hours: null },
+            { title: 'B2B para as Clínicas', deadline: '31/07', status: 'a-fazer', owner: 'Murilo', hours: null },
+          ],
+        },
+      ],
+    },
+    {
+      key: 'crm',
+      label: 'CRM',
+      months: [
+        {
+          key: '2026-07',
+          label: 'Julho 2026',
+          demands: [],
+        },
       ],
     },
   ];
@@ -168,7 +189,24 @@
     return `${h}h ${String(m).padStart(2, '0')}m`;
   }
 
+  let activeServiceKey = services[0].key;
+
+  function currentService() {
+    return services.find(s => s.key === activeServiceKey) || services[0];
+  }
+
+  function renderServiceTabs() {
+    document.getElementById('serviceTabs').innerHTML = services.map(s => `
+      <button class="service-tab-btn${s.key === activeServiceKey ? ' active' : ''}" data-service="${s.key}">${s.label}</button>
+    `).join('');
+    document.querySelectorAll('.service-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => showService(btn.dataset.service));
+    });
+    document.getElementById('eyebrowText').textContent = `Relatório de Acompanhamento - ${currentService().label}`;
+  }
+
   function renderTabs(currentKey) {
+    const months = currentService().months;
     document.getElementById('tabs').innerHTML = months.map(m => `
       <button class="tab-btn${m.key === currentKey ? ' active' : ''}" data-key="${m.key}">
         ${m.label}${isRealCurrentMonth(m.key) ? '<span class="current-mark"></span>' : ''}
@@ -186,6 +224,7 @@
   }
 
   function renderPanels() {
+    const months = currentService().months;
     document.getElementById('monthPanels').innerHTML = months.map(m => {
       const total = m.demands.length;
       const done = m.demands.filter(d => d.status === 'feito').length;
@@ -228,14 +267,23 @@
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.key === key));
   }
 
-  // escolhe a aba do mês atual real, se existir; senão, a última cadastrada
-  const now = new Date();
-  const nowKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  const defaultKey = months.some(m => m.key === nowKey) ? nowKey : months[months.length - 1].key;
+  function defaultMonthKey(months) {
+    if (!months.length) return null;
+    const now = new Date();
+    const nowKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    return months.some(m => m.key === nowKey) ? nowKey : months[months.length - 1].key;
+  }
 
-  renderTabs(defaultKey);
-  renderPanels();
-  showMonth(defaultKey);
+  function showService(key) {
+    activeServiceKey = key;
+    renderServiceTabs();
+    renderPanels();
+    const monthKey = defaultMonthKey(currentService().months);
+    renderTabs(monthKey);
+    if (monthKey) showMonth(monthKey);
+  }
+
+  showService(activeServiceKey);
 </script>
 </body>
 </html>

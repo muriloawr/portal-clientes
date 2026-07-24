@@ -6,11 +6,22 @@
 // no GitHub. O deploy do Cloudflare Pages já dispara sozinho a partir do commit.
 // Adicionar um cliente novo é só adicionar uma entrada em CLIENTS.
 
+// Clientes com um serviço só usam `taskId` (escreve `const months = [...]` no HTML).
+// Clientes com mais de um serviço (ex: CRO + CRM) usam `services`, cada um com seu
+// próprio taskId — escreve `const services = [{ key, label, months }, ...]` no HTML,
+// e o front-end mostra uma aba por serviço.
 const CLIENTS = [
   { name: 'Humara', taskId: 'wdpu2ybtwm', filePath: 'humara/index.html' },
   { name: 'Uplift Fitness', taskId: '86aewgr7t', filePath: 'uplift-fitness/index.html' },
   { name: 'InfinitAge', taskId: '86aeu720q', filePath: 'infinitage/index.html' },
-  { name: 'Adah Beauty Tech', taskId: '86aeu71ur', filePath: 'adah-beauty-tech/index.html' },
+  {
+    name: 'Adah Beauty Tech',
+    filePath: 'adah-beauty-tech/index.html',
+    services: [
+      { key: 'cro', label: 'CRO', taskId: '86aeu71ur' },
+      { key: 'crm', label: 'CRM', taskId: 'wdpu2ydp1p' },
+    ],
+  },
 ];
 
 const REPO_OWNER = 'muriloawr';
@@ -58,9 +69,20 @@ export async function onRequestGet() {
 }
 
 async function syncClient(client, env) {
-  const months = await buildMonths(client.taskId, env.CLICKUP_API_TOKEN);
   const { content, sha } = await getGithubFile(client.filePath, env.GITHUB_TOKEN);
-  const updated = replaceMonthsArray(content, months);
+
+  let updated;
+  if (client.services) {
+    const services = [];
+    for (const service of client.services) {
+      const months = await buildMonths(service.taskId, env.CLICKUP_API_TOKEN);
+      services.push({ key: service.key, label: service.label, months });
+    }
+    updated = replaceServicesArray(content, services);
+  } else {
+    const months = await buildMonths(client.taskId, env.CLICKUP_API_TOKEN);
+    updated = replaceMonthsArray(content, months);
+  }
 
   if (updated === content) return 'no changes';
 
@@ -148,20 +170,37 @@ function escapeJs(str) {
   return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
 }
 
-function monthsToJs(months) {
+function monthsArrayLiteral(months) {
   const body = months.map(m => {
     const demandsJs = m.demands.map(d =>
       `        { title: '${escapeJs(d.title)}', deadline: '${escapeJs(d.deadline)}', status: '${d.status}', owner: '${escapeJs(d.owner)}', hours: ${d.hours == null ? 'null' : d.hours} },`,
     ).join('\n');
     return `    {\n      key: '${m.key}',\n      label: '${escapeJs(m.label)}',\n      demands: [\n${demandsJs}\n      ],\n    },`;
   }).join('\n');
-  return `const months = [\n${body}\n  ];`;
+  return `[\n${body}\n  ]`;
+}
+
+function monthsToJs(months) {
+  return `const months = ${monthsArrayLiteral(months)};`;
+}
+
+function servicesToJs(services) {
+  const body = services.map(s =>
+    `    { key: '${s.key}', label: '${escapeJs(s.label)}', months: ${monthsArrayLiteral(s.months)} },`,
+  ).join('\n');
+  return `const services = [\n${body}\n  ];`;
 }
 
 function replaceMonthsArray(html, months) {
   const regex = /const\s+months\s*=\s*\[[\s\S]*?\];/;
   if (!regex.test(html)) throw new Error('months array not found in HTML');
   return html.replace(regex, monthsToJs(months));
+}
+
+function replaceServicesArray(html, services) {
+  const regex = /const\s+services\s*=\s*\[[\s\S]*?\];/;
+  if (!regex.test(html)) throw new Error('services array not found in HTML');
+  return html.replace(regex, servicesToJs(services));
 }
 
 // --- GitHub ---
