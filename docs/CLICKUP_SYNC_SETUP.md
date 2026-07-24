@@ -61,3 +61,8 @@ confirme que rodou um deploy novo depois de salvar antes de testar de novo.
 - Mês é definido pela due date da subtask; sem due date, cai no mês de criação.
 - Se uma subtask não tiver responsável atribuído no ClickUp, o campo "owner" fica vazio no
   relatório — a function não inventa dados, só reflete o que está no ClickUp.
+- Coluna "Horas" vem do campo **Estimativa de tempo** (`time_estimate`) da subtask no ClickUp,
+  convertido de milissegundos pra horas. Na prática é usado como "horas utilizadas" (preenchido
+  depois que a tarefa já está em andamento, não como estimativa prévia). Subtask sem esse campo
+  preenchido mostra "-". O resumo do mês só exibe "horas utilizadas" quando pelo menos uma demanda
+  do mês tem esse campo preenchido.

@@ -117,6 +117,7 @@ async function buildMonths(token) {
       deadline: t.due_date ? formatDeadline(Number(t.due_date)) : '',
       status,
       owner: t.assignees && t.assignees[0] ? t.assignees[0].username.split(' ')[0] : '',
+      hours: t.time_estimate ? Math.round((Number(t.time_estimate) / 3600000) * 100) / 100 : null,
       _sort: refDateMs,
     });
   }
@@ -136,7 +137,7 @@ function escapeJs(str) {
 function monthsToJs(months) {
   const body = months.map(m => {
     const demandsJs = m.demands.map(d =>
-      `        { title: '${escapeJs(d.title)}', deadline: '${escapeJs(d.deadline)}', status: '${d.status}', owner: '${escapeJs(d.owner)}' },`,
+      `        { title: '${escapeJs(d.title)}', deadline: '${escapeJs(d.deadline)}', status: '${d.status}', owner: '${escapeJs(d.owner)}', hours: ${d.hours == null ? 'null' : d.hours} },`,
     ).join('\n');
     return `    {\n      key: '${m.key}',\n      label: '${escapeJs(m.label)}',\n      demands: [\n${demandsJs}\n      ],\n    },`;
   }).join('\n');

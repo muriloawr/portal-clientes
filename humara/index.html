@@ -65,13 +65,13 @@
   /* summary strip */
   .summary{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:24px;}
   .summary-item{display:flex;flex-direction:column;gap:2px;}
-  .summary-label{font-family:'Inter',sans-serif;font-size:11px;color:var(--ink-soft);}
+  .summary-label{font-family:'Inter',sans-serif;font-size:11px;color:var(--ink-soft);white-space:nowrap;}
   .summary-value{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:20px;color:var(--brand);}
   .summary-value.ink{color:var(--ink);}
 
   /* demands list */
   .demands{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
-  .demand-row{display:grid;grid-template-columns:1fr 130px 90px 130px;gap:14px;align-items:center;padding:16px 0;border-top:1px solid var(--line);}
+  .demand-row{display:grid;grid-template-columns:1fr 130px 90px 80px 130px;gap:14px;align-items:center;padding:16px 0;border-top:1px solid var(--line);}
   .demand-row:first-of-type{border-top:none;}
   .demand-head{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--ink-soft);padding:12px 0 6px;}
   .d-title{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);}
@@ -79,6 +79,7 @@
   .d-owner{font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:7px;}
   .owner-avatar{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:10.5px;font-weight:500;flex-shrink:0;}
   .d-deadline{font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);text-align:center;}
+  .d-hours{font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);text-align:center;}
   .status{font-size:11px;padding:4px 10px;border-radius:20px;text-align:center;white-space:nowrap;}
   .status.a-fazer{background:var(--tint-1);color:var(--ink-soft);}
   .status.em-andamento{background:var(--tint-2);color:var(--brand);}
@@ -93,8 +94,8 @@
   @media (max-width:720px){
     .demand-row{
       display:grid;
-      grid-template-columns:1fr 1fr;
-      grid-template-areas:"main main" "owner deadline" "status status";
+      grid-template-columns:1fr 1fr 1fr;
+      grid-template-areas:"main main main" "owner deadline hours" "status status status";
       gap:8px;padding:16px 0;
     }
     .demand-head{display:none;}
@@ -103,7 +104,11 @@
     .d-owner{grid-area:owner;}
     .d-deadline{grid-area:deadline;text-align:left;}
     .d-deadline::before{content:"Prazo";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
+    .d-hours{grid-area:hours;text-align:left;}
+    .d-hours::before{content:"Horas";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
     .status{grid-area:status;justify-self:start;width:fit-content;}
+    .summary{gap:14px;flex-wrap:nowrap;}
+    .summary-label{font-size:10px;}
   }
 </style>
 </head>
@@ -153,6 +158,12 @@
 
   const statusLabel = { 'a-fazer': 'A fazer', 'em-andamento': 'Em andamento', 'feito': 'Feito', 'em-analise': 'Em análise' };
 
+  function formatHours(n) {
+    if (n == null) return '-';
+    const s = n % 1 === 0 ? String(n) : String(n.toFixed(2)).replace(/0+$/, '').replace(/\.$/, '');
+    return s + 'h';
+  }
+
   function renderTabs(currentKey) {
     document.getElementById('tabs').innerHTML = months.map(m => `
       <button class="tab-btn${m.key === currentKey ? ' active' : ''}" data-key="${m.key}">
@@ -175,18 +186,21 @@
       const total = m.demands.length;
       const done = m.demands.filter(d => d.status === 'feito').length;
       const doing = m.demands.filter(d => d.status === 'em-andamento').length;
+      const hasHours = m.demands.some(d => d.hours != null);
+      const totalHours = m.demands.reduce((sum, d) => sum + (d.hours || 0), 0);
 
       const rowsHtml = total === 0
         ? `<div class="empty-state"><b>Nenhuma solicitação registrada ainda</b>Assim que houverem solicitações ou pontos da reunião mensal, eles aparecem aqui.</div>`
         : `
           <div class="demand-row demand-head">
-            <div>Demanda</div><div>Responsável</div><div style="text-align:center;">Prazo</div><div>Status</div>
+            <div>Demanda</div><div>Responsável</div><div style="text-align:center;">Prazo</div><div style="text-align:center;">Horas</div><div>Status</div>
           </div>
         ` + m.demands.map(d => `
           <div class="demand-row">
             <div class="d-main"><div class="d-title">${d.title}</div><div class="d-desc">${d.desc || ''}</div></div>
             <div class="d-owner">${d.owner ? `<span class="owner-avatar">${d.owner.charAt(0)}</span>${d.owner}` : '-'}</div>
             <div class="d-deadline">${d.deadline || '-'}</div>
+            <div class="d-hours">${formatHours(d.hours)}</div>
             <div class="status ${d.status}">${statusLabel[d.status] || '-'}</div>
           </div>
         `).join('');
@@ -194,9 +208,10 @@
       return `
         <div class="month-panel" id="panel-${m.key}">
           <div class="summary">
-            <div class="summary-item"><span class="summary-value">${total}</span><span class="summary-label">solicitações no mês</span></div>
+            <div class="summary-item"><span class="summary-value">${total}</span><span class="summary-label">solicitações</span></div>
             <div class="summary-item"><span class="summary-value ink">${doing}</span><span class="summary-label">em andamento</span></div>
             <div class="summary-item"><span class="summary-value ink">${done}</span><span class="summary-label">feitas</span></div>
+            ${hasHours ? `<div class="summary-item"><span class="summary-value ink">${formatHours(totalHours)}</span><span class="summary-label">horas utilizadas</span></div>` : ''}
           </div>
           <div class="demands">${rowsHtml}</div>
         </div>
