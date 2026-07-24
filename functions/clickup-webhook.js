@@ -12,6 +12,8 @@
 const CLIENTS = [
   { name: 'Humara', taskId: 'wdpu2ybtwm', filePath: 'humara/index.html' },
   { name: 'Uplift Fitness', taskId: '86aewgr7t', filePath: 'uplift-fitness/index.html' },
+  { name: 'InfinitAge', taskId: '86aeu720q', filePath: 'infinitage/index.html' },
+  { name: 'Adah Beauty Tech', taskId: '86aeu71ur', filePath: 'adah-beauty-tech/index.html' },
 ];
 
 const REPO_OWNER = 'muriloawr';
