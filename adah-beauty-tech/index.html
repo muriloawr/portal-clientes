@@ -148,33 +148,36 @@
 <script>
   // --- dados: um objeto por serviço, cada um com seus meses. Sincronizado automaticamente a partir do ClickUp. ---
   const services = [
+    { key: 'cro', label: 'CRO', months: [
     {
-      key: 'cro',
-      label: 'CRO',
-      months: [
-        {
-          key: '2026-07',
-          label: 'Julho 2026',
-          demands: [
-            { title: 'Deixar os descontos mais dinâmicos', deadline: '24/07', status: 'a-fazer', owner: 'Murilo', hours: 0.5 },
-            { title: 'Correção dos números dos endereços de pedidos antigos', deadline: '28/07', status: 'a-fazer', owner: 'Murilo', hours: null },
-            { title: 'Quiz: Qual momento você se encontra', deadline: '30/07', status: 'em-analise', owner: 'Tiago', hours: null },
-            { title: 'B2B para as Clínicas', deadline: '31/07', status: 'a-fazer', owner: 'Murilo', hours: null },
-          ],
-        },
+      key: '2026-07',
+      label: 'Julho 2026',
+      demands: [
+        { title: 'Ajustar tamanhos, espaçamentos e legibilidade das fontes no menu responsivo;', deadline: '', status: 'feito', owner: 'Tiago', hours: 0.25 },
+        { title: 'Corrigir e otimizar a responsividade das tags exibidas nos produtos;', deadline: '', status: 'feito', owner: 'Tiago', hours: null },
+        { title: 'Revisar e aprimorar a responsividade geral das páginas de produto (PDP);', deadline: '', status: 'a-fazer', owner: 'Tiago', hours: null },
+        { title: 'Melhorar a estrutura e a responsividade do rodapé em diferentes dispositivos;', deadline: '', status: 'feito', owner: 'Tiago', hours: 0.33 },
+        { title: 'No Geral todas as sessões de section store remover e deixar nativa no padrão', deadline: '', status: 'a-fazer', owner: 'Tiago', hours: null },
+        { title: 'Comunicação da Oferta das Fórmulas para 30% OFF (Acima de R$500) e 40% OFF (Acima de R$1000);', deadline: '14/07', status: 'feito', owner: 'Ian', hours: 1.25 },
+        { title: 'Revisar, melhorar e padronizar todos os indicadores de navegação (dots) do site', deadline: '14/07', status: 'feito', owner: 'Ian', hours: 0.5 },
+        { title: 'Aprimorar a responsividade da seção de especialistas', deadline: '14/07', status: 'feito', owner: 'Tiago', hours: 0.33 },
+        { title: 'Barra de progresso e lógica de desconto', deadline: '16/07', status: 'feito', owner: 'Murilo', hours: 1.5 },
+        { title: 'Melhorar o layout, a organização e a responsividade dos cards de produtos;', deadline: '20/07', status: 'feito', owner: 'Tiago', hours: 0.75 },
+        { title: 'Correção do quiz', deadline: '', status: 'feito', owner: 'Tiago', hours: 0.75 },
+        { title: 'Otimizar todos os WEBPs com mais de 500kb', deadline: '29/07', status: 'a-fazer', owner: 'Tiago', hours: null },
+        { title: 'Conectar o Popup direto com o Bevean CRM', deadline: '31/07', status: 'em-analise', owner: 'Murilo', hours: null },
       ],
     },
+  ] },
+    { key: 'crm', label: 'CRM', months: [
     {
-      key: 'crm',
-      label: 'CRM',
-      months: [
-        {
-          key: '2026-07',
-          label: 'Julho 2026',
-          demands: [],
-        },
+      key: '2026-07',
+      label: 'Julho 2026',
+      demands: [
+        { title: 'Campanha WhatsApp - PDRN Exclusivo', deadline: '24/07', status: 'em-analise', owner: 'Matheus', hours: null },
       ],
     },
+  ] },
   ];
 
   const statusLabel = { 'a-fazer': 'A fazer', 'em-andamento': 'Em andamento', 'feito': 'Feito', 'em-analise': 'Em análise' };
