@@ -51,6 +51,12 @@ A resposta traz `{"id": "...", "webhook": {"secret": "..."}}` — copie o `secre
 Se algo falhar, os logs da function aparecem em **Cloudflare Pages → seu projeto → Functions →
 Real-time Logs** (ou `wrangler pages deployment tail` se preferir CLI).
 
+**Importante:** depois de alterar uma env var, use **"Retry deployment"** com cautela — em alguns
+casos ele reaproveita o build/bindings do deployment original em vez de reler as env vars atuais.
+Se o teste de assinatura (`X-Signature`) continuar dando 401 mesmo com o secret certo dos dois
+lados, force um deploy novo de verdade (um commit novo que dispare o build do zero) em vez de só
+clicar em retry.
+
 ## Notas
 
 - A cada evento, a function ignora o payload específico do webhook e busca de novo **todas** as
