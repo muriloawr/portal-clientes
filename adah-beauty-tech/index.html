@@ -22,12 +22,14 @@
   html{overflow-x:hidden;}
   body{
     margin:0;color:var(--ink);font-family:'Inter',sans-serif;font-weight:500;padding:0 0 90px;
+    background:var(--bg);
+    position:relative;overflow-x:hidden;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
     background:
       radial-gradient(circle at 88% -8%, rgba(1,94,197,0.16), transparent 42%),
-      radial-gradient(circle at -6% 18%, rgba(1,94,197,0.08), transparent 38%),
-      var(--bg);
-    background-attachment:fixed;
-    position:relative;overflow-x:hidden;
+      radial-gradient(circle at -6% 18%, rgba(1,94,197,0.08), transparent 38%);
   }
   body::before{
     content:"";position:fixed;inset:0;
@@ -82,6 +84,7 @@
   /* demands list */
   .demands{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
   .demand-row{display:grid;grid-template-columns:1fr 130px 90px 80px 130px;gap:14px;align-items:center;padding:16px 0;border-top:1px solid var(--line);}
+  .demand-row.no-hours{grid-template-columns:1fr 130px 90px 130px;}
   .demand-row:first-of-type{border-top:none;}
   .demand-head{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--ink-soft);padding:12px 0 6px;}
   .d-title{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);}
@@ -117,6 +120,7 @@
     .d-hours{grid-area:hours;text-align:left;}
     .d-hours::before{content:"Horas";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
     .status{grid-area:status;justify-self:start;width:fit-content;}
+    .demand-row.no-hours{grid-template-columns:1fr 1fr;grid-template-areas:"main main" "owner deadline" "status status";}
     .summary{gap:14px;flex-wrap:nowrap;}
     .summary-label{font-size:10px;}
   }
@@ -192,6 +196,9 @@
     return `${h}h ${String(m).padStart(2, '0')}m`;
   }
 
+  // Controle de exibição da coluna Horas por serviço — CRM só acompanha demandas, sem horas.
+  const HOURS_ENABLED = { cro: true, crm: false };
+
   let activeServiceKey = services[0].key;
 
   function currentService() {
@@ -228,25 +235,26 @@
 
   function renderPanels() {
     const months = currentService().months;
+    const showHours = HOURS_ENABLED[activeServiceKey] !== false;
     document.getElementById('monthPanels').innerHTML = months.map(m => {
       const total = m.demands.length;
       const done = m.demands.filter(d => d.status === 'feito').length;
       const doing = m.demands.filter(d => d.status === 'em-andamento').length;
-      const hasHours = m.demands.some(d => d.hours != null);
+      const hasHours = showHours && m.demands.some(d => d.hours != null);
       const totalHours = m.demands.reduce((sum, d) => sum + (d.hours || 0), 0);
 
       const rowsHtml = total === 0
         ? `<div class="empty-state"><b>Nenhuma solicitação registrada ainda</b>Assim que houverem solicitações ou pontos da reunião mensal, eles aparecem aqui.</div>`
         : `
-          <div class="demand-row demand-head">
-            <div>Demanda</div><div>Responsável</div><div style="text-align:center;">Prazo</div><div style="text-align:center;">Horas</div><div>Status</div>
+          <div class="demand-row demand-head${showHours ? '' : ' no-hours'}">
+            <div>Demanda</div><div>Responsável</div><div style="text-align:center;">Prazo</div>${showHours ? '<div style="text-align:center;">Horas</div>' : ''}<div>Status</div>
           </div>
         ` + m.demands.map(d => `
-          <div class="demand-row">
+          <div class="demand-row${showHours ? '' : ' no-hours'}">
             <div class="d-main"><div class="d-title">${d.title}</div><div class="d-desc">${d.desc || ''}</div></div>
             <div class="d-owner">${d.owner ? `<span class="owner-avatar">${d.owner.charAt(0)}</span>${d.owner}` : '-'}</div>
             <div class="d-deadline">${d.deadline || '-'}</div>
-            <div class="d-hours">${formatHours(d.hours)}</div>
+            ${showHours ? `<div class="d-hours">${formatHours(d.hours)}</div>` : ''}
             <div class="status ${d.status}">${statusLabel[d.status] || '-'}</div>
           </div>
         `).join('');
