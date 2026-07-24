@@ -1,10 +1,15 @@
 # Sincronização automática ClickUp → GitHub → Cloudflare Pages (clientes recorrentes)
 
-Function em [functions/clickup-webhook.js](../functions/clickup-webhook.js). Um único webhook do
-ClickUp (escopado pela lista **Demandas**) dispara essa function, que percorre a lista `CLIENTS`
-no topo do arquivo — para cada cliente, busca todas as subtasks da task-mãe dele e reescreve o
-array `months` no HTML correspondente, commitando direto na branch `main`. O Cloudflare Pages já
-publica sozinho a partir desse commit.
+Function em [functions/clickup-webhook.js](../functions/clickup-webhook.js). Ela percorre a lista
+`CLIENTS` no topo do arquivo — para cada cliente, busca todas as subtasks da task-mãe dele e
+reescreve o array `months` no HTML correspondente, commitando direto na branch `main`. O
+Cloudflare Pages já publica sozinho a partir desse commit.
+
+**Disparo:** não é mais um webhook em tempo real do ClickUp. Um workflow agendado do GitHub
+Actions ([.github/workflows/clickup-sync-schedule.yml](../.github/workflows/clickup-sync-schedule.yml))
+chama essa function de 45 em 45 minutos, só em dias úteis, das 08:30 às 18:15 (América/São_Paulo,
+UTC-3). Fora desses horários/dias, nada roda — mudanças no ClickUp só aparecem no relatório na
+próxima janela agendada, não instantaneamente.
 
 ## Adicionar um cliente recorrente novo
 
@@ -15,57 +20,52 @@ publica sozinho a partir desse commit.
    vazio (`demands: []`) — a primeira sincronização preenche o resto.
 3. Adicione uma entrada em `CLIENTS` no topo de `functions/clickup-webhook.js` com o `taskId` da
    task-mãe (pega no final da URL da task no ClickUp) e o `filePath` do HTML novo.
-4. Commit e push. **Não precisa criar webhook novo** — o único webhook já escutando a lista
-   Demandas cobre todos os clientes cadastrados em `CLIENTS`.
+4. Commit e push. **Não precisa mexer no agendamento** — o mesmo workflow já dispara a sync de
+   todos os clientes cadastrados em `CLIENTS`, incluindo o novo.
 
 ## 1. Variáveis de ambiente (Cloudflare Pages)
 
-Dashboard do projeto → **Settings → Environment variables** → adicionar em **Production**
-(e em Preview, se quiser testar por branch):
+Dashboard do projeto → **Settings → Environment variables** → adicionar em **Production**:
 
 | Nome | Valor |
 |---|---|
 | `CLICKUP_API_TOKEN` | Personal API Token do ClickUp (Settings → Apps → API Token) |
 | `GITHUB_TOKEN` | Fine-grained PAT com permissão **Contents: Read and write** apenas no repo `portal-clientes` |
-| `CLICKUP_WEBHOOK_SECRET` | Preenche depois do passo 2 (é retornado na criação do webhook) |
+| `CLICKUP_WEBHOOK_SECRET` | Qualquer string aleatória forte — só precisa bater com o secret do passo 2, não vem mais de um webhook do ClickUp |
 
-Depois de salvar, redeploy o projeto (ou faça um commit qualquer) para o Pages pegar a pasta
-`functions/` e as variáveis novas.
+Depois de salvar, redeploy o projeto pra ele pegar as variáveis novas.
 
-## 2. Criar o webhook no ClickUp
+## 2. Secret no GitHub Actions
 
-Rode isto no seu terminal, com o seu próprio Personal API Token (não peça pra mim rodar — é uma
-credencial sua):
+O workflow assina a requisição com HMAC-SHA256 igual o ClickUp fazia, usando o mesmo valor de
+`CLICKUP_WEBHOOK_SECRET` de cima. Cadastre em **GitHub → Settings do repositório → Secrets and
+variables → Actions → New repository secret**:
+
+| Nome | Valor |
+|---|---|
+| `CLICKUP_WEBHOOK_SECRET` | O mesmo valor exato colocado no Cloudflare no passo 1 |
+
+Se você tinha um webhook do ClickUp criado de um setup anterior, apague-o (ele não é mais
+necessário e ficaria só acumulando tentativas de entrega que ninguém escuta):
 
 ```bash
-curl -X POST "https://api.clickup.com/api/v2/team/9013388773/webhook" \
-  -H "Authorization: SEU_CLICKUP_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "endpoint": "https://SEU-DOMINIO-CLOUDFLARE-PAGES/clickup-webhook",
-    "events": ["taskCreated", "taskUpdated", "taskStatusUpdated", "taskDeleted"],
-    "list_id": 901321909248
-  }'
+curl -X GET "https://api.clickup.com/api/v2/team/9013388773/webhook" -H "Authorization: SEU_CLICKUP_API_TOKEN"
+# pega o "id" do webhook na resposta, depois:
+curl -X DELETE "https://api.clickup.com/api/v2/webhook/SEU_WEBHOOK_ID" -H "Authorization: SEU_CLICKUP_API_TOKEN"
 ```
-
-A resposta traz `{"id": "...", "webhook": {"secret": "..."}}` — copie o `secret` para a variável
-`CLICKUP_WEBHOOK_SECRET` do passo 1.
-
-- `9013388773` é o `team_id` (workspace).
-- `901321909248` é o `list_id` da lista **Demandas**, já escopando o webhook só pra ela.
 
 ## 3. Testar
 
-1. Mude o status de qualquer subtask de qualquer task-mãe cadastrada em `CLIENTS`.
-2. Confira em alguns segundos se apareceu um novo commit em `main` no GitHub tocando o
-   `index.html` daquele cliente (a function resincroniza **todos** os clientes cadastrados a cada
-   evento, então pode aparecer mais de um commit se mais de um mudou).
-3. Confira o deploy do Cloudflare Pages e o site publicado.
+- Manualmente, sem esperar o horário: GitHub → aba **Actions** → workflow **"ClickUp scheduled
+  sync"** → **Run workflow** (usa o `workflow_dispatch` do arquivo).
+- Confira o log da execução — deve mostrar `HTTP 200` e uma linha por cliente (`synced` ou
+  `no changes`).
+- Confira se apareceu um novo commit em `main` no GitHub tocando o `index.html` do cliente que
+  mudou, e o deploy do Cloudflare Pages.
 
-Se algo falhar, os logs da function aparecem em **Cloudflare Pages → seu projeto → Functions →
-Real-time Logs** (ou `wrangler pages deployment tail` se preferir CLI). Depois de alterar uma env
-var/secret, o Cloudflare avisa que a mudança só vale a partir do **próximo deploy** — então
-confirme que rodou um deploy novo depois de salvar antes de testar de novo.
+Se o cron agendado não disparar sozinho no horário esperado, lembre que o GitHub Actions não
+garante pontualidade exata em `schedule:` — em períodos de alta demanda ele pode atrasar alguns
+minutos (ou raramente pular uma execução). Isso é esperado; não é bug da automação.
 
 ## Notas
 
