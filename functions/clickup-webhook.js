@@ -1,14 +1,21 @@
 // Cloudflare Pages Function — POST /clickup-webhook
 // Recebe eventos do ClickUp (task criada/atualizada/removida na lista "Demandas"),
-// busca o estado completo das subtasks de "Humara" e re-commita o array `months`
-// em humara/index.html no GitHub. O deploy do Cloudflare Pages já dispara sozinho
-// a partir do commit.
+// e para cada cliente cadastrado em CLIENTS busca o estado completo das subtasks da
+// task-mãe dele e re-commita o array `months` no HTML correspondente no GitHub. O
+// deploy do Cloudflare Pages já dispara sozinho a partir do commit.
+//
+// Todos os clientes recorrentes vivem na mesma lista "Demandas" (list_id 901321909248),
+// então um único webhook do ClickUp cobre todos — cada evento resincroniza todos os
+// clientes cadastrados aqui (full refetch, sem depender do payload específico do
+// evento). Adicionar um cliente novo é só adicionar uma entrada nesta lista.
 
-const CLICKUP_TASK_ID = 'wdpu2ybtwm'; // task-mãe "Humara"
+const CLIENTS = [
+  { name: 'Humara', taskId: 'wdpu2ybtwm', filePath: 'humara/index.html' },
+  { name: 'Uplift Fitness', taskId: 'SUBSTITUIR_PELO_TASK_ID', filePath: 'uplift-fitness/index.html' },
+];
 
 const REPO_OWNER = 'muriloawr';
 const REPO_NAME = 'portal-clientes';
-const FILE_PATH = 'humara/index.html';
 const BRANCH = 'main';
 
 const STATUS_MAP = {
@@ -34,24 +41,32 @@ export async function onRequestPost(context) {
     return new Response('Invalid signature', { status: 401 });
   }
 
-  try {
-    const months = await buildMonths(env.CLICKUP_API_TOKEN);
-    const { content, sha } = await getGithubFile(env.GITHUB_TOKEN);
-    const updated = replaceMonthsArray(content, months);
-
-    if (updated === content) {
-      return new Response('No changes', { status: 200 });
+  const results = [];
+  for (const client of CLIENTS) {
+    try {
+      results.push(`${client.name}: ${await syncClient(client, env)}`);
+    } catch (err) {
+      results.push(`${client.name}: FAILED - ${err.message}`);
     }
-
-    await commitGithubFile(env.GITHUB_TOKEN, updated, sha);
-    return new Response('OK', { status: 200 });
-  } catch (err) {
-    return new Response(`Sync failed: ${err.message}`, { status: 500 });
   }
+
+  const anyFailed = results.some(r => r.includes('FAILED'));
+  return new Response(results.join('\n'), { status: anyFailed ? 500 : 200 });
 }
 
 export async function onRequestGet() {
   return new Response('clickup-webhook: use POST', { status: 200 });
+}
+
+async function syncClient(client, env) {
+  const months = await buildMonths(client.taskId, env.CLICKUP_API_TOKEN);
+  const { content, sha } = await getGithubFile(client.filePath, env.GITHUB_TOKEN);
+  const updated = replaceMonthsArray(content, months);
+
+  if (updated === content) return 'no changes';
+
+  await commitGithubFile(client.filePath, updated, sha, client.name, env.GITHUB_TOKEN);
+  return 'synced';
 }
 
 // --- assinatura ---
@@ -78,8 +93,8 @@ function timingSafeEqual(a, b) {
 
 // --- ClickUp ---
 
-async function fetchSubtasks(token) {
-  const res = await fetch(`https://api.clickup.com/api/v2/task/${CLICKUP_TASK_ID}?include_subtasks=true`, {
+async function fetchSubtasks(taskId, token) {
+  const res = await fetch(`https://api.clickup.com/api/v2/task/${taskId}?include_subtasks=true`, {
     headers: { Authorization: token },
   });
   if (!res.ok) throw new Error(`ClickUp API error: ${res.status} ${await res.text()}`);
@@ -99,8 +114,8 @@ function formatDeadline(dateMs) {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
-async function buildMonths(token) {
-  const subtasks = await fetchSubtasks(token);
+async function buildMonths(taskId, token) {
+  const subtasks = await fetchSubtasks(taskId, token);
   const monthsMap = new Map();
 
   for (const t of subtasks) {
@@ -152,8 +167,8 @@ function replaceMonthsArray(html, months) {
 
 // --- GitHub ---
 
-async function getGithubFile(token) {
-  const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}?ref=${BRANCH}`, {
+async function getGithubFile(filePath, token) {
+  const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}?ref=${BRANCH}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: 'application/vnd.github+json',
@@ -168,13 +183,13 @@ async function getGithubFile(token) {
   return { content, sha: data.sha };
 }
 
-async function commitGithubFile(token, content, sha) {
+async function commitGithubFile(filePath, content, sha, clientName, token) {
   const bytes = new TextEncoder().encode(content);
   let binary = '';
   bytes.forEach(b => { binary += String.fromCharCode(b); });
   const base64 = btoa(binary);
 
-  const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+  const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`, {
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -182,7 +197,7 @@ async function commitGithubFile(token, content, sha) {
       'User-Agent': 'clickup-sync-worker',
     },
     body: JSON.stringify({
-      message: 'sync: atualiza relatório Humara a partir do ClickUp',
+      message: `sync: atualiza relatório ${clientName} a partir do ClickUp`,
       content: base64,
       sha,
       branch: BRANCH,
