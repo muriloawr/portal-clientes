@@ -1,13 +1,10 @@
 // Cloudflare Pages Function — POST /clickup-webhook
-// Recebe eventos do ClickUp (task criada/atualizada/removida na lista "Demandas"),
-// e para cada cliente cadastrado em CLIENTS busca o estado completo das subtasks da
-// task-mãe dele e re-commita o array `months` no HTML correspondente no GitHub. O
-// deploy do Cloudflare Pages já dispara sozinho a partir do commit.
-//
-// Todos os clientes recorrentes vivem na mesma lista "Demandas" (list_id 901321909248),
-// então um único webhook do ClickUp cobre todos — cada evento resincroniza todos os
-// clientes cadastrados aqui (full refetch, sem depender do payload específico do
-// evento). Adicionar um cliente novo é só adicionar uma entrada nesta lista.
+// Disparada pelo workflow agendado do GitHub Actions (não mais por um webhook do
+// ClickUp). Para cada cliente cadastrado em CLIENTS, busca o estado completo das
+// subtasks da task-mãe dele (por taskId, direto — não importa em qual lista/espaço
+// do ClickUp essa task está) e re-commita o array `months` no HTML correspondente
+// no GitHub. O deploy do Cloudflare Pages já dispara sozinho a partir do commit.
+// Adicionar um cliente novo é só adicionar uma entrada em CLIENTS.
 
 const CLIENTS = [
   { name: 'Humara', taskId: 'wdpu2ybtwm', filePath: 'humara/index.html' },
