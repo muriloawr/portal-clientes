@@ -11,7 +11,7 @@
 
 const CLIENTS = [
   { name: 'Humara', taskId: 'wdpu2ybtwm', filePath: 'humara/index.html' },
-  { name: 'Uplift Fitness', taskId: 'SUBSTITUIR_PELO_TASK_ID', filePath: 'uplift-fitness/index.html' },
+  { name: 'Uplift Fitness', taskId: '86aewgr7t', filePath: 'uplift-fitness/index.html' },
 ];
 
 const REPO_OWNER = 'muriloawr';
