@@ -160,7 +160,14 @@ async function buildMonths(taskId, token) {
 
   const months = [...monthsMap.values()].sort((a, b) => a.key.localeCompare(b.key));
   for (const m of months) {
-    m.demands.sort((a, b) => a._sort - b._sort);
+    // Demandas com prazo vêm primeiro (ordenadas por data); sem prazo ficam depois,
+    // independente de terem horas registradas ou já estarem concluídas.
+    m.demands.sort((a, b) => {
+      const aHasDeadline = a.deadline !== '';
+      const bHasDeadline = b.deadline !== '';
+      if (aHasDeadline !== bHasDeadline) return aHasDeadline ? -1 : 1;
+      return a._sort - b._sort;
+    });
     m.demands.forEach(d => delete d._sort);
   }
   return months;
