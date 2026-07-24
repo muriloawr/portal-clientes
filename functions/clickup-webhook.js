@@ -29,7 +29,18 @@ export async function onRequestPost(context) {
   const rawBody = await request.text();
 
   const signature = request.headers.get('X-Signature');
-  if (!signature || !(await verifySignature(rawBody, signature, env.CLICKUP_WEBHOOK_SECRET))) {
+  const expectedSig = await computeSignature(rawBody, env.CLICKUP_WEBHOOK_SECRET);
+  if (!signature || !timingSafeEqual(expectedSig, signature)) {
+    // DEBUG TEMPORÁRIO — remover depois de resolver o problema de assinatura.
+    if (request.headers.get('X-Debug') === '1') {
+      return new Response('Invalid signature', {
+        status: 401,
+        headers: {
+          'X-Debug-Expected': expectedSig,
+          'X-Debug-Secret-Len': String((env.CLICKUP_WEBHOOK_SECRET || '').length),
+        },
+      });
+    }
     return new Response('Invalid signature', { status: 401 });
   }
 
@@ -55,18 +66,17 @@ export async function onRequestGet() {
 
 // --- assinatura ---
 
-async function verifySignature(rawBody, signatureHex, secret) {
+async function computeSignature(rawBody, secret) {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
     'raw',
-    enc.encode(secret),
+    enc.encode(secret || ''),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign'],
   );
   const sigBuffer = await crypto.subtle.sign('HMAC', key, enc.encode(rawBody));
-  const computedHex = [...new Uint8Array(sigBuffer)].map(b => b.toString(16).padStart(2, '0')).join('');
-  return timingSafeEqual(computedHex, signatureHex);
+  return [...new Uint8Array(sigBuffer)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 function timingSafeEqual(a, b) {
