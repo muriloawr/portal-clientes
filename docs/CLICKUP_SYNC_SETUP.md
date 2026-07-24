@@ -49,13 +49,9 @@ A resposta traz `{"id": "...", "webhook": {"secret": "..."}}` — copie o `secre
 3. Confira o deploy do Cloudflare Pages e o site publicado.
 
 Se algo falhar, os logs da function aparecem em **Cloudflare Pages → seu projeto → Functions →
-Real-time Logs** (ou `wrangler pages deployment tail` se preferir CLI).
-
-**Importante:** depois de alterar uma env var, use **"Retry deployment"** com cautela — em alguns
-casos ele reaproveita o build/bindings do deployment original em vez de reler as env vars atuais.
-Se o teste de assinatura (`X-Signature`) continuar dando 401 mesmo com o secret certo dos dois
-lados, force um deploy novo de verdade (um commit novo que dispare o build do zero) em vez de só
-clicar em retry.
+Real-time Logs** (ou `wrangler pages deployment tail` se preferir CLI). Depois de alterar uma env
+var/secret, o Cloudflare avisa que a mudança só vale a partir do **próximo deploy** — então
+confirme que rodou um deploy novo depois de salvar antes de testar de novo.
 
 ## Notas
 

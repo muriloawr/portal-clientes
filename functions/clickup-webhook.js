@@ -31,16 +31,6 @@ export async function onRequestPost(context) {
   const signature = request.headers.get('X-Signature');
   const expectedSig = await computeSignature(rawBody, env.CLICKUP_WEBHOOK_SECRET);
   if (!signature || !timingSafeEqual(expectedSig, signature)) {
-    // DEBUG TEMPORÁRIO — remover depois de resolver o problema de assinatura.
-    if (request.headers.get('X-Debug') === '1') {
-      return new Response('Invalid signature', {
-        status: 401,
-        headers: {
-          'X-Debug-Expected': expectedSig,
-          'X-Debug-Secret-Len': String((env.CLICKUP_WEBHOOK_SECRET || '').length),
-        },
-      });
-    }
     return new Response('Invalid signature', { status: 401 });
   }
 
