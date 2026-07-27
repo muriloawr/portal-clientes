@@ -225,7 +225,6 @@ async function buildProjectStages(taskId, token) {
         items.push({
           title: item.name,
           subtitle,
-          tag: item.tags && item.tags[0] ? item.tags[0].name : '',
           date: item.due_date ? formatDeadline(Number(item.due_date)) : '',
           dueMs: item.due_date ? Number(item.due_date) : null,
           _sort: refDateMs,
@@ -243,6 +242,17 @@ async function buildProjectStages(taskId, token) {
 
     items.sort((a, b) => a._sort - b._sort);
     items.forEach(it => delete it._sort);
+
+    // Tag de reunião é definida pela posição, não por tag manual do ClickUp: a
+    // primeira é sempre Kick-off, a última é sempre a entrega final, e as do meio
+    // são Revisão.
+    if (isMeetings) {
+      items.forEach((it, idx) => {
+        if (idx === 0) it.tag = 'Kickoff';
+        else if (idx === items.length - 1) it.tag = 'Entrega Final do Projeto';
+        else it.tag = 'Revisão';
+      });
+    }
 
     stages.push({
       key: stageTask.id,
