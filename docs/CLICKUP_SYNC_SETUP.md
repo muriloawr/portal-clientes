@@ -20,8 +20,12 @@ próxima janela agendada, não instantaneamente.
    vazio (`demands: []`) — a primeira sincronização preenche o resto.
 3. Adicione uma entrada em `CLIENTS` no topo de `functions/clickup-webhook.js` com o `taskId` da
    task-mãe (pega no final da URL da task no ClickUp) e o `filePath` do HTML novo.
-4. Commit e push. **Não precisa mexer no agendamento** — o mesmo workflow já dispara a sync de
-   todos os clientes cadastrados em `CLIENTS`, incluindo o novo.
+4. Adicione o mesmo `name` (igual ao que você usou no passo 3) no array `CLIENTS` dentro de
+   `.github/workflows/clickup-sync-schedule.yml`. É uma lista duplicada de propósito: o workflow
+   faz **uma chamada HTTP por cliente** (cada invocação do Worker tem limite de 50 subrequests no
+   plano free do Cloudflare, então processar todos numa chamada só estoura esse limite conforme
+   a lista cresce).
+5. Commit e push.
 
 ## 1. Variáveis de ambiente (Cloudflare Pages)
 

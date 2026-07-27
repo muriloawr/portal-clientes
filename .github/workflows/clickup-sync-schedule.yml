@@ -18,20 +18,44 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger sync
+      - name: Trigger sync (one HTTP call per client)
         env:
           SYNC_SECRET: ${{ secrets.CLICKUP_WEBHOOK_SECRET }}
         run: |
-          BODY='{"event":"scheduledSync"}'
-          SIG=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$SYNC_SECRET" | sed 's/^.* //')
-          HTTP_STATUS=$(curl -sS -o response.txt -w '%{http_code}' -X POST \
-            https://clientes.vanzaklabs.com/clickup-webhook \
-            -H 'Content-Type: application/json' \
-            -H "X-Signature: $SIG" \
-            -d "$BODY")
-          echo "HTTP $HTTP_STATUS"
-          cat response.txt
-          if [ "$HTTP_STATUS" -ge 400 ]; then
-            echo "::error::Sync failed with HTTP $HTTP_STATUS"
+          # Precisa bater com os "name" cadastrados em CLIENTS no
+          # functions/clickup-webhook.js — atualize os dois juntos ao adicionar
+          # um cliente novo. Uma chamada HTTP por cliente porque cada invocação
+          # do Worker tem limite de subrequests (50 no plano free do
+          # Cloudflare); processar todos numa chamada só estoura esse limite.
+          CLIENTS=(
+            "Humara"
+            "Uplift Fitness"
+            "InfinitAge"
+            "A Confiteria"
+            "Orgânico Natural"
+            "Adah Beauty Tech"
+            "Sellévia"
+            "Booma"
+            "Beleza Brasileira"
+            "Yasmin Beauty"
+          )
+          FAILED=0
+          for CLIENT in "${CLIENTS[@]}"; do
+            BODY=$(printf '{"event":"scheduledSync","client":"%s"}' "$CLIENT")
+            SIG=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$SYNC_SECRET" | sed 's/^.* //')
+            HTTP_STATUS=$(curl -sS -o response.txt -w '%{http_code}' -X POST \
+              https://clientes.vanzaklabs.com/clickup-webhook \
+              -H 'Content-Type: application/json' \
+              -H "X-Signature: $SIG" \
+              -d "$BODY")
+            echo "=== $CLIENT: HTTP $HTTP_STATUS ==="
+            cat response.txt
+            echo
+            if [ "$HTTP_STATUS" -ge 400 ]; then
+              FAILED=1
+            fi
+          done
+          if [ "$FAILED" -eq 1 ]; then
+            echo "::error::One or more client syncs failed"
             exit 1
           fi

@@ -60,8 +60,29 @@ export async function onRequestPost(context) {
     return new Response('Invalid signature', { status: 401 });
   }
 
+  // Cada invocação do Worker tem um limite de subrequests (50 no plano free do
+  // Cloudflare). Sincronizar todos os clientes numa chamada só estourava esse
+  // limite conforme mais clientes (principalmente os de projeto, que fazem uma
+  // requisição extra por item só pra buscar o comentário) foram sendo
+  // cadastrados. Por isso o body pode pedir um cliente específico — o workflow
+  // do GitHub Actions faz uma chamada HTTP por cliente, cada uma com orçamento
+  // de subrequests zerado de novo. Sem "client" no body, sincroniza todos (só
+  // útil pra poucos clientes / teste manual).
+  let clientFilter = null;
+  try {
+    const parsed = JSON.parse(rawBody);
+    if (parsed && parsed.client) clientFilter = parsed.client;
+  } catch (err) {
+    // corpo sem JSON válido: trata como "sincronizar todos"
+  }
+
+  const targets = clientFilter ? CLIENTS.filter(c => c.name === clientFilter) : CLIENTS;
+  if (clientFilter && targets.length === 0) {
+    return new Response(`Unknown client: ${clientFilter}`, { status: 400 });
+  }
+
   const results = [];
-  for (const client of CLIENTS) {
+  for (const client of targets) {
     try {
       results.push(`${client.name}: ${await syncClient(client, env)}`);
     } catch (err) {
