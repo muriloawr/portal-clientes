@@ -75,6 +75,8 @@
 
   .phase-row{display:grid;grid-template-columns:1fr 100px 190px 90px;gap:14px;align-items:center;padding:13px 0;border-top:1px solid var(--line);}
   .phase-row:first-of-type{border-top:none;}
+  .phase-head+.phase-row{border-top:none;}
+  .phase-head{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--ink-soft);padding:8px 0 2px;}
   .phase-name{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14.5px;}
   .phase-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
   .phase-owner{font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:7px;}
@@ -99,9 +101,17 @@
   .footnote{margin-top:26px;font-size:12px;color:var(--ink-soft);text-align:center;}
 
   @media (max-width:640px){
-    .phase-row{grid-template-columns:1fr;gap:6px;}
-    .phase-status{justify-self:start;width:fit-content;}
-    .phase-dates{text-align:left;}
+    .phase-head{display:none;}
+    .phase-row{
+      grid-template-columns:1fr 1fr;
+      grid-template-areas:"main main" "owner dates" "status status";
+      gap:8px;
+    }
+    .phase-main{grid-area:main;}
+    .phase-owner{grid-area:owner;}
+    .phase-status{grid-area:status;justify-self:start;width:fit-content;}
+    .phase-dates{grid-area:dates;text-align:left;}
+    .phase-dates::before{content:"Prazo";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
     .meeting-row{grid-template-columns:1fr;gap:4px;}
     .meeting-row .m-date,.meeting-row .m-tag{justify-self:start;}
     .bar-caption{flex-direction:column;gap:8px;}
@@ -310,13 +320,17 @@
     document.getElementById('stageSections').innerHTML = flow.map(s => {
       const rows = s.items.length === 0
         ? `<div class="empty-state">Nenhum item registrado ainda.</div>`
-        : s.items.map(it => {
+        : `
+          <div class="phase-row phase-head">
+            <div>Demanda</div><div>Responsável</div><div style="text-align:center;">Status</div><div style="text-align:right;">Prazo</div>
+          </div>
+        ` + s.items.map(it => {
           const statusClass = (it.statusKey === 'concluido' || it.statusKey === 'fechado') ? ' solid'
             : (it.statusKey === 'em-andamento') ? ' active'
             : '';
           return `
             <div class="phase-row">
-              <div><div class="phase-name">${it.title}</div><div class="phase-sub">${it.subtitle || ''}</div></div>
+              <div class="phase-main"><div class="phase-name">${it.title}</div><div class="phase-sub">${it.subtitle || ''}</div></div>
               <div class="phase-owner">${it.owner ? `<span class="owner-avatar">${it.owner.charAt(0)}</span>${it.owner}` : '-'}</div>
               <div class="phase-status${statusClass}">${statusLabel(it.statusKey)}</div>
               <div class="phase-dates">${it.date || '-'}</div>
