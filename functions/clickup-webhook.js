@@ -24,6 +24,10 @@ const CLIENTS = [
       { key: 'crm', label: 'CRM', taskId: 'wdpu2ydp1p' },
     ],
   },
+  // Clientes de projeto (type: 'projeto') usam uma task-mãe com 4 subtasks fixas —
+  // Protótipo, Desenvolvimento, Integrações, Reuniões — cada uma com itens client-facing
+  // como subtasks dela. Demandas dentro desses itens (nível 3) ficam ocultas de propósito.
+  { name: 'Sellévia', type: 'projeto', taskId: 'wdpu2yadde', filePath: 'sellevia/index.html' },
 ];
 
 const REPO_OWNER = 'muriloawr';
@@ -74,7 +78,10 @@ async function syncClient(client, env) {
   const { content, sha } = await getGithubFile(client.filePath, env.GITHUB_TOKEN);
 
   let updated;
-  if (client.services) {
+  if (client.type === 'projeto') {
+    const stages = await buildProjectStages(client.taskId, env.CLICKUP_API_TOKEN);
+    updated = replaceStagesArray(content, stages);
+  } else if (client.services) {
     const services = [];
     for (const service of client.services) {
       const months = await buildMonths(service.taskId, env.CLICKUP_API_TOKEN);
@@ -173,6 +180,102 @@ async function buildMonths(taskId, token) {
     m.demands.forEach(d => delete d._sort);
   }
   return months;
+}
+
+// --- ClickUp: clientes de projeto ---
+
+async function fetchComment(taskId, token) {
+  const res = await fetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
+    headers: { Authorization: token },
+  });
+  if (!res.ok) throw new Error(`ClickUp API error (comment): ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  const first = data.comments && data.comments[0];
+  return first ? (first.comment_text || '') : '';
+}
+
+function formatDateRange(startMs, dueMs) {
+  if (startMs && dueMs && Number(startMs) !== Number(dueMs)) {
+    return `${formatDeadline(Number(startMs))} - ${formatDeadline(Number(dueMs))}`;
+  }
+  if (dueMs) return formatDeadline(Number(dueMs));
+  if (startMs) return formatDeadline(Number(startMs));
+  return '';
+}
+
+function statusKeyOf(t) {
+  const raw = (t.status && t.status.status ? t.status.status : '').toLowerCase();
+  return raw.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '-');
+}
+
+async function buildProjectStages(taskId, token) {
+  const stageTasks = await fetchSubtasks(taskId, token);
+  const stages = [];
+
+  for (const stageTask of stageTasks) {
+    const isMeetings = /reuni/i.test(stageTask.name);
+    const children = await fetchSubtasks(stageTask.id, token);
+    const items = [];
+
+    for (const item of children) {
+      const subtitle = await fetchComment(item.id, token);
+      const refDateMs = item.due_date ? Number(item.due_date) : (item.start_date ? Number(item.start_date) : Number(item.date_created));
+
+      if (isMeetings) {
+        items.push({
+          title: item.name,
+          subtitle,
+          tag: item.tags && item.tags[0] ? item.tags[0].name : '',
+          date: item.due_date ? formatDeadline(Number(item.due_date)) : '',
+          _sort: refDateMs,
+        });
+      } else {
+        items.push({
+          title: item.name,
+          subtitle,
+          statusKey: statusKeyOf(item),
+          date: formatDateRange(item.start_date, item.due_date),
+          _sort: refDateMs,
+        });
+      }
+    }
+
+    items.sort((a, b) => a._sort - b._sort);
+    items.forEach(it => delete it._sort);
+
+    stages.push({
+      key: stageTask.id,
+      label: stageTask.name,
+      dateRange: formatDateRange(stageTask.start_date, stageTask.due_date),
+      isMeetings,
+      items,
+    });
+  }
+
+  return stages;
+}
+
+function stagesArrayLiteral(stages) {
+  const body = stages.map(s => {
+    const itemsJs = s.items.map(it => {
+      if (s.isMeetings) {
+        return `        { title: '${escapeJs(it.title)}', subtitle: '${escapeJs(it.subtitle)}', tag: '${escapeJs(it.tag)}', date: '${escapeJs(it.date)}' },`;
+      }
+      return `        { title: '${escapeJs(it.title)}', subtitle: '${escapeJs(it.subtitle)}', statusKey: '${it.statusKey}', date: '${escapeJs(it.date)}' },`;
+    }).join('\n');
+    return `    {\n      key: '${escapeJs(s.key)}',\n      label: '${escapeJs(s.label)}',\n      dateRange: '${escapeJs(s.dateRange)}',\n      isMeetings: ${s.isMeetings},\n      items: [\n${itemsJs}\n      ],\n    },`;
+  }).join('\n');
+  return `[\n${body}\n  ]`;
+}
+
+function stagesToJs(stages) {
+  return `const stages = ${stagesArrayLiteral(stages)};`;
+}
+
+function replaceStagesArray(html, stages) {
+  const regex = /const\s+stages\s*=\s*\[[\s\S]*?\];/;
+  if (!regex.test(html)) throw new Error('stages array not found in HTML');
+  return html.replace(regex, stagesToJs(stages));
 }
 
 function escapeJs(str) {
