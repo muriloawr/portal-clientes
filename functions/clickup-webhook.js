@@ -28,6 +28,7 @@ const CLIENTS = [
   // Protótipo, Desenvolvimento, Integrações, Reuniões — cada uma com itens client-facing
   // como subtasks dela. Demandas dentro desses itens (nível 3) ficam ocultas de propósito.
   { name: 'Sellévia', type: 'projeto', taskId: 'wdpu2yadde', filePath: 'sellevia/index.html' },
+  { name: 'Booma', type: 'projeto', taskId: 'wdpu2ybtcm', filePath: 'booma/index.html' },
 ];
 
 const REPO_OWNER = 'muriloawr';
