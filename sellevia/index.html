@@ -108,7 +108,50 @@
 
 <script>
   // --- dados: um objeto por etapa do projeto. Sincronizado automaticamente a partir do ClickUp. ---
-  const stages = [];
+  const stages = [
+    {
+      key: 'wdpu2ydw5w',
+      label: 'Protótipo',
+      dateRange: '',
+      isMeetings: false,
+      items: [
+
+      ],
+    },
+    {
+      key: 'wdpu2ydw5x',
+      label: 'Desenvolvimento',
+      dateRange: '',
+      isMeetings: false,
+      items: [
+        { title: 'Home', subtitle: '', statusKey: 'planejamento', date: '' },
+        { title: 'PDP', subtitle: '', statusKey: 'pendentes', date: '' },
+        { title: 'Componentes', subtitle: '', statusKey: 'pendentes', date: '' },
+        { title: 'Páginas Adicionais', subtitle: '', statusKey: 'pendentes', date: '' },
+      ],
+    },
+    {
+      key: 'wdpu2ydw5y',
+      label: 'Integrações',
+      dateRange: '',
+      isMeetings: false,
+      items: [
+        { title: 'Gateway de Pagamento', subtitle: 'Appmax\n', statusKey: 'pendentes', date: '' },
+        { title: 'ERP', subtitle: 'Olist\n', statusKey: 'pendentes', date: '' },
+        { title: 'Hub de Frete', subtitle: 'Frenet\n', statusKey: 'pendentes', date: '' },
+        { title: 'CRM', subtitle: 'Reportana\n', statusKey: 'pendentes', date: '' },
+      ],
+    },
+    {
+      key: 'wdpu2ydw5z',
+      label: 'Reuniões',
+      dateRange: '',
+      isMeetings: true,
+      items: [
+
+      ],
+    },
+  ];
 
   const STATUS_LABELS = {
     'pendentes': 'Pendente',
