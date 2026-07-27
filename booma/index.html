@@ -167,7 +167,51 @@
 
 <script>
   // --- dados: um objeto por etapa do projeto. Sincronizado automaticamente a partir do ClickUp. ---
-  const stages = [];
+  const stages = [
+    {
+      key: 'wdpu2ydx2h',
+      label: 'Protótipo',
+      dateRange: '08/06 - 26/06',
+      statusKey: 'concluido',
+      startMs: 1780902000000,
+      dueMs: 1782457200000,
+      isMeetings: false,
+      items: [
+        { title: '1ª Entrega', subtitle: 'Identidade visual', statusKey: 'concluido', owner: 'Guilherme', date: '02/06 - 15/06' },
+        { title: 'Entrega do Protótipo', subtitle: 'Figma completo', statusKey: 'concluido', owner: 'Guilherme', date: '26/06' },
+      ],
+    },
+    {
+      key: 'wdpu2ydx2n',
+      label: 'Desenvolvimento',
+      dateRange: '06/07 - 17/07',
+      statusKey: 'concluido',
+      startMs: 1783321200000,
+      dueMs: 1784271600000,
+      isMeetings: false,
+      items: [
+        { title: 'Home', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '10/07' },
+        { title: 'PDP', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '15/07' },
+        { title: 'Componentes', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '17/07' },
+        { title: 'Páginas Adicionais', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '22/07' },
+        { title: 'Modelo de Produto', subtitle: '', statusKey: 'pendentes', owner: 'Erik', date: '28/07' },
+      ],
+    },
+    {
+      key: 'wdpu2ydx30',
+      label: 'Reuniões',
+      dateRange: '',
+      statusKey: 'pendentes',
+      startMs: null,
+      dueMs: null,
+      isMeetings: true,
+      items: [
+        { title: 'Kick-off', subtitle: 'Briefing inicial do projeto', tag: 'Kickoff', date: '27/05', dueMs: 1779865200000 },
+        { title: '1ª Entrega', subtitle: 'Apresentação da identidade visual', tag: 'Revisão', date: '26/06', dueMs: 1782457200000 },
+        { title: 'Apresentação final', subtitle: 'Apresentação do desenvolvimento e integrações', tag: 'Entrega Final do Projeto', date: '28/07', dueMs: 1785222000000 },
+      ],
+    },
+  ];
 
   const STATUS_LABELS = {
     'pendentes': 'Pendente',
