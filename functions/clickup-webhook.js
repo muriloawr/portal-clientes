@@ -227,6 +227,7 @@ async function buildProjectStages(taskId, token) {
           subtitle,
           tag: item.tags && item.tags[0] ? item.tags[0].name : '',
           date: item.due_date ? formatDeadline(Number(item.due_date)) : '',
+          dueMs: item.due_date ? Number(item.due_date) : null,
           _sort: refDateMs,
         });
       } else {
@@ -248,6 +249,7 @@ async function buildProjectStages(taskId, token) {
       label: stageTask.name,
       dateRange: formatDateRange(stageTask.start_date, stageTask.due_date),
       statusKey: statusKeyOf(stageTask),
+      startMs: stageTask.start_date ? Number(stageTask.start_date) : null,
       dueMs: stageTask.due_date ? Number(stageTask.due_date) : null,
       isMeetings,
       items,
@@ -261,11 +263,11 @@ function stagesArrayLiteral(stages) {
   const body = stages.map(s => {
     const itemsJs = s.items.map(it => {
       if (s.isMeetings) {
-        return `        { title: '${escapeJs(it.title)}', subtitle: '${escapeJs(it.subtitle)}', tag: '${escapeJs(it.tag)}', date: '${escapeJs(it.date)}' },`;
+        return `        { title: '${escapeJs(it.title)}', subtitle: '${escapeJs(it.subtitle)}', tag: '${escapeJs(it.tag)}', date: '${escapeJs(it.date)}', dueMs: ${it.dueMs == null ? 'null' : it.dueMs} },`;
       }
       return `        { title: '${escapeJs(it.title)}', subtitle: '${escapeJs(it.subtitle)}', statusKey: '${it.statusKey}', date: '${escapeJs(it.date)}' },`;
     }).join('\n');
-    return `    {\n      key: '${escapeJs(s.key)}',\n      label: '${escapeJs(s.label)}',\n      dateRange: '${escapeJs(s.dateRange)}',\n      statusKey: '${s.statusKey}',\n      dueMs: ${s.dueMs == null ? 'null' : s.dueMs},\n      isMeetings: ${s.isMeetings},\n      items: [\n${itemsJs}\n      ],\n    },`;
+    return `    {\n      key: '${escapeJs(s.key)}',\n      label: '${escapeJs(s.label)}',\n      dateRange: '${escapeJs(s.dateRange)}',\n      statusKey: '${s.statusKey}',\n      startMs: ${s.startMs == null ? 'null' : s.startMs},\n      dueMs: ${s.dueMs == null ? 'null' : s.dueMs},\n      isMeetings: ${s.isMeetings},\n      items: [\n${itemsJs}\n      ],\n    },`;
   }).join('\n');
   return `[\n${body}\n  ]`;
 }

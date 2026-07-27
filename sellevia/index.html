@@ -17,9 +17,6 @@
     --brand:#015EC5;
     --tint-1:#EAF1FC;
     --tint-2:#C7DCF5;
-    --warn-bg:#FDEEE4;
-    --warn-ink:#C2410C;
-    --done-bg:#2FBE6C;
   }
   *{box-sizing:border-box;}
   html{overflow-x:hidden;}
@@ -51,55 +48,60 @@
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,190,108,0.55);}70%{box-shadow:0 0 0 7px rgba(47,190,108,0);}100%{box-shadow:0 0 0 0 rgba(47,190,108,0);}}
   h1{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:32px;margin:0;line-height:1.1;color:var(--ink);}
 
-  .section-title{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:18px;color:var(--ink);margin:0 0 12px;}
-  .progress-bar{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
-  .progress-steps{display:flex;align-items:center;flex:1;min-width:220px;}
-  .progress-step{display:flex;align-items:center;gap:8px;}
-  .progress-dot{width:11px;height:11px;border-radius:50%;background:var(--line);flex-shrink:0;}
-  .progress-step.done .progress-dot{background:var(--brand);}
-  .progress-step.current .progress-dot{background:var(--brand);box-shadow:0 0 0 4px rgba(1,94,197,0.18);}
-  .progress-label{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:13px;color:var(--ink-soft);white-space:nowrap;}
-  .progress-step.done .progress-label,.progress-step.current .progress-label{color:var(--ink);}
-  .progress-line{flex:1;height:2px;background:var(--line);margin:0 10px;min-width:16px;}
-  .progress-line.done{background:var(--brand);}
-  .progress-days{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:13px;color:var(--brand);background:var(--tint-1);padding:8px 16px;border-radius:20px;white-space:nowrap;}
-  .progress-days.overdue{color:var(--warn-ink);background:var(--warn-bg);}
+  /* barra com o intervalo do projeto, e etapa atual + contador logo abaixo */
+  .bar-wrap{margin-bottom:34px;}
+  .bar-edges{display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+  .bar-caption{display:flex;justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:14px;}
+  .status-side{display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
+  .status-side.right{align-items:flex-end;text-align:right;}
+  .cap-label{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--ink-soft);}
+  .cap-value{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:17px;color:var(--brand);line-height:1.2;}
+  .cap-value.muted{color:var(--ink);font-size:15px;}
+  .status-next{font-size:11.5px;color:var(--ink-soft);}
+  .overview-track-wrap{position:relative;height:8px;}
+  .overview-track{height:8px;border-radius:4px;background:var(--line);overflow:hidden;position:relative;}
+  .overview-fill{position:absolute;top:0;left:0;height:100%;width:0%;background:var(--brand);border-radius:4px;transition:width .7s ease;}
+  .tick{position:absolute;top:50%;width:9px;height:9px;border-radius:50%;background:var(--panel);border:2px solid var(--brand);transform:translate(-50%,-50%);z-index:2;}
+  .tick .tick-tip{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:'Inter',sans-serif;font-size:10.5px;padding:4px 9px;border-radius:7px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease;}
+  .tick:hover .tick-tip{opacity:1;}
+  .tick:hover{background:var(--brand);}
+  .now-marker{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--ink);border:2px solid var(--panel);transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(11,28,51,0.35);z-index:3;}
 
-  .stage-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);margin-bottom:20px;}
-  .stage-head{display:flex;justify-content:space-between;align-items:center;padding:16px 0;}
-  .stage-title{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:16px;color:var(--ink);}
-  .stage-daterange{font-size:11.5px;color:var(--ink-soft);background:var(--tint-1);padding:4px 12px;border-radius:20px;white-space:nowrap;}
+  .stage-block{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-top:22px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .stage-block-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 16px;margin-bottom:6px;}
+  .stage-block h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:17px;margin:0;}
+  .stage-tag{font-family:'Inter',sans-serif;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--bg);color:var(--ink-soft);white-space:nowrap;flex-shrink:0;}
 
-  .stage-item{display:grid;grid-template-columns:1fr 220px 90px;gap:14px;align-items:center;padding:16px 0;border-top:1px solid var(--line);}
-  .si-title{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);}
-  .si-subtitle{font-size:12px;color:var(--ink-soft);margin-top:2px;}
-  .si-date{font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);text-align:right;}
+  .phase-row{display:grid;grid-template-columns:200px 1fr 150px;gap:16px;align-items:center;padding:13px 0;border-top:1px solid var(--line);}
+  .phase-row:first-of-type{border-top:none;}
+  .phase-name{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14.5px;}
+  .phase-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .bar-track{position:relative;height:36px;background:var(--bg);border-radius:8px;overflow:hidden;}
+  .bar{position:absolute;top:0;bottom:0;left:0;width:100%;border-radius:8px;display:flex;align-items:center;padding:0 12px;font-size:12.5px;font-weight:500;white-space:nowrap;background:var(--tint-2);color:#0B1C33;}
+  .bar.solid{background:var(--brand);color:#fff;}
+  .phase-dates{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);text-align:right;}
 
-  .stage-pill{font-size:12.5px;padding:9px 16px;border-radius:8px;text-align:center;font-family:'Inter',sans-serif;font-weight:500;white-space:nowrap;}
-  .stage-pill.pendentes{background:var(--tint-1);color:var(--ink-soft);}
-  .stage-pill.planejamento{background:var(--tint-2);color:var(--brand);}
-  .stage-pill.em-andamento{background:var(--brand);color:#fff;}
-  .stage-pill.concluido{background:var(--brand);color:#fff;}
-  .stage-pill.fechado{background:var(--done-bg);color:#fff;}
-  .stage-pill.importante{background:var(--warn-bg);color:var(--warn-ink);}
-
-  .meeting-item{display:grid;grid-template-columns:76px 1fr auto;gap:14px;align-items:center;padding:16px 0;border-top:1px solid var(--line);}
-  .meeting-date{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:13px;color:var(--brand);}
-  .meeting-tag{font-size:11px;padding:5px 12px;border-radius:20px;background:var(--tint-2);color:var(--brand);white-space:nowrap;}
+  .meetings{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin-top:32px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .meetings h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:18px;margin:0 0 4px;}
+  .meetings .sub{font-size:13px;color:var(--ink-soft);margin-bottom:14px;}
+  .meeting-row{display:grid;grid-template-columns:130px 1fr auto;gap:16px;align-items:center;padding:12px 0;border-top:1px solid var(--line);}
+  .meeting-row:first-of-type{border-top:none;}
+  .m-date{font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--brand);}
+  .m-title{font-size:14px;}
+  .m-tag{font-family:'Inter',sans-serif;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--tint-1);color:var(--brand);white-space:nowrap;}
+  .m-tag.final{background:var(--ink);color:#fff;}
 
   .empty-state{padding:24px 0;text-align:center;color:var(--ink-soft);font-size:13.5px;}
 
   .footnote{margin-top:26px;font-size:12px;color:var(--ink-soft);text-align:center;}
 
-  @media (max-width:720px){
-    .progress-bar{flex-direction:column;align-items:stretch;}
-    .progress-label{font-size:11.5px;}
-    .stage-item{grid-template-columns:1fr;gap:8px;}
-    .stage-pill{justify-self:start;width:fit-content;}
-    .si-date{text-align:left;}
-    .si-date::before{content:"Prazo ";color:var(--ink-soft);font-size:11px;}
-    .meeting-item{grid-template-columns:1fr;gap:6px;}
-    .meeting-tag{justify-self:start;width:fit-content;}
+  @media (max-width:640px){
+    .phase-row{grid-template-columns:1fr;gap:6px;}
+    .phase-dates{text-align:left;}
+    .meeting-row{grid-template-columns:1fr;gap:4px;}
+    .meeting-row .m-date,.meeting-row .m-tag{justify-self:start;}
+    .bar-caption{flex-direction:column;gap:8px;}
+    .status-side.right{align-items:flex-start;text-align:left;margin-top:8px;}
   }
 </style>
 </head>
@@ -112,14 +114,39 @@
       <path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM69.0009 32.5515H75.3891L77.2882 10.0425L69.0009 32.5515ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/>
       <path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/>
     </svg>
-    <div class="eyebrow"><span class="live-dot"></span>Acompanhamento de Projeto</div>
+    <div class="eyebrow"><span class="live-dot"></span>Cronograma do Projeto</div>
     <h1 contenteditable="true">Sellévia</h1>
   </div>
 
-  <h2 class="section-title">Cronograma do Projeto</h2>
-  <div class="progress-bar" id="progressBar"></div>
+  <div class="bar-wrap" id="barWrap">
+    <div class="bar-edges">
+      <div><span class="cap-label">Kick-off</span><br><span class="cap-value muted" id="edgeStart">-</span></div>
+      <div style="text-align:right;"><span class="cap-label">Entrega final</span><br><span class="cap-value muted" id="edgeEnd">-</span></div>
+    </div>
+    <div class="overview-track-wrap">
+      <div class="overview-track"><div class="overview-fill" id="overviewFill"></div></div>
+      <div id="overviewTicks"></div>
+    </div>
+    <div class="bar-caption">
+      <div class="status-side">
+        <span class="cap-label">Etapa atual</span>
+        <span class="cap-value" id="capCurrent">-</span>
+        <span class="status-next" id="capNext">-</span>
+      </div>
+      <div class="status-side right">
+        <span class="cap-label">Faltam para a entrega final</span>
+        <span class="cap-value muted"><span id="kpiDaysLeft">-</span> dias</span>
+      </div>
+    </div>
+  </div>
 
   <div id="stageSections"></div>
+
+  <div class="meetings" id="meetingsSection">
+    <h2>Reuniões previstas</h2>
+    <div class="sub">A última reunião marca o encerramento do projeto.</div>
+    <div id="meetingList"></div>
+  </div>
 
   <div class="footnote">Atualizado sempre que uma etapa muda de status</div>
 
@@ -127,47 +154,7 @@
 
 <script>
   // --- dados: um objeto por etapa do projeto. Sincronizado automaticamente a partir do ClickUp. ---
-  const stages = [
-    {
-      key: 'wdpu2ydw5x',
-      label: 'Desenvolvimento',
-      dateRange: '06/07 - 17/07',
-      statusKey: 'concluido',
-      dueMs: 1784271600000,
-      isMeetings: false,
-      items: [
-        { title: 'Home', subtitle: '', statusKey: 'pendentes', date: '10/07' },
-        { title: 'PDP', subtitle: '', statusKey: 'concluido', date: '15/07' },
-        { title: 'Componentes', subtitle: '', statusKey: 'concluido', date: '17/07' },
-        { title: 'Páginas Adicionais', subtitle: '', statusKey: 'concluido', date: '17/07' },
-      ],
-    },
-    {
-      key: 'wdpu2ydw5y',
-      label: 'Integrações',
-      dateRange: '20/07 - 27/07',
-      statusKey: 'pendentes',
-      dueMs: 1785135600000,
-      isMeetings: false,
-      items: [
-        { title: 'Gateway de Pagamento', subtitle: 'Appmax', statusKey: 'pendentes', date: '' },
-        { title: 'ERP', subtitle: 'Olist', statusKey: 'pendentes', date: '' },
-        { title: 'Hub de Frete', subtitle: 'Frenet', statusKey: 'pendentes', date: '' },
-        { title: 'CRM', subtitle: 'Reportana', statusKey: 'pendentes', date: '' },
-      ],
-    },
-    {
-      key: 'wdpu2ydw5z',
-      label: 'Reuniões',
-      dateRange: '',
-      statusKey: 'pendentes',
-      dueMs: null,
-      isMeetings: true,
-      items: [
-
-      ],
-    },
-  ];
+  const stages = [];
 
   const STATUS_LABELS = {
     'pendentes': 'Pendente',
@@ -182,41 +169,82 @@
     return STATUS_LABELS[key] || key || '-';
   }
 
-  function render() {
-    document.getElementById('stageSections').innerHTML = stages.map(s => {
-      if (s.isMeetings) {
-        const rows = s.items.length === 0
-          ? `<div class="empty-state">Nenhuma reunião registrada ainda.</div>`
-          : s.items.map(it => `
-            <div class="meeting-item">
-              <div class="meeting-date">${it.date || '-'}</div>
-              <div><div class="si-title">${it.title}</div><div class="si-subtitle">${it.subtitle || ''}</div></div>
-              ${it.tag ? `<div class="meeting-tag">${it.tag}</div>` : '<div></div>'}
-            </div>
-          `).join('');
-        return `
-          <div class="stage-card">
-            <div class="stage-head"><span class="stage-title">${s.label}</span></div>
-            ${rows}
-          </div>
-        `;
-      }
+  function fmtFull(date) {
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+  function fmtShort(date) {
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+  }
 
+  const flow = stages.filter(s => !s.isMeetings);
+  const meetingsStage = stages.find(s => s.isMeetings);
+  const meetings = meetingsStage ? meetingsStage.items : [];
+
+  const kickoffMs = (meetings.length && meetings[0].dueMs) ? meetings[0].dueMs
+    : (flow.length && flow[0].startMs) ? flow[0].startMs
+    : null;
+  const finalMs = flow.length ? flow[flow.length - 1].dueMs : null;
+
+  function renderTimeline() {
+    const wrap = document.getElementById('barWrap');
+    if (!kickoffMs || !finalMs || finalMs <= kickoffMs) { wrap.style.display = 'none'; return; }
+
+    const now = Date.now();
+    const pct = (ms) => Math.min(100, Math.max(0, ((ms - kickoffMs) / (finalMs - kickoffMs)) * 100));
+
+    document.getElementById('edgeStart').textContent = fmtFull(new Date(kickoffMs));
+    document.getElementById('edgeEnd').textContent = fmtFull(new Date(finalMs));
+    document.getElementById('kpiDaysLeft').textContent = Math.max(0, Math.round((finalMs - now) / 86400000));
+    document.getElementById('overviewFill').style.width = pct(now).toFixed(1) + '%';
+
+    document.getElementById('overviewTicks').innerHTML = meetings.filter(m => m.dueMs).map(m => `
+      <div class="tick" style="left:${pct(m.dueMs).toFixed(1)}%;">
+        <div class="tick-tip"><b>${m.title}</b> &middot; ${fmtShort(new Date(m.dueMs))}</div>
+      </div>
+    `).join('');
+
+    if (now >= kickoffMs && now <= finalMs) {
+      const marker = document.createElement('div');
+      marker.className = 'now-marker';
+      marker.style.left = pct(now).toFixed(1) + '%';
+      document.querySelector('.overview-track-wrap').appendChild(marker);
+    }
+
+    let currentIdx = flow.findIndex(s => s.statusKey !== 'concluido' && s.statusKey !== 'fechado');
+    const capCurrent = document.getElementById('capCurrent');
+    const capNext = document.getElementById('capNext');
+    if (currentIdx === -1) {
+      capCurrent.textContent = 'Projeto entregue';
+      capNext.textContent = '-';
+    } else {
+      const s = flow[currentIdx];
+      capCurrent.textContent = s.label + (s.dueMs ? ' · até ' + fmtShort(new Date(s.dueMs)) : '');
+      const nextS = flow[currentIdx + 1];
+      capNext.textContent = nextS
+        ? nextS.label + (nextS.startMs ? ' · inicia em ' + fmtShort(new Date(nextS.startMs)) : '')
+        : 'Entrega final · ' + fmtShort(new Date(finalMs));
+    }
+  }
+
+  function renderStages() {
+    document.getElementById('stageSections').innerHTML = flow.map(s => {
       const rows = s.items.length === 0
         ? `<div class="empty-state">Nenhum item registrado ainda.</div>`
-        : s.items.map(it => `
-          <div class="stage-item">
-            <div><div class="si-title">${it.title}</div><div class="si-subtitle">${it.subtitle || ''}</div></div>
-            <div class="stage-pill ${it.statusKey}">${statusLabel(it.statusKey)}</div>
-            <div class="si-date">${it.date || '-'}</div>
-          </div>
-        `).join('');
-
+        : s.items.map(it => {
+          const solid = it.statusKey === 'em-andamento' || it.statusKey === 'concluido' || it.statusKey === 'fechado';
+          return `
+            <div class="phase-row">
+              <div><div class="phase-name">${it.title}</div><div class="phase-sub">${it.subtitle || ''}</div></div>
+              <div class="bar-track"><div class="bar${solid ? ' solid' : ''}">${statusLabel(it.statusKey)}</div></div>
+              <div class="phase-dates">${it.date || '-'}</div>
+            </div>
+          `;
+        }).join('');
       return `
-        <div class="stage-card">
-          <div class="stage-head">
-            <span class="stage-title">${s.label}</span>
-            ${s.dateRange ? `<span class="stage-daterange">${s.dateRange}</span>` : ''}
+        <div class="stage-block">
+          <div class="stage-block-head">
+            <h2>${s.label}</h2>
+            ${s.dateRange ? `<span class="stage-tag">${s.dateRange}</span>` : ''}
           </div>
           ${rows}
         </div>
@@ -224,32 +252,23 @@
     }).join('');
   }
 
-  function renderProgress() {
-    const flow = stages.filter(s => !s.isMeetings);
-    if (!flow.length) { document.getElementById('progressBar').innerHTML = ''; return; }
-
-    let currentIdx = flow.findIndex(s => s.statusKey !== 'concluido' && s.statusKey !== 'fechado');
-    if (currentIdx === -1) currentIdx = flow.length; // todas as etapas concluídas
-
-    const stepsHtml = flow.map((s, i) => {
-      const state = i < currentIdx ? 'done' : (i === currentIdx ? 'current' : 'upcoming');
-      const line = i < flow.length - 1 ? `<div class="progress-line${i < currentIdx ? ' done' : ''}"></div>` : '';
-      return `<div class="progress-step ${state}"><span class="progress-dot"></span><span class="progress-label">${s.label}</span></div>${line}`;
-    }).join('');
-
-    const last = flow[flow.length - 1];
-    let daysHtml = '';
-    if (last && last.dueMs) {
-      const diff = Math.ceil((last.dueMs - Date.now()) / 86400000);
-      if (diff >= 0) daysHtml = `<div class="progress-days">${diff} dia${diff === 1 ? '' : 's'} restante${diff === 1 ? '' : 's'}</div>`;
-      else daysHtml = `<div class="progress-days overdue">Prazo final ultrapassado</div>`;
-    }
-
-    document.getElementById('progressBar').innerHTML = `<div class="progress-steps">${stepsHtml}</div>${daysHtml}`;
+  function renderMeetings() {
+    const section = document.getElementById('meetingsSection');
+    if (!meetingsStage) { section.style.display = 'none'; return; }
+    document.getElementById('meetingList').innerHTML = meetings.length === 0
+      ? `<div class="empty-state">Nenhuma reunião registrada ainda.</div>`
+      : meetings.map((m, i) => `
+        <div class="meeting-row">
+          <div class="m-date">${m.date || '-'}</div>
+          <div class="m-title">${m.title}<div class="phase-sub">${m.subtitle || ''}</div></div>
+          ${m.tag ? `<div class="m-tag${i === meetings.length - 1 ? ' final' : ''}">${m.tag}</div>` : '<div></div>'}
+        </div>
+      `).join('');
   }
 
-  render();
-  renderProgress();
+  renderTimeline();
+  renderStages();
+  renderMeetings();
 </script>
 </body>
 </html>
