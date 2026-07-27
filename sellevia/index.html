@@ -154,7 +154,66 @@
 
 <script>
   // --- dados: um objeto por etapa do projeto. Sincronizado automaticamente a partir do ClickUp. ---
-  const stages = [];
+  const stages = [
+    {
+      key: 'wdpu2ydw9v',
+      label: 'Protótipo',
+      dateRange: '17/06 - 03/07',
+      statusKey: 'concluido',
+      startMs: 1781679600000,
+      dueMs: 1783062000000,
+      isMeetings: false,
+      items: [
+        { title: '1ª Entrega', subtitle: 'Identidade visual', statusKey: 'concluido', date: '26/06' },
+        { title: 'Entrega do Protótipo', subtitle: 'Figma completo', statusKey: 'concluido', date: '03/07' },
+      ],
+    },
+    {
+      key: 'wdpu2ydw5x',
+      label: 'Desenvolvimento',
+      dateRange: '06/07 - 17/07',
+      statusKey: 'concluido',
+      startMs: 1783321200000,
+      dueMs: 1784271600000,
+      isMeetings: false,
+      items: [
+        { title: 'Home', subtitle: '', statusKey: 'concluido', date: '10/07' },
+        { title: 'PDP', subtitle: '', statusKey: 'concluido', date: '15/07' },
+        { title: 'Componentes', subtitle: '', statusKey: 'concluido', date: '17/07' },
+        { title: 'Páginas Adicionais', subtitle: '', statusKey: 'concluido', date: '17/07' },
+      ],
+    },
+    {
+      key: 'wdpu2ydw5y',
+      label: 'Integrações',
+      dateRange: '20/07 - 27/07',
+      statusKey: 'pendentes',
+      startMs: 1784530800000,
+      dueMs: 1785135600000,
+      isMeetings: false,
+      items: [
+        { title: 'Gateway de Pagamento', subtitle: 'Appmax', statusKey: 'pendentes', date: '' },
+        { title: 'ERP', subtitle: 'Olist', statusKey: 'pendentes', date: '' },
+        { title: 'Hub de Frete', subtitle: 'Frenet', statusKey: 'pendentes', date: '' },
+        { title: 'CRM', subtitle: 'Reportana', statusKey: 'pendentes', date: '' },
+      ],
+    },
+    {
+      key: 'wdpu2ydw5z',
+      label: 'Reuniões',
+      dateRange: '',
+      statusKey: 'pendentes',
+      startMs: null,
+      dueMs: null,
+      isMeetings: true,
+      items: [
+        { title: 'Kick-off', subtitle: 'Briefing inicial do projeto', tag: '', date: '27/05', dueMs: 1779865200000 },
+        { title: '1ª Entrega', subtitle: 'Apresentação da identidade visual', tag: '', date: '26/06', dueMs: 1782457200000 },
+        { title: 'Integrações', subtitle: 'Definir quais integrações serão feitas e apresentar', tag: '', date: '15/07', dueMs: 1784098800000 },
+        { title: 'Apresentação final', subtitle: 'Apresentação do desenvolvimento e integrações', tag: '', date: '27/07', dueMs: 1785135600000 },
+      ],
+    },
+  ];
 
   const STATUS_LABELS = {
     'pendentes': 'Pendente',
