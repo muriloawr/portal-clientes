@@ -167,7 +167,52 @@
 
 <script>
   // --- dados: um objeto por etapa do projeto. Sincronizado automaticamente a partir do ClickUp. ---
-  const stages = [];
+  const stages = [
+    {
+      key: 'wdpu2ydx4p',
+      label: 'Protótipo',
+      dateRange: '01/06 - 19/06',
+      statusKey: 'concluido',
+      startMs: 1780297200000,
+      dueMs: 1781852400000,
+      isMeetings: false,
+      items: [
+        { title: '1ª Entrega', subtitle: 'Identidade visual', statusKey: 'concluido', owner: 'Guilherme', date: '05/06' },
+        { title: 'Entrega do Protótipo', subtitle: 'Figma completo', statusKey: 'concluido', owner: 'Guilherme', date: '19/06' },
+      ],
+    },
+    {
+      key: 'wdpu2ydx4t',
+      label: 'Desenvolvimento',
+      dateRange: '22/06 - 30/07',
+      statusKey: 'concluido',
+      startMs: 1782111600000,
+      dueMs: 1785394800000,
+      isMeetings: false,
+      items: [
+        { title: 'Home', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '26/06' },
+        { title: 'PDP', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '02/07' },
+        { title: 'Componentes', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '07/07' },
+        { title: 'Páginas Adicionais', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '10/07' },
+        { title: 'Ajustes', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '17/07' },
+        { title: 'Modelos de Produtos', subtitle: '', statusKey: 'pendentes', owner: 'Erik', date: '29/07' },
+      ],
+    },
+    {
+      key: 'wdpu2ydx54',
+      label: 'Reuniões',
+      dateRange: '',
+      statusKey: 'pendentes',
+      startMs: null,
+      dueMs: null,
+      isMeetings: true,
+      items: [
+        { title: 'Kick-off', subtitle: 'Briefing inicial do projeto', tag: 'Kickoff', date: '12/06', dueMs: 1781247600000 },
+        { title: '1ª Entrega', subtitle: 'Apresentação da identidade visual', tag: 'Revisão', date: '19/06', dueMs: 1781852400000 },
+        { title: 'Apresentação final', subtitle: 'Apresentação do desenvolvimento e integrações', tag: 'Entrega Final do Projeto', date: '31/07', dueMs: 1785481200000 },
+      ],
+    },
+  ];
 
   const STATUS_LABELS = {
     'pendentes': 'Pendente',
