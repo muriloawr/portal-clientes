@@ -76,7 +76,7 @@
   .phase-row{display:grid;grid-template-columns:1fr 100px 190px 90px;gap:14px;align-items:center;padding:13px 0;border-top:1px solid var(--line);}
   .phase-row:first-of-type{border-top:none;}
   .phase-head+.phase-row{border-top:none;}
-  .phase-head{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--ink-soft);padding:8px 0 2px;}
+  .phase-head{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--ink-soft);padding:12px 0 6px;}
   .phase-name{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14.5px;}
   .phase-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
   .phase-owner{font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:7px;}
@@ -322,7 +322,7 @@
         ? `<div class="empty-state">Nenhum item registrado ainda.</div>`
         : `
           <div class="phase-row phase-head">
-            <div>Demanda</div><div>Responsável</div><div style="text-align:center;">Status</div><div style="text-align:right;">Prazo</div>
+            <div></div><div>Responsável</div><div style="text-align:center;">Status</div><div></div>
           </div>
         ` + s.items.map(it => {
           const statusClass = (it.statusKey === 'concluido' || it.statusKey === 'fechado') ? ' solid'
