@@ -321,7 +321,7 @@
         ? `<div class="empty-state">Nenhum item registrado ainda.</div>`
         : `
           <div class="phase-row phase-head">
-            <div></div><div>Responsável</div><div style="text-align:center;">Status</div><div></div>
+            <div></div><div>Responsável</div><div style="text-align:center;">Status</div><div style="text-align:right;">Prazo</div>
           </div>
         ` + s.items.map(it => {
           const statusClass = (it.statusKey === 'concluido' || it.statusKey === 'fechado') ? ' solid'
