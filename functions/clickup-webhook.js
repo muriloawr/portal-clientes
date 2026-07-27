@@ -234,6 +234,7 @@ async function buildProjectStages(taskId, token) {
           title: item.name,
           subtitle,
           statusKey: statusKeyOf(item),
+          owner: item.assignees && item.assignees[0] ? item.assignees[0].username.split(' ')[0] : '',
           date: formatDateRange(item.start_date, item.due_date),
           _sort: refDateMs,
         });
@@ -275,7 +276,7 @@ function stagesArrayLiteral(stages) {
       if (s.isMeetings) {
         return `        { title: '${escapeJs(it.title)}', subtitle: '${escapeJs(it.subtitle)}', tag: '${escapeJs(it.tag)}', date: '${escapeJs(it.date)}', dueMs: ${it.dueMs == null ? 'null' : it.dueMs} },`;
       }
-      return `        { title: '${escapeJs(it.title)}', subtitle: '${escapeJs(it.subtitle)}', statusKey: '${it.statusKey}', date: '${escapeJs(it.date)}' },`;
+      return `        { title: '${escapeJs(it.title)}', subtitle: '${escapeJs(it.subtitle)}', statusKey: '${it.statusKey}', owner: '${escapeJs(it.owner)}', date: '${escapeJs(it.date)}' },`;
     }).join('\n');
     return `    {\n      key: '${escapeJs(s.key)}',\n      label: '${escapeJs(s.label)}',\n      dateRange: '${escapeJs(s.dateRange)}',\n      statusKey: '${s.statusKey}',\n      startMs: ${s.startMs == null ? 'null' : s.startMs},\n      dueMs: ${s.dueMs == null ? 'null' : s.dueMs},\n      isMeetings: ${s.isMeetings},\n      items: [\n${itemsJs}\n      ],\n    },`;
   }).join('\n');
