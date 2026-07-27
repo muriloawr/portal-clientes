@@ -51,6 +51,19 @@
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,190,108,0.55);}70%{box-shadow:0 0 0 7px rgba(47,190,108,0);}100%{box-shadow:0 0 0 0 rgba(47,190,108,0);}}
   h1{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:32px;margin:0;line-height:1.1;color:var(--ink);}
 
+  .progress-bar{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
+  .progress-steps{display:flex;align-items:center;flex:1;min-width:220px;}
+  .progress-step{display:flex;align-items:center;gap:8px;}
+  .progress-dot{width:11px;height:11px;border-radius:50%;background:var(--line);flex-shrink:0;}
+  .progress-step.done .progress-dot{background:var(--brand);}
+  .progress-step.current .progress-dot{background:var(--brand);box-shadow:0 0 0 4px rgba(1,94,197,0.18);}
+  .progress-label{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:13px;color:var(--ink-soft);white-space:nowrap;}
+  .progress-step.done .progress-label,.progress-step.current .progress-label{color:var(--ink);}
+  .progress-line{flex:1;height:2px;background:var(--line);margin:0 10px;min-width:16px;}
+  .progress-line.done{background:var(--brand);}
+  .progress-days{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:13px;color:var(--brand);background:var(--tint-1);padding:8px 16px;border-radius:20px;white-space:nowrap;}
+  .progress-days.overdue{color:var(--warn-ink);background:var(--warn-bg);}
+
   .stage-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);margin-bottom:20px;}
   .stage-head{display:flex;justify-content:space-between;align-items:center;padding:16px 0;}
   .stage-title{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:16px;color:var(--ink);}
@@ -65,7 +78,7 @@
   .stage-pill.pendentes{background:var(--tint-1);color:var(--ink-soft);}
   .stage-pill.planejamento{background:var(--tint-2);color:var(--brand);}
   .stage-pill.em-andamento{background:var(--brand);color:#fff;}
-  .stage-pill.concluido{background:var(--ink);color:#fff;}
+  .stage-pill.concluido{background:var(--brand);color:#fff;}
   .stage-pill.fechado{background:var(--done-bg);color:#fff;}
   .stage-pill.importante{background:var(--warn-bg);color:var(--warn-ink);}
 
@@ -78,6 +91,8 @@
   .footnote{margin-top:26px;font-size:12px;color:var(--ink-soft);text-align:center;}
 
   @media (max-width:720px){
+    .progress-bar{flex-direction:column;align-items:stretch;}
+    .progress-label{font-size:11.5px;}
     .stage-item{grid-template-columns:1fr;gap:8px;}
     .stage-pill{justify-self:start;width:fit-content;}
     .si-date{text-align:left;}
@@ -99,6 +114,8 @@
     <div class="eyebrow"><span class="live-dot"></span>Acompanhamento de Projeto</div>
     <h1 contenteditable="true">Sellévia</h1>
   </div>
+
+  <div class="progress-bar" id="progressBar"></div>
 
   <div id="stageSections"></div>
 
@@ -199,7 +216,32 @@
     }).join('');
   }
 
+  function renderProgress() {
+    const flow = stages.filter(s => !s.isMeetings);
+    if (!flow.length) { document.getElementById('progressBar').innerHTML = ''; return; }
+
+    let currentIdx = flow.findIndex(s => s.statusKey !== 'concluido' && s.statusKey !== 'fechado');
+    if (currentIdx === -1) currentIdx = flow.length; // todas as etapas concluídas
+
+    const stepsHtml = flow.map((s, i) => {
+      const state = i < currentIdx ? 'done' : (i === currentIdx ? 'current' : 'upcoming');
+      const line = i < flow.length - 1 ? `<div class="progress-line${i < currentIdx ? ' done' : ''}"></div>` : '';
+      return `<div class="progress-step ${state}"><span class="progress-dot"></span><span class="progress-label">${s.label}</span></div>${line}`;
+    }).join('');
+
+    const last = flow[flow.length - 1];
+    let daysHtml = '';
+    if (last && last.dueMs) {
+      const diff = Math.ceil((last.dueMs - Date.now()) / 86400000);
+      if (diff >= 0) daysHtml = `<div class="progress-days">${diff} dia${diff === 1 ? '' : 's'} restante${diff === 1 ? '' : 's'}</div>`;
+      else daysHtml = `<div class="progress-days overdue">Prazo final ultrapassado</div>`;
+    }
+
+    document.getElementById('progressBar').innerHTML = `<div class="progress-steps">${stepsHtml}</div>${daysHtml}`;
+  }
+
   render();
+  renderProgress();
 </script>
 </body>
 </html>

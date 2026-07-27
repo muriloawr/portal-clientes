@@ -191,7 +191,7 @@ async function fetchComment(taskId, token) {
   if (!res.ok) throw new Error(`ClickUp API error (comment): ${res.status} ${await res.text()}`);
   const data = await res.json();
   const first = data.comments && data.comments[0];
-  return first ? (first.comment_text || '') : '';
+  return first ? (first.comment_text || '').trim() : '';
 }
 
 function formatDateRange(startMs, dueMs) {
@@ -247,6 +247,8 @@ async function buildProjectStages(taskId, token) {
       key: stageTask.id,
       label: stageTask.name,
       dateRange: formatDateRange(stageTask.start_date, stageTask.due_date),
+      statusKey: statusKeyOf(stageTask),
+      dueMs: stageTask.due_date ? Number(stageTask.due_date) : null,
       isMeetings,
       items,
     });
@@ -263,7 +265,7 @@ function stagesArrayLiteral(stages) {
       }
       return `        { title: '${escapeJs(it.title)}', subtitle: '${escapeJs(it.subtitle)}', statusKey: '${it.statusKey}', date: '${escapeJs(it.date)}' },`;
     }).join('\n');
-    return `    {\n      key: '${escapeJs(s.key)}',\n      label: '${escapeJs(s.label)}',\n      dateRange: '${escapeJs(s.dateRange)}',\n      isMeetings: ${s.isMeetings},\n      items: [\n${itemsJs}\n      ],\n    },`;
+    return `    {\n      key: '${escapeJs(s.key)}',\n      label: '${escapeJs(s.label)}',\n      dateRange: '${escapeJs(s.dateRange)}',\n      statusKey: '${s.statusKey}',\n      dueMs: ${s.dueMs == null ? 'null' : s.dueMs},\n      isMeetings: ${s.isMeetings},\n      items: [\n${itemsJs}\n      ],\n    },`;
   }).join('\n');
   return `[\n${body}\n  ]`;
 }
