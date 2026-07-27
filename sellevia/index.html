@@ -253,7 +253,8 @@
 
     document.getElementById('edgeStart').textContent = fmtFull(new Date(kickoffMs));
     document.getElementById('edgeEnd').textContent = fmtFull(new Date(finalMs));
-    const diffDays = Math.round((finalMs - now) / 86400000);
+    const midnight = (ms) => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
+    const diffDays = Math.round((midnight(finalMs) - midnight(now)) / 86400000);
     const daysEl = document.getElementById('kpiDaysLeft');
     if (diffDays > 1) daysEl.textContent = diffDays + ' dias';
     else if (diffDays === 1) daysEl.textContent = '1 dia';
