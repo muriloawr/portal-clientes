@@ -304,7 +304,7 @@
     const capNext = document.getElementById('capNext');
     if (currentIdx === -1) {
       capCurrent.textContent = 'Projeto entregue';
-      capNext.textContent = '-';
+      capNext.textContent = '';
     } else {
       const s = flow[currentIdx];
       capCurrent.textContent = s.label + (s.dueMs ? ' · até ' + fmtShort(new Date(s.dueMs)) : '');
