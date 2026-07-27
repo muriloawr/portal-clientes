@@ -29,6 +29,8 @@ const CLIENTS = [
   // como subtasks dela. Demandas dentro desses itens (nível 3) ficam ocultas de propósito.
   { name: 'Sellévia', type: 'projeto', taskId: 'wdpu2yadde', filePath: 'sellevia/index.html' },
   { name: 'Booma', type: 'projeto', taskId: 'wdpu2ybtcm', filePath: 'booma/index.html' },
+  { name: 'Beleza Brasileira', type: 'projeto', taskId: 'wdpu2y7wq1', filePath: 'beleza-brasileira/index.html' },
+  { name: 'Yasmin Beauty', type: 'projeto', taskId: '86ahgcemc', filePath: 'yasmin-beauty/index.html' },
 ];
 
 const REPO_OWNER = 'muriloawr';
