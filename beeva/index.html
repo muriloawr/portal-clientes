@@ -168,7 +168,67 @@
 
 <script>
   // --- dados: um objeto por etapa do projeto. Sincronizado automaticamente a partir do ClickUp. ---
-  const stages = [];
+  const stages = [
+    {
+      key: 'wdpu2ydyzq',
+      label: 'Protótipo',
+      dateRange: '16/07 - 29/07',
+      statusKey: 'concluido',
+      startMs: 1784185200000,
+      dueMs: 1785308400000,
+      isMeetings: false,
+      items: [
+        { title: '1ª Entrega', subtitle: 'Identidade visual', statusKey: 'concluido', owner: 'Guilherme', date: '23/07' },
+        { title: 'Entrega do Protótipo', subtitle: 'Figma completo', statusKey: 'concluido', owner: 'Guilherme', date: '29/07' },
+      ],
+    },
+    {
+      key: 'wdpu2ydyzu',
+      label: 'Desenvolvimento',
+      dateRange: '05/08 - 14/08',
+      statusKey: 'pendentes',
+      startMs: 1785913200000,
+      dueMs: 1786690800000,
+      isMeetings: false,
+      items: [
+        { title: 'Home', subtitle: '', statusKey: 'pendentes', owner: 'Erik', date: '' },
+        { title: 'PDP', subtitle: '', statusKey: 'pendentes', owner: 'Erik', date: '' },
+        { title: 'Páginas Adicionais', subtitle: '', statusKey: 'pendentes', owner: 'Erik', date: '' },
+        { title: 'Componentes', subtitle: '', statusKey: 'pendentes', owner: 'Erik', date: '' },
+      ],
+    },
+    {
+      key: 'wdpu2ydyzz',
+      label: 'Integrações',
+      dateRange: '10/08 - 14/08',
+      statusKey: 'pendentes',
+      startMs: 1786345200000,
+      dueMs: 1786690800000,
+      isMeetings: false,
+      items: [
+        { title: 'Gateway de Pagamento', subtitle: 'Appmax', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'ERP', subtitle: 'Sankhya - Analisar substituição', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'Hub de Frete', subtitle: 'Frenet - Analisar fulfillment', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'CRM', subtitle: 'Opcional', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+      ],
+    },
+    {
+      key: 'wdpu2ydz05',
+      label: 'Reuniões',
+      dateRange: '',
+      statusKey: 'pendentes',
+      startMs: null,
+      dueMs: null,
+      isMeetings: true,
+      items: [
+        { title: 'Kick-off', subtitle: 'Briefing inicial do projeto', tag: 'Kickoff', date: '07/07', dueMs: 1783407600000 },
+        { title: '1ª Entrega', subtitle: 'Apresentação da identidade visual', tag: 'Revisão', date: '23/07', dueMs: 1784790000000 },
+        { title: 'Entrega do Protótipo', subtitle: 'Apresentação do Figma completo', tag: 'Revisão', date: '31/07', dueMs: 1785481200000 },
+        { title: 'Integrações', subtitle: 'Definir quais integrações serão feitas e apresentar', tag: 'Revisão', date: '10/08', dueMs: 1786345200000 },
+        { title: 'Apresentação final', subtitle: 'Apresentação do desenvolvimento e integrações', tag: 'Entrega Final do Projeto', date: '14/08', dueMs: 1786690800000 },
+      ],
+    },
+  ];
 
   const STATUS_LABELS = {
     'pendentes': 'Pendente',
