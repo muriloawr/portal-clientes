@@ -38,6 +38,7 @@ jobs:
             "Booma"
             "Beleza Brasileira"
             "Yasmin Beauty"
+            "Beeva"
           )
           FAILED=0
           for CLIENT in "${CLIENTS[@]}"; do
