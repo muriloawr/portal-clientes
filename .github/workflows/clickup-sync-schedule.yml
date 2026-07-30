@@ -14,6 +14,15 @@ on:
     - cron: '45 13,16,19 * * 1-5'
   workflow_dispatch: {}
 
+# Garante que só uma sincronização rode por vez. Sem isso, um disparo manual
+# (workflow_dispatch) que coincida com o horário de um cron agendado faz duas
+# execuções baterem na API do ClickUp ao mesmo tempo, cada uma do zero — o que
+# estoura o rate limit mesmo com o "sleep" entre chamadas dentro de uma única
+# execução. A segunda execução fica na fila e roda assim que a primeira acabar.
+concurrency:
+  group: clickup-sync
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
