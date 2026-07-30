@@ -125,13 +125,13 @@ async function getSyncUnits(client, figmaToken) {
   if (!prototypePage) throw new Error('Pagina "Prototype" nao encontrada no arquivo');
 
   const units = [];
-  for (const node of (prototypePage.children || [])) {
+  for (const node of childrenInPanelOrder(prototypePage)) {
     if (!isVisible(node)) continue;
     if (node.type === 'SECTION') {
       // Regra fixa: a section "Responsividade" (onde entra a versão mobile)
       // é sempre ignorada por inteiro.
       if (node.name.trim().toLowerCase() === 'responsividade') continue;
-      for (const child of (node.children || [])) {
+      for (const child of childrenInPanelOrder(node)) {
         if (!isVisible(child)) continue;
         units.push({ frame: resolveEffectiveNode(child), group: { id: node.id, name: node.name } });
       }
@@ -147,6 +147,13 @@ async function getSyncUnits(client, figmaToken) {
 // oculto já basta.
 function isVisible(node) {
   return node.visible !== false;
+}
+
+// A API do Figma devolve `children` na ordem inversa do painel de camadas
+// (o que aparece no TOPO do painel é o ÚLTIMO do array). Inverte pra criar
+// as tasks na mesma ordem de leitura do painel, de cima pra baixo.
+function childrenInPanelOrder(node) {
+  return [...(node.children || [])].reverse();
 }
 
 // Frames "X Desktop" e "X Mobile" viram um item só, "X" — pro cliente não
@@ -224,7 +231,7 @@ async function syncOneItem(client, itemNodeId, env) {
   const itemMap = await syncFigmaLevel([unit.frame], parentForFrame, env.CLICKUP_API_TOKEN, client.fileKey, log, null);
   const itemTaskId = itemMap.get(unit.frame.id);
 
-  const demandaNodes = (unit.frame.children || []).filter(isVisible);
+  const demandaNodes = childrenInPanelOrder(unit.frame).filter(isVisible);
   if (demandaNodes.length > 0) {
     await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, client.name);
   }
