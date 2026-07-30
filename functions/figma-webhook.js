@@ -46,6 +46,11 @@ export async function onRequestPost(context) {
     const log = await deleteClickUpTasks(payload.delete_task_ids, env.CLICKUP_API_TOKEN);
     return new Response(log.join('\n'), { status: 200 });
   }
+  if (payload.list_clickup_subtasks) {
+    const subtasks = await fetchClickUpSubtasks(payload.list_clickup_subtasks, env.CLICKUP_API_TOKEN);
+    const summary = subtasks.map(t => ({ id: t.id, name: t.name }));
+    return new Response(JSON.stringify(summary), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
 
   const client = FIGMA_CLIENTS.find(c => c.fileKey === payload.file_key || c.name === payload.client);
   if (!client) {
@@ -151,8 +156,8 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
       // Link só na criação — repetir a cada sync duplicaria o comentário.
       // Vai em comentário (não descrição) porque a integração nativa do
       // ClickUp com o Figma reconhece e mostra preview de links em comentário.
-      const commentResult = await addClickUpComment(created.id, figmaProtoLink(fileKey, node.id), token);
-      log.push(`criado: '${node.name}' (task ${created.id}, comment ${JSON.stringify(commentResult)})`);
+      await addClickUpComment(created.id, figmaProtoLink(fileKey, node.id), token);
+      log.push(`criado: '${node.name}' (task ${created.id})`);
       resultMap.set(node.id, created.id);
       await sleep(300);
     }
@@ -161,7 +166,11 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
 }
 
 function figmaProtoLink(fileKey, nodeId) {
-  return `https://www.figma.com/proto/${fileKey}?node-id=${nodeId.replace(':', '-')}`;
+  const encoded = nodeId.replace(':', '-');
+  // starting-point-node-id é quem de fato manda o play mode pro frame certo
+  // (node-id sozinho é ignorado se o arquivo já tem um fluxo padrão definido,
+  // ex: sempre abre no fluxo mobile). scaling=scale-down-width é o "fit width".
+  return `https://www.figma.com/proto/${fileKey}?node-id=${encoded}&starting-point-node-id=${encoded}&scaling=scale-down-width`;
 }
 
 // Identificação por tag, não por descrição — o endpoint de listagem de
