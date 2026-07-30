@@ -58,6 +58,12 @@ export async function onRequestPost(context) {
     const data = await res.json();
     return new Response(JSON.stringify({ id: data.id, name: data.name, tags: data.tags }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
+  if (payload.find_by_tag) {
+    const url = `https://api.clickup.com/api/v2/list/${LIST_ID}/task?tags[]=${encodeURIComponent(payload.find_by_tag)}&include_closed=true`;
+    const res = await fetch(url, { headers: { Authorization: env.CLICKUP_API_TOKEN } });
+    const data = await res.json();
+    return new Response(JSON.stringify({ url, status: res.status, count: data.tasks ? data.tasks.length : null, raw: data }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
 
   const client = FIGMA_CLIENTS.find(c => c.fileKey === payload.file_key || c.name === payload.client);
   if (!client) {
