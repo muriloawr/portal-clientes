@@ -88,6 +88,20 @@ export async function onRequestPost(context) {
     const created = await addClickUpComment(payload.post_comment_task_id, 'Ver no Figma', payload.post_comment_url, env.CLICKUP_API_TOKEN);
     return new Response(JSON.stringify(created), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
+  if (payload.inspect_node) {
+    const client = FIGMA_CLIENTS.find(c => c.fileKey === payload.file_key || c.name === payload.client);
+    if (!client) return new Response('client not found', { status: 400 });
+    const fileData = await fetchFigmaFile(client.fileKey, env.FIGMA_API_TOKEN);
+    const found = findNodeById(fileData.document, payload.inspect_node);
+    if (!found) return new Response('node not found', { status: 404 });
+    const summary = {
+      id: found.id,
+      name: found.name,
+      type: found.type,
+      children: (found.children || []).map(c => ({ id: c.id, name: c.name, type: c.type })),
+    };
+    return new Response(JSON.stringify(summary), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
 
   const client = FIGMA_CLIENTS.find(c => c.fileKey === payload.file_key || c.name === payload.client);
   if (!client) {
@@ -359,6 +373,15 @@ function nodeIdToTag(nodeId) {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function findNodeById(node, id) {
+  if (node.id === id) return node;
+  for (const child of (node.children || [])) {
+    const found = findNodeById(child, id);
+    if (found) return found;
+  }
+  return null;
 }
 
 // --- Figma ---
