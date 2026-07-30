@@ -64,6 +64,25 @@ export async function onRequestPost(context) {
     const data = await res.json();
     return new Response(JSON.stringify({ url, status: res.status, count: data.tasks ? data.tasks.length : null, raw: data }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
+  if (payload.list_comments) {
+    const res = await fetch(`https://api.clickup.com/api/v2/task/${payload.list_comments}/comment`, {
+      headers: { Authorization: env.CLICKUP_API_TOKEN },
+    });
+    const data = await res.json();
+    const summary = (data.comments || []).map(c => ({ id: c.id, comment_text: c.comment_text, comment: c.comment }));
+    return new Response(JSON.stringify(summary), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+  if (payload.delete_comment) {
+    const res = await fetch(`https://api.clickup.com/api/v2/comment/${payload.delete_comment}`, {
+      method: 'DELETE',
+      headers: { Authorization: env.CLICKUP_API_TOKEN },
+    });
+    return new Response(`status ${res.status}`, { status: 200 });
+  }
+  if (payload.post_comment_task_id) {
+    const created = await addClickUpComment(payload.post_comment_task_id, payload.post_comment_text, env.CLICKUP_API_TOKEN);
+    return new Response(JSON.stringify(created), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
 
   const client = FIGMA_CLIENTS.find(c => c.fileKey === payload.file_key || c.name === payload.client);
   if (!client) {
