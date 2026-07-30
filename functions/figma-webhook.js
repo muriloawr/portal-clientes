@@ -157,8 +157,11 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
       const created = await createClickUpTask(parentTaskId, node.name, nodeIdToTag(node.id), token);
       // Link só na criação — repetir a cada sync duplicaria o comentário.
       // Vai em comentário (não descrição) porque a integração nativa do
-      // ClickUp com o Figma reconhece e mostra preview de links em comentário.
-      await addClickUpComment(created.id, figmaDesignLink(fileKey, node.id), token);
+      // ClickUp com o Figma reconhece link solto e converte pra formato de
+      // apresentação (proto) sozinha, sobrescrevendo o /design/ que a gente
+      // manda. Formatação de código (crase) evita esse auto-unfurl, mantendo
+      // a URL exata — sem preview visual, mas com o link certo.
+      await addClickUpComment(created.id, `\`${figmaDesignLink(fileKey, node.id)}\``, token);
       log.push(`criado: '${node.name}' (task ${created.id})`);
       resultMap.set(node.id, created.id);
       await sleep(300);
