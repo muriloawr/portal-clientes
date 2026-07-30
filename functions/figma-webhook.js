@@ -266,14 +266,22 @@ async function findDevelopmentTaskId(clientTaskId, token) {
 // inteira (`?tags[]=...`) — funciona não importa embaixo de qual task ela
 // esteja hoje. Retorna um mapa node-id do Figma → id da task no ClickUp,
 // pros filhos usarem como parent.
-// `clientNameForDedup` é opcional (só faz sentido pro nível de demanda):
+// `clientNameForDedup` é opcional (só faz sentido abaixo do nível de item):
 // quando presente, cada demanda nova também recebe uma tag por nome
 // (`demanda-{cliente}-{nome}`) e, se essa tag já existir em qualquer outro
 // nó, a criação é pulada — evita repetir "Footer" etc. em todo item.
+//
+// Recursiva: se os filhos de um nó forem TODOS do tipo Frame (ex: um frame
+// "Formulário do Produto" contendo só os frames "Form" e "Imagem"), eles
+// viram sub-tasks aninhadas dele, e assim por diante — profundidade
+// dinâmica, sem limite fixo. Filhos de tipo misto (texto, ícone, instância
+// etc — conteúdo normal dentro de uma demanda tipo Footer) não geram
+// recursão, ficam só o conteúdo interno da task de qualquer forma.
 async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log, clientNameForDedup) {
   const resultMap = new Map();
   for (const node of figmaNodes) {
     try {
+      let taskId;
       const existingTask = await findClickUpTaskByTag(nodeIdToTag(node.id), token);
       if (existingTask) {
         if (existingTask.name !== node.name) {
@@ -281,32 +289,39 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log, cli
           log.push(`renomeado: '${existingTask.name}' -> '${node.name}'`);
           await sleep(300);
         }
-        resultMap.set(node.id, existingTask.id);
-        continue;
-      }
-
-      const nameTag = clientNameForDedup ? nameDedupTag(clientNameForDedup, node.name) : null;
-      if (nameTag) {
-        const dupTask = await findClickUpTaskByTag(nameTag, token);
-        if (dupTask) {
-          log.push(`pulado (repetido em outro item): '${node.name}'`);
-          continue;
+        taskId = existingTask.id;
+        resultMap.set(node.id, taskId);
+      } else {
+        const nameTag = clientNameForDedup ? nameDedupTag(clientNameForDedup, node.name) : null;
+        if (nameTag) {
+          const dupTask = await findClickUpTaskByTag(nameTag, token);
+          if (dupTask) {
+            log.push(`pulado (repetido em outro item): '${node.name}'`);
+            continue;
+          }
         }
+
+        const tags = nameTag ? [nodeIdToTag(node.id), nameTag] : [nodeIdToTag(node.id)];
+        const created = await createClickUpTask(parentTaskId, node.name, tags, token);
+        // Link só na criação — repetir a cada sync duplicaria o comentário.
+        // Vai em comentário (não descrição) porque a integração nativa do
+        // ClickUp com o Figma reconhece link solto e converte pra formato de
+        // apresentação (proto) sozinha, sobrescrevendo o /design/ que a gente
+        // manda. Comentário rico (texto "Ver no Figma" com link anexado) —
+        // confirmado que fica hyperlink de verdade na aba de comentários,
+        // diferente da URL em crase (que fica estática, sem link).
+        await addClickUpComment(created.id, 'Ver no Figma', figmaDesignLink(fileKey, node.id), token);
+        log.push(`criado: '${node.name}' (task ${created.id})`);
+        taskId = created.id;
+        resultMap.set(node.id, taskId);
+        await sleep(300);
       }
 
-      const tags = nameTag ? [nodeIdToTag(node.id), nameTag] : [nodeIdToTag(node.id)];
-      const created = await createClickUpTask(parentTaskId, node.name, tags, token);
-      // Link só na criação — repetir a cada sync duplicaria o comentário.
-      // Vai em comentário (não descrição) porque a integração nativa do
-      // ClickUp com o Figma reconhece link solto e converte pra formato de
-      // apresentação (proto) sozinha, sobrescrevendo o /design/ que a gente
-      // manda. Comentário rico (texto "Ver no Figma" com link anexado) —
-      // confirmado que fica hyperlink de verdade na aba de comentários,
-      // diferente da URL em crase (que fica estática, sem link).
-      await addClickUpComment(created.id, 'Ver no Figma', figmaDesignLink(fileKey, node.id), token);
-      log.push(`criado: '${node.name}' (task ${created.id})`);
-      resultMap.set(node.id, created.id);
-      await sleep(300);
+      const childNodes = childrenInPanelOrder(node).filter(isVisible);
+      const isFrameGroup = childNodes.length > 0 && childNodes.every(c => c.type === 'FRAME');
+      if (isFrameGroup) {
+        await syncFigmaLevel(childNodes, taskId, token, fileKey, log, clientNameForDedup);
+      }
     } catch (err) {
       // Um nó com problema (ex: nome que gera tag inválida) não deve
       // derrubar o resto do item — loga e segue pros outros.
