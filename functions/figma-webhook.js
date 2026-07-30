@@ -48,8 +48,15 @@ export async function onRequestPost(context) {
   }
   if (payload.list_clickup_subtasks) {
     const subtasks = await fetchClickUpSubtasks(payload.list_clickup_subtasks, env.CLICKUP_API_TOKEN);
-    const summary = subtasks.map(t => ({ id: t.id, name: t.name }));
+    const summary = subtasks.map(t => ({ id: t.id, name: t.name, tags: t.tags }));
     return new Response(JSON.stringify(summary), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+  if (payload.get_clickup_task) {
+    const res = await fetch(`https://api.clickup.com/api/v2/task/${payload.get_clickup_task}`, {
+      headers: { Authorization: env.CLICKUP_API_TOKEN },
+    });
+    const data = await res.json();
+    return new Response(JSON.stringify({ id: data.id, name: data.name, tags: data.tags }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
 
   const client = FIGMA_CLIENTS.find(c => c.fileKey === payload.file_key || c.name === payload.client);
