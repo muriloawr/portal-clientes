@@ -84,7 +84,35 @@ async function getItemFrames(client, figmaToken) {
     c => c.type === 'CANVAS' && c.name === 'Prototype',
   );
   if (!prototypePage) throw new Error('Pagina "Prototype" nao encontrada no arquivo');
-  return (prototypePage.children || []).map(resolveEffectiveNode);
+  const rawNodes = (prototypePage.children || []).map(resolveEffectiveNode);
+  return mergeDesktopMobile(rawNodes);
+}
+
+// Frames "X Desktop" e "X Mobile" viram um item só, "X" — pro cliente não
+// importa a plataforma, e o conteúdo do Mobile sempre acompanha o Desktop.
+// Usa sempre o Desktop como fonte de nome/demandas (cai pro Mobile se só
+// ele existir). Frames sem esse sufixo (Cart, Menu, componentes soltos
+// etc.) ficam exatamente como estão, cada um seu próprio item — mesmo que
+// o nome se repita entre dois frames com ids diferentes.
+function mergeDesktopMobile(nodes) {
+  const groups = new Map();
+  const result = [];
+  for (const node of nodes) {
+    const m = node.name.match(/^(.*?)\s+(Desktop|Mobile)$/i);
+    if (!m) {
+      result.push(node);
+      continue;
+    }
+    const base = m[1].trim();
+    const variant = m[2].toLowerCase();
+    if (!groups.has(base)) groups.set(base, {});
+    groups.get(base)[variant] = node;
+  }
+  for (const [base, g] of groups) {
+    const source = g.desktop || g.mobile;
+    result.push({ ...source, name: base });
+  }
+  return result;
 }
 
 async function listItemFrames(client, figmaToken) {
@@ -104,7 +132,8 @@ async function syncOneItem(client, itemNodeId, env) {
 
   const demandaNodes = itemNode.children || [];
   if (demandaNodes.length > 0) {
-    await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log);
+    const globalNames = await fetchGlobalDemandaNames(devTaskId, itemTaskId, env.CLICKUP_API_TOKEN);
+    await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, globalNames);
   }
 
   return log;
@@ -130,10 +159,27 @@ async function findDevelopmentTaskId(clientTaskId, token) {
   return dev.id;
 }
 
+// Nomes de demanda que já existem em QUALQUER outro item do cliente (ex:
+// "Footer" repetido em toda página) — usado pra criar cada nome só uma vez
+// no total, não uma vez por item. Só olha o nome, não o node-id: a demanda
+// "oficial" fica vinculada a qualquer um dos frames que a geraram.
+async function fetchGlobalDemandaNames(devTaskId, currentItemTaskId, token) {
+  const items = await fetchClickUpSubtasks(devTaskId, token);
+  const names = new Set();
+  for (const item of items) {
+    if (item.id === currentItemTaskId) continue;
+    const children = await fetchClickUpSubtasks(item.id, token);
+    for (const c of children) names.add(c.name);
+  }
+  return names;
+}
+
 // Cria/renomeia as tasks de um nível (item ou demandas) a partir dos nós do
 // Figma, comparando pelo node-id gravado na tag. Retorna um mapa node-id do
-// Figma → id da task no ClickUp, pros filhos usarem como parent.
-async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
+// Figma → id da task no ClickUp, pros filhos usarem como parent. `globalNames`
+// é opcional (só faz sentido pro nível de demanda): pula a criação se o nome
+// já existe em outro item do mesmo cliente.
+async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log, globalNames = new Set()) {
   const existing = await fetchClickUpSubtasks(parentTaskId, token);
   const byNodeId = new Map();
   for (const t of existing) {
@@ -153,6 +199,8 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
         await sleep(300);
       }
       resultMap.set(node.id, existingTask.id);
+    } else if (globalNames.has(node.name)) {
+      log.push(`pulado (repetido em outro item): '${node.name}'`);
     } else {
       const created = await createClickUpTask(parentTaskId, node.name, nodeIdToTag(node.id), token);
       // Link só na criação — repetir a cada sync duplicaria o comentário.
@@ -164,6 +212,7 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
       await addClickUpComment(created.id, `\`${figmaDesignLink(fileKey, node.id)}\``, token);
       log.push(`criado: '${node.name}' (task ${created.id})`);
       resultMap.set(node.id, created.id);
+      globalNames.add(node.name);
       await sleep(300);
     }
   }
