@@ -112,13 +112,17 @@ async function syncOneItem(client, itemNodeId, env) {
 
 // Se um frame de topo só embrulha um único filho (ex: um frame sem nome
 // útil contendo só a página de verdade dentro), usa o filho como o nó
-// efetivo em vez do embrulho — evita depender de organização manual no Figma.
+// efetivo (nome, demandas) em vez do embrulho — evita depender de
+// organização manual no Figma. Mas guarda o id do frame de fora em `topId`:
+// é ele que fica no canvas com as conexões de prototype/flow starting point,
+// o filho desembrulhado normalmente não tem nenhuma.
 function resolveEffectiveNode(node) {
+  const topId = node.id;
   let current = node;
   while (current.children && current.children.length === 1) {
     current = current.children[0];
   }
-  return current;
+  return { ...current, topId };
 }
 
 async function findDevelopmentTaskId(clientTaskId, token) {
@@ -156,7 +160,7 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
       // Link só na criação — repetir a cada sync duplicaria o comentário.
       // Vai em comentário (não descrição) porque a integração nativa do
       // ClickUp com o Figma reconhece e mostra preview de links em comentário.
-      await addClickUpComment(created.id, figmaProtoLink(fileKey, node.id), token);
+      await addClickUpComment(created.id, figmaProtoLink(fileKey, node.topId || node.id), token);
       log.push(`criado: '${node.name}' (task ${created.id})`);
       resultMap.set(node.id, created.id);
       await sleep(300);
