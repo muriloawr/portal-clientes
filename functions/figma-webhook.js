@@ -98,13 +98,19 @@ async function syncOneItem(client, itemNodeId, env) {
   const itemNode = itemFrames.find(n => n.id === itemNodeId);
   if (!itemNode) throw new Error(`Frame de item com node-id ${itemNodeId} nao encontrado na pagina Prototype`);
 
+  // starting-point-node-id tem que ser sempre o frame de fora com o Flow
+  // marcado no Figma — nunca o id de uma seção/demanda, que não é um flow
+  // starting point válido e trava o player. node-id (o alvo) pode ser
+  // qualquer nó dentro desse flow, inclusive uma seção lá dentro.
+  const flowStartId = itemNode.topId || itemNode.id;
+
   const devTaskId = await findDevelopmentTaskId(client.taskId, env.CLICKUP_API_TOKEN);
-  const itemMap = await syncFigmaLevel([itemNode], devTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log);
+  const itemMap = await syncFigmaLevel([itemNode], devTaskId, env.CLICKUP_API_TOKEN, client.fileKey, flowStartId, log);
   const itemTaskId = itemMap.get(itemNode.id);
 
   const demandaNodes = itemNode.children || [];
   if (demandaNodes.length > 0) {
-    await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log);
+    await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, flowStartId, log);
   }
 
   return log;
@@ -135,7 +141,7 @@ async function findDevelopmentTaskId(clientTaskId, token) {
 // Cria/renomeia as tasks de um nível (item ou demandas) a partir dos nós do
 // Figma, comparando pelo node-id gravado na tag. Retorna um mapa node-id do
 // Figma → id da task no ClickUp, pros filhos usarem como parent.
-async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
+async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, flowStartId, log) {
   const existing = await fetchClickUpSubtasks(parentTaskId, token);
   const byNodeId = new Map();
   for (const t of existing) {
@@ -160,7 +166,7 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
       // Link só na criação — repetir a cada sync duplicaria o comentário.
       // Vai em comentário (não descrição) porque a integração nativa do
       // ClickUp com o Figma reconhece e mostra preview de links em comentário.
-      await addClickUpComment(created.id, figmaProtoLink(fileKey, node.topId || node.id), token);
+      await addClickUpComment(created.id, figmaProtoLink(fileKey, flowStartId, node.topId || node.id), token);
       log.push(`criado: '${node.name}' (task ${created.id})`);
       resultMap.set(node.id, created.id);
       await sleep(300);
@@ -169,12 +175,15 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
   return resultMap;
 }
 
-function figmaProtoLink(fileKey, nodeId) {
-  const encoded = nodeId.replace(':', '-');
-  // starting-point-node-id é quem de fato manda o play mode pro frame certo
-  // (node-id sozinho é ignorado se o arquivo já tem um fluxo padrão definido,
-  // ex: sempre abre no fluxo mobile). scaling=scale-down-width é o "fit width".
-  return `https://www.figma.com/proto/${fileKey}?node-id=${encoded}&starting-point-node-id=${encoded}&scaling=scale-down-width`;
+function figmaProtoLink(fileKey, flowStartId, targetNodeId) {
+  // starting-point-node-id sempre tem que ser o frame com o Flow marcado no
+  // Figma (o id do item/página) — se for o id de uma seção/demanda, que não
+  // é um flow starting point válido, o player trava. node-id é o alvo de
+  // verdade (pode ser a própria página ou uma seção dentro dela).
+  // scaling=scale-down-width é o "fit width".
+  const start = flowStartId.replace(':', '-');
+  const target = targetNodeId.replace(':', '-');
+  return `https://www.figma.com/proto/${fileKey}?node-id=${target}&starting-point-node-id=${start}&scaling=scale-down-width`;
 }
 
 // Identificação por tag, não por descrição — o endpoint de listagem de
