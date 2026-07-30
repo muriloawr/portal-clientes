@@ -94,12 +94,12 @@ async function syncOneItem(client, itemNodeId, env) {
   if (!itemNode) throw new Error(`Frame de item com node-id ${itemNodeId} nao encontrado na pagina Prototype`);
 
   const devTaskId = await findDevelopmentTaskId(client.taskId, env.CLICKUP_API_TOKEN);
-  const itemMap = await syncFigmaLevel([itemNode], devTaskId, env.CLICKUP_API_TOKEN, log);
+  const itemMap = await syncFigmaLevel([itemNode], devTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log);
   const itemTaskId = itemMap.get(itemNode.id);
 
   const demandaNodes = itemNode.children || [];
   if (demandaNodes.length > 0) {
-    await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, log);
+    await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log);
   }
 
   return log;
@@ -126,7 +126,7 @@ async function findDevelopmentTaskId(clientTaskId, token) {
 // Cria/renomeia as tasks de um nível (item ou demandas) a partir dos nós do
 // Figma, comparando pelo node-id gravado na tag. Retorna um mapa node-id do
 // Figma → id da task no ClickUp, pros filhos usarem como parent.
-async function syncFigmaLevel(figmaNodes, parentTaskId, token, log) {
+async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
   const existing = await fetchClickUpSubtasks(parentTaskId, token);
   const byNodeId = new Map();
   for (const t of existing) {
@@ -148,12 +148,20 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, log) {
       resultMap.set(node.id, existingTask.id);
     } else {
       const created = await createClickUpTask(parentTaskId, node.name, nodeIdToTag(node.id), token);
+      // Link só na criação — repetir a cada sync duplicaria o comentário.
+      // Vai em comentário (não descrição) porque a integração nativa do
+      // ClickUp com o Figma reconhece e mostra preview de links em comentário.
+      await addClickUpComment(created.id, figmaProtoLink(fileKey, node.id), token);
       log.push(`criado: '${node.name}'`);
       resultMap.set(node.id, created.id);
       await sleep(300);
     }
   }
   return resultMap;
+}
+
+function figmaProtoLink(fileKey, nodeId) {
+  return `https://www.figma.com/proto/${fileKey}?node-id=${nodeId.replace(':', '-')}`;
 }
 
 // Identificação por tag, não por descrição — o endpoint de listagem de
@@ -205,6 +213,16 @@ async function createClickUpTask(parentTaskId, name, tagName, token) {
     body: JSON.stringify({ name, tags: [tagName], parent: parentTaskId }),
   });
   if (!res.ok) throw new Error(`ClickUp API error (create): ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+async function addClickUpComment(taskId, commentText, token) {
+  const res = await fetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
+    method: 'POST',
+    headers: { Authorization: token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ comment_text: commentText }),
+  });
+  if (!res.ok) throw new Error(`ClickUp API error (comment): ${res.status} ${await res.text()}`);
   return res.json();
 }
 
