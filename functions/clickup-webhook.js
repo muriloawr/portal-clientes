@@ -32,6 +32,7 @@ const CLIENTS = [
   { name: 'Beleza Brasileira', type: 'projeto', taskId: 'wdpu2y7wq1', filePath: 'beleza-brasileira/index.html' },
   { name: 'Yasmin Beauty', type: 'projeto', taskId: '86ahgcemc', filePath: 'yasmin-beauty/index.html' },
   { name: 'Beeva', type: 'projeto', taskId: 'wdpu2ydyzj', filePath: 'beeva/index.html' },
+  { name: 'PROTS', type: 'projeto', taskId: 'wdpu2ybucf', filePath: 'prots/index.html' },
 ];
 
 const REPO_OWNER = 'muriloawr';
