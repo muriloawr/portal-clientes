@@ -56,6 +56,10 @@ jobs:
             if [ "$HTTP_STATUS" -ge 400 ]; then
               FAILED=1
             fi
+            # Espaça as chamadas pra não estourar o rate limit da API do ClickUp
+            # (100 req/min) — clientes "projeto" fazem várias chamadas cada
+            # (uma por item, pra buscar o comentário).
+            sleep 5
           done
           if [ "$FAILED" -eq 1 ]; then
             echo "::error::One or more client syncs failed"
