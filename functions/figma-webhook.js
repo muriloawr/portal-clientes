@@ -59,7 +59,7 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({ id: data.id, name: data.name, tags: data.tags }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
   if (payload.find_by_tag) {
-    const url = `https://api.clickup.com/api/v2/list/${LIST_ID}/task?tags[]=${encodeURIComponent(payload.find_by_tag)}&include_closed=true`;
+    const url = `https://api.clickup.com/api/v2/list/${LIST_ID}/task?tags[]=${encodeURIComponent(payload.find_by_tag)}&include_closed=true&subtasks=true`;
     const res = await fetch(url, { headers: { Authorization: env.CLICKUP_API_TOKEN } });
     const data = await res.json();
     return new Response(JSON.stringify({ url, status: res.status, count: data.tasks ? data.tasks.length : null, raw: data }), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -284,7 +284,7 @@ async function createClickUpTask(parentTaskId, name, tags, token) {
 // encontrar por tag já garante que é a task certa, não importa embaixo de
 // qual item ela esteja.
 async function findClickUpTaskByTag(tag, token) {
-  const res = await fetch(`https://api.clickup.com/api/v2/list/${LIST_ID}/task?tags[]=${encodeURIComponent(tag)}&include_closed=true`, {
+  const res = await fetch(`https://api.clickup.com/api/v2/list/${LIST_ID}/task?tags[]=${encodeURIComponent(tag)}&include_closed=true&subtasks=true`, {
     headers: { Authorization: token },
   });
   if (!res.ok) throw new Error(`ClickUp API error (tag search): ${res.status} ${await res.text()}`);
