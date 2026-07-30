@@ -98,19 +98,13 @@ async function syncOneItem(client, itemNodeId, env) {
   const itemNode = itemFrames.find(n => n.id === itemNodeId);
   if (!itemNode) throw new Error(`Frame de item com node-id ${itemNodeId} nao encontrado na pagina Prototype`);
 
-  // starting-point-node-id tem que ser sempre o frame de fora com o Flow
-  // marcado no Figma — nunca o id de uma seção/demanda, que não é um flow
-  // starting point válido e trava o player. node-id (o alvo) pode ser
-  // qualquer nó dentro desse flow, inclusive uma seção lá dentro.
-  const flowStartId = itemNode.topId || itemNode.id;
-
   const devTaskId = await findDevelopmentTaskId(client.taskId, env.CLICKUP_API_TOKEN);
-  const itemMap = await syncFigmaLevel([itemNode], devTaskId, env.CLICKUP_API_TOKEN, client.fileKey, flowStartId, log);
+  const itemMap = await syncFigmaLevel([itemNode], devTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log);
   const itemTaskId = itemMap.get(itemNode.id);
 
   const demandaNodes = itemNode.children || [];
   if (demandaNodes.length > 0) {
-    await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, flowStartId, log);
+    await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log);
   }
 
   return log;
@@ -118,17 +112,15 @@ async function syncOneItem(client, itemNodeId, env) {
 
 // Se um frame de topo só embrulha um único filho (ex: um frame sem nome
 // útil contendo só a página de verdade dentro), usa o filho como o nó
-// efetivo (nome, demandas) em vez do embrulho — evita depender de
-// organização manual no Figma. Mas guarda o id do frame de fora em `topId`:
-// é ele que fica no canvas com as conexões de prototype/flow starting point,
-// o filho desembrulhado normalmente não tem nenhuma.
+// efetivo em vez do embrulho — evita depender de organização manual no
+// Figma. Link de design funciona em cima de qualquer node-id diretamente,
+// então não precisa mais rastrear o id do frame de fora separado.
 function resolveEffectiveNode(node) {
-  const topId = node.id;
   let current = node;
   while (current.children && current.children.length === 1) {
     current = current.children[0];
   }
-  return { ...current, topId };
+  return current;
 }
 
 async function findDevelopmentTaskId(clientTaskId, token) {
@@ -141,7 +133,7 @@ async function findDevelopmentTaskId(clientTaskId, token) {
 // Cria/renomeia as tasks de um nível (item ou demandas) a partir dos nós do
 // Figma, comparando pelo node-id gravado na tag. Retorna um mapa node-id do
 // Figma → id da task no ClickUp, pros filhos usarem como parent.
-async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, flowStartId, log) {
+async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log) {
   const existing = await fetchClickUpSubtasks(parentTaskId, token);
   const byNodeId = new Map();
   for (const t of existing) {
@@ -166,7 +158,7 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, flowStar
       // Link só na criação — repetir a cada sync duplicaria o comentário.
       // Vai em comentário (não descrição) porque a integração nativa do
       // ClickUp com o Figma reconhece e mostra preview de links em comentário.
-      await addClickUpComment(created.id, figmaProtoLink(fileKey, flowStartId, node.topId || node.id), token);
+      await addClickUpComment(created.id, figmaDesignLink(fileKey, node.id), token);
       log.push(`criado: '${node.name}' (task ${created.id})`);
       resultMap.set(node.id, created.id);
       await sleep(300);
@@ -175,15 +167,11 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, flowStar
   return resultMap;
 }
 
-function figmaProtoLink(fileKey, flowStartId, targetNodeId) {
-  // starting-point-node-id sempre tem que ser o frame com o Flow marcado no
-  // Figma (o id do item/página) — se for o id de uma seção/demanda, que não
-  // é um flow starting point válido, o player trava. node-id é o alvo de
-  // verdade (pode ser a própria página ou uma seção dentro dela).
-  // scaling=scale-down-width é o "fit width".
-  const start = flowStartId.replace(':', '-');
-  const target = targetNodeId.replace(':', '-');
-  return `https://www.figma.com/proto/${fileKey}?node-id=${target}&starting-point-node-id=${start}&scaling=scale-down-width`;
+// Link de design (editor), não de prototype/apresentação — pula e dá zoom
+// direto em qualquer node-id, sem precisar de Flow starting point nem
+// depender de conexões entre telas. Uso interno (devs), não client-facing.
+function figmaDesignLink(fileKey, nodeId) {
+  return `https://www.figma.com/design/${fileKey}?node-id=${nodeId.replace(':', '-')}`;
 }
 
 // Identificação por tag, não por descrição — o endpoint de listagem de
