@@ -4,9 +4,10 @@
 // página "Prototype" do arquivo tem frames de topo que viram itens (nível 2,
 // sob a stage "Desenvolvimento" do cliente), e os filhos diretos de cada um
 // viram demandas (nível 4, ocultas do cliente). Identificação é sempre por
-// node-id do Figma (guardado escondido na descrição da task do ClickUp),
-// nunca por nome — nome pode mudar à vontade que a automação continua
-// reconhecendo a mesma task.
+// node-id do Figma (guardado numa tag escondida na task do ClickUp, tipo
+// "figma-298-1175" — não dá pra usar a descrição porque o endpoint de
+// listagem de subtasks não devolve ela completa), nunca por nome — nome pode
+// mudar à vontade que a automação continua reconhecendo a mesma task.
 //
 // Cada invocação do Worker tem limite de subrequests (50 no plano free do
 // Cloudflare) — processar todos os itens de um cliente numa chamada só
@@ -23,8 +24,6 @@ const FIGMA_CLIENTS = [
 
 const LIST_ID = '901324765433'; // lista "Projetos" no ClickUp
 
-const FIGMA_MARKER_RE = /<!--\s*figma:([^\s]+)\s*-->/;
-
 export async function onRequestPost(context) {
   const { request, env } = context;
   const rawBody = await request.text();
@@ -38,6 +37,14 @@ export async function onRequestPost(context) {
 
   if (!payload.passcode || payload.passcode !== env.FIGMA_WEBHOOK_PASSCODE) {
     return new Response('Invalid passcode', { status: 401 });
+  }
+
+  // Modo administrativo temporário, pra limpar tasks criadas por engano sem
+  // depender da cota da integração MCP do ClickUp (token separado, cota
+  // própria). Remover depois que não precisar mais.
+  if (Array.isArray(payload.delete_task_ids)) {
+    const log = await deleteClickUpTasks(payload.delete_task_ids, env.CLICKUP_API_TOKEN);
+    return new Response(log.join('\n'), { status: 200 });
   }
 
   const client = FIGMA_CLIENTS.find(c => c.fileKey === payload.file_key || c.name === payload.client);
@@ -117,14 +124,16 @@ async function findDevelopmentTaskId(clientTaskId, token) {
 }
 
 // Cria/renomeia as tasks de um nível (item ou demandas) a partir dos nós do
-// Figma, comparando pelo node-id gravado na descrição. Retorna um mapa
-// node-id do Figma → id da task no ClickUp, pros filhos usarem como parent.
+// Figma, comparando pelo node-id gravado na tag. Retorna um mapa node-id do
+// Figma → id da task no ClickUp, pros filhos usarem como parent.
 async function syncFigmaLevel(figmaNodes, parentTaskId, token, log) {
   const existing = await fetchClickUpSubtasks(parentTaskId, token);
   const byNodeId = new Map();
   for (const t of existing) {
-    const m = (t.description || '').match(FIGMA_MARKER_RE);
-    if (m) byNodeId.set(m[1], t);
+    const tagNames = (t.tags || []).map(tg => tg.name);
+    const figmaTag = tagNames.find(n => n.startsWith(FIGMA_TAG_PREFIX));
+    const nodeId = figmaTag ? tagToNodeId(figmaTag) : null;
+    if (nodeId) byNodeId.set(nodeId, t);
   }
 
   const resultMap = new Map();
@@ -138,7 +147,7 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, log) {
       }
       resultMap.set(node.id, existingTask.id);
     } else {
-      const created = await createClickUpTask(parentTaskId, node.name, figmaMarker(node.id), token);
+      const created = await createClickUpTask(parentTaskId, node.name, nodeIdToTag(node.id), token);
       log.push(`criado: '${node.name}'`);
       resultMap.set(node.id, created.id);
       await sleep(300);
@@ -147,8 +156,21 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, log) {
   return resultMap;
 }
 
-function figmaMarker(nodeId) {
-  return `<!-- figma:${nodeId} -->`;
+// Identificação por tag, não por descrição — o endpoint de listagem de
+// subtasks (?include_subtasks=true) não devolve a descrição completa das
+// tasks, só um fetch individual devolveria. Tags, ao contrário, já vêm
+// completas nessa listagem.
+const FIGMA_TAG_PREFIX = 'figma-';
+
+function nodeIdToTag(nodeId) {
+  return FIGMA_TAG_PREFIX + nodeId.replace(':', '-');
+}
+
+function tagToNodeId(tag) {
+  const rest = tag.slice(FIGMA_TAG_PREFIX.length);
+  const dashIdx = rest.indexOf('-');
+  if (dashIdx === -1) return null;
+  return `${rest.slice(0, dashIdx)}:${rest.slice(dashIdx + 1)}`;
 }
 
 function sleep(ms) {
@@ -176,14 +198,27 @@ async function fetchClickUpSubtasks(taskId, token) {
   return data.subtasks || [];
 }
 
-async function createClickUpTask(parentTaskId, name, description, token) {
+async function createClickUpTask(parentTaskId, name, tagName, token) {
   const res = await fetch(`https://api.clickup.com/api/v2/list/${LIST_ID}/task`, {
     method: 'POST',
     headers: { Authorization: token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, description, parent: parentTaskId }),
+    body: JSON.stringify({ name, tags: [tagName], parent: parentTaskId }),
   });
   if (!res.ok) throw new Error(`ClickUp API error (create): ${res.status} ${await res.text()}`);
   return res.json();
+}
+
+async function deleteClickUpTasks(taskIds, token) {
+  const log = [];
+  for (const id of taskIds) {
+    const res = await fetch(`https://api.clickup.com/api/v2/task/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: token },
+    });
+    log.push(res.ok ? `apagado: ${id}` : `FALHOU: ${id} (${res.status})`);
+    await sleep(300);
+  }
+  return log;
 }
 
 async function renameClickUpTask(taskId, name, token) {
