@@ -116,8 +116,26 @@ async function getItemFrames(client, figmaToken) {
     c => c.type === 'CANVAS' && c.name === 'Prototype',
   );
   if (!prototypePage) throw new Error('Pagina "Prototype" nao encontrada no arquivo');
-  const rawNodes = (prototypePage.children || []).filter(isVisible).map(resolveEffectiveNode);
+  const rawNodes = flattenSections(prototypePage.children || []).filter(isVisible).map(resolveEffectiveNode);
   return mergeDesktopMobile(rawNodes);
+}
+
+// "Section" do Figma (diferente de Frame) é só agrupamento visual no canvas
+// — os frames dentro viram itens normalmente, cada um com o próprio nome
+// (ex: as sections "Páginas Adicionais" e "Componentes"). Regra fixa: a
+// section "Responsividade" (onde entrou a versão mobile) é sempre ignorada
+// por inteiro, não importa o que tenha dentro.
+function flattenSections(nodes) {
+  const result = [];
+  for (const node of nodes) {
+    if (node.type === 'SECTION') {
+      if (node.name.trim().toLowerCase() === 'responsividade') continue;
+      result.push(...(node.children || []));
+    } else {
+      result.push(node);
+    }
+  }
+  return result;
 }
 
 // Frame/seção com o "olho fechado" no Figma (visible: false) não vira task —
