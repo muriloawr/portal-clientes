@@ -1,12 +1,22 @@
 // Cloudflare Pages Function — POST /figma-webhook
 // Disparada pelo webhook FILE_UPDATE do Figma (ou manualmente, com o mesmo
-// passcode, pra teste). Pra cada cliente cadastrado em FIGMA_CLIENTS, busca a
-// página "Prototype" do arquivo, e pra cada frame de topo dela cria/atualiza
-// um item (nível 2, sob a stage "Desenvolvimento" do cliente) e, pra cada
-// filho direto desse frame, uma demanda (nível 4, sob o item). Identificação
-// é sempre por node-id do Figma (guardado escondido na descrição da task do
-// ClickUp), nunca por nome — nome pode mudar à vontade que a automação
-// continua reconhecendo a mesma task.
+// passcode, pra teste). Pra cada cliente cadastrado em FIGMA_CLIENTS, a
+// página "Prototype" do arquivo tem frames de topo que viram itens (nível 2,
+// sob a stage "Desenvolvimento" do cliente), e os filhos diretos de cada um
+// viram demandas (nível 4, ocultas do cliente). Identificação é sempre por
+// node-id do Figma (guardado escondido na descrição da task do ClickUp),
+// nunca por nome — nome pode mudar à vontade que a automação continua
+// reconhecendo a mesma task.
+//
+// Cada invocação do Worker tem limite de subrequests (50 no plano free do
+// Cloudflare) — processar todos os itens de um cliente numa chamada só
+// estoura esse limite rápido (um cliente com vários itens, cada um com várias
+// seções, facilmente passa de 50 chamadas pro ClickUp). Por isso o endpoint
+// funciona em dois passos, com uma chamada HTTP por item:
+//   1. body com `list_items: true` → devolve os itens (frames de topo) do
+//      cliente, sem criar nada.
+//   2. body com `item_node_id: "<id>"` → sincroniza só aquele item e as
+//      demandas dele.
 const FIGMA_CLIENTS = [
   { name: 'PROTS', fileKey: '8pk8WhFEFBO42cKnXtHai5', taskId: 'wdpu2ybucf' },
 ];
@@ -36,8 +46,15 @@ export async function onRequestPost(context) {
   }
 
   try {
-    const log = await syncClientFigma(client, env);
-    return new Response(`${client.name}: ${log.length === 0 ? 'no changes' : log.join('\n')}`, { status: 200 });
+    if (payload.list_items) {
+      const items = await listItemFrames(client, env.FIGMA_API_TOKEN);
+      return new Response(JSON.stringify(items), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (payload.item_node_id) {
+      const log = await syncOneItem(client, payload.item_node_id, env);
+      return new Response(`${client.name} / ${payload.item_node_id}: ${log.length === 0 ? 'no changes' : log.join('; ')}`, { status: 200 });
+    }
+    return new Response('Body precisa de "list_items": true ou "item_node_id": "<id>"', { status: 400 });
   } catch (err) {
     return new Response(`${client.name}: FAILED - ${err.message}`, { status: 500 });
   }
@@ -49,24 +66,32 @@ export async function onRequestGet() {
 
 // --- sincronização ---
 
-async function syncClientFigma(client, env) {
-  const log = [];
-  const fileData = await fetchFigmaFile(client.fileKey, env.FIGMA_API_TOKEN);
-
+async function getItemFrames(client, figmaToken) {
+  const fileData = await fetchFigmaFile(client.fileKey, figmaToken);
   const prototypePage = (fileData.document.children || []).find(
     c => c.type === 'CANVAS' && c.name === 'Prototype',
   );
   if (!prototypePage) throw new Error('Pagina "Prototype" nao encontrada no arquivo');
+  return (prototypePage.children || []).map(resolveEffectiveNode);
+}
 
-  const itemFrames = (prototypePage.children || []).map(resolveEffectiveNode);
+async function listItemFrames(client, figmaToken) {
+  const itemFrames = await getItemFrames(client, figmaToken);
+  return itemFrames.map(n => ({ id: n.id, name: n.name, demandas: (n.children || []).length }));
+}
+
+async function syncOneItem(client, itemNodeId, env) {
+  const log = [];
+  const itemFrames = await getItemFrames(client, env.FIGMA_API_TOKEN);
+  const itemNode = itemFrames.find(n => n.id === itemNodeId);
+  if (!itemNode) throw new Error(`Frame de item com node-id ${itemNodeId} nao encontrado na pagina Prototype`);
 
   const devTaskId = await findDevelopmentTaskId(client.taskId, env.CLICKUP_API_TOKEN);
-  const itemMap = await syncFigmaLevel(itemFrames, devTaskId, env.CLICKUP_API_TOKEN, log);
+  const itemMap = await syncFigmaLevel([itemNode], devTaskId, env.CLICKUP_API_TOKEN, log);
+  const itemTaskId = itemMap.get(itemNode.id);
 
-  for (const itemNode of itemFrames) {
-    const itemTaskId = itemMap.get(itemNode.id);
-    const demandaNodes = itemNode.children || [];
-    if (demandaNodes.length === 0) continue;
+  const demandaNodes = itemNode.children || [];
+  if (demandaNodes.length > 0) {
     await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, log);
   }
 
@@ -91,7 +116,7 @@ async function findDevelopmentTaskId(clientTaskId, token) {
   return dev.id;
 }
 
-// Cria/renomeia as tasks de um nível (itens ou demandas) a partir dos nós do
+// Cria/renomeia as tasks de um nível (item ou demandas) a partir dos nós do
 // Figma, comparando pelo node-id gravado na descrição. Retorna um mapa
 // node-id do Figma → id da task no ClickUp, pros filhos usarem como parent.
 async function syncFigmaLevel(figmaNodes, parentTaskId, token, log) {
