@@ -97,8 +97,15 @@ async function getItemFrames(client, figmaToken) {
     c => c.type === 'CANVAS' && c.name === 'Prototype',
   );
   if (!prototypePage) throw new Error('Pagina "Prototype" nao encontrada no arquivo');
-  const rawNodes = (prototypePage.children || []).map(resolveEffectiveNode);
+  const rawNodes = (prototypePage.children || []).filter(isVisible).map(resolveEffectiveNode);
   return mergeDesktopMobile(rawNodes);
+}
+
+// Frame/seção com o "olho fechado" no Figma (visible: false) não vira task —
+// nem como item nem como demanda. Não precisa apagar do arquivo, só deixar
+// oculto já basta.
+function isVisible(node) {
+  return node.visible !== false;
 }
 
 // Frames "X Desktop" e "X Mobile" viram um item só, "X" — pro cliente não
@@ -130,7 +137,7 @@ function mergeDesktopMobile(nodes) {
 
 async function listItemFrames(client, figmaToken) {
   const itemFrames = await getItemFrames(client, figmaToken);
-  return itemFrames.map(n => ({ id: n.id, name: n.name, demandas: (n.children || []).length }));
+  return itemFrames.map(n => ({ id: n.id, name: n.name, demandas: (n.children || []).filter(isVisible).length }));
 }
 
 async function syncOneItem(client, itemNodeId, env) {
@@ -143,7 +150,7 @@ async function syncOneItem(client, itemNodeId, env) {
   const itemMap = await syncFigmaLevel([itemNode], devTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, null);
   const itemTaskId = itemMap.get(itemNode.id);
 
-  const demandaNodes = itemNode.children || [];
+  const demandaNodes = (itemNode.children || []).filter(isVisible);
   if (demandaNodes.length > 0) {
     await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, client.name);
   }
