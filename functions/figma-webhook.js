@@ -235,7 +235,10 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log, cli
 }
 
 function nameDedupTag(clientName, demandaName) {
-  return `demanda-${slugify(clientName)}-${slugify(demandaName)}`;
+  // Camadas de texto no Figma às vezes ficam com o nome igual ao conteúdo
+  // (parágrafos inteiros) quando ninguém renomeia a layer — trunca antes de
+  // virar tag, senão o ClickUp rejeita como inválida.
+  return `demanda-${slugify(clientName)}-${slugify(demandaName).slice(0, 50)}`;
 }
 
 function slugify(str) {
