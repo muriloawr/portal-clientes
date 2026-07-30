@@ -192,38 +192,44 @@ async function findDevelopmentTaskId(clientTaskId, token) {
 async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log, clientNameForDedup) {
   const resultMap = new Map();
   for (const node of figmaNodes) {
-    const existingTask = await findClickUpTaskByTag(nodeIdToTag(node.id), token);
-    if (existingTask) {
-      if (existingTask.name !== node.name) {
-        await renameClickUpTask(existingTask.id, node.name, token);
-        log.push(`renomeado: '${existingTask.name}' -> '${node.name}'`);
-        await sleep(300);
-      }
-      resultMap.set(node.id, existingTask.id);
-      continue;
-    }
-
-    const nameTag = clientNameForDedup ? nameDedupTag(clientNameForDedup, node.name) : null;
-    if (nameTag) {
-      const dupTask = await findClickUpTaskByTag(nameTag, token);
-      if (dupTask) {
-        log.push(`pulado (repetido em outro item): '${node.name}'`);
+    try {
+      const existingTask = await findClickUpTaskByTag(nodeIdToTag(node.id), token);
+      if (existingTask) {
+        if (existingTask.name !== node.name) {
+          await renameClickUpTask(existingTask.id, node.name, token);
+          log.push(`renomeado: '${existingTask.name}' -> '${node.name}'`);
+          await sleep(300);
+        }
+        resultMap.set(node.id, existingTask.id);
         continue;
       }
-    }
 
-    const tags = nameTag ? [nodeIdToTag(node.id), nameTag] : [nodeIdToTag(node.id)];
-    const created = await createClickUpTask(parentTaskId, node.name, tags, token);
-    // Link só na criação — repetir a cada sync duplicaria o comentário.
-    // Vai em comentário (não descrição) porque a integração nativa do
-    // ClickUp com o Figma reconhece link solto e converte pra formato de
-    // apresentação (proto) sozinha, sobrescrevendo o /design/ que a gente
-    // manda. Formatação de código (crase) evita esse auto-unfurl, mantendo
-    // a URL exata — sem preview visual, mas com o link certo.
-    await addClickUpComment(created.id, `\`${figmaDesignLink(fileKey, node.id)}\``, token);
-    log.push(`criado: '${node.name}' (task ${created.id})`);
-    resultMap.set(node.id, created.id);
-    await sleep(300);
+      const nameTag = clientNameForDedup ? nameDedupTag(clientNameForDedup, node.name) : null;
+      if (nameTag) {
+        const dupTask = await findClickUpTaskByTag(nameTag, token);
+        if (dupTask) {
+          log.push(`pulado (repetido em outro item): '${node.name}'`);
+          continue;
+        }
+      }
+
+      const tags = nameTag ? [nodeIdToTag(node.id), nameTag] : [nodeIdToTag(node.id)];
+      const created = await createClickUpTask(parentTaskId, node.name, tags, token);
+      // Link só na criação — repetir a cada sync duplicaria o comentário.
+      // Vai em comentário (não descrição) porque a integração nativa do
+      // ClickUp com o Figma reconhece link solto e converte pra formato de
+      // apresentação (proto) sozinha, sobrescrevendo o /design/ que a gente
+      // manda. Manda como texto+link (comment rico), não URL solta — fica
+      // clicável, mas sem disparar esse auto-unfurl pra proto.
+      await addClickUpComment(created.id, 'Ver no Figma', figmaDesignLink(fileKey, node.id), token);
+      log.push(`criado: '${node.name}' (task ${created.id})`);
+      resultMap.set(node.id, created.id);
+      await sleep(300);
+    } catch (err) {
+      // Um nó com problema (ex: nome que gera tag inválida) não deve
+      // derrubar o resto do item — loga e segue pros outros.
+      log.push(`FALHOU: '${node.name}' (${node.id}) - ${err.message}`);
+    }
   }
   return resultMap;
 }
@@ -299,11 +305,14 @@ async function findClickUpTaskByTag(tag, token) {
   return data.tasks && data.tasks[0] ? data.tasks[0] : null;
 }
 
-async function addClickUpComment(taskId, commentText, token) {
+// Comentário rico (texto com link anexado), não uma URL solta no texto —
+// fica clicável normalmente, mas como o texto visível não é a URL do Figma
+// em si, a integração nativa não reconhece pra converter em preview/proto.
+async function addClickUpComment(taskId, text, url, token) {
   const res = await fetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
     method: 'POST',
     headers: { Authorization: token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ comment_text: commentText }),
+    body: JSON.stringify({ comment: [{ text, attributes: { link: url } }] }),
   });
   if (!res.ok) throw new Error(`ClickUp API error (comment): ${res.status} ${await res.text()}`);
   return res.json();
