@@ -167,7 +167,68 @@
 
 <script>
   // --- dados: um objeto por etapa do projeto. Sincronizado automaticamente a partir do ClickUp. ---
-  const stages = [];
+  const stages = [
+    {
+      key: 'wdpu2ydxu4',
+      label: 'Protótipo',
+      dateRange: '02/07 - 17/07',
+      statusKey: 'concluido',
+      startMs: 1782975600000,
+      dueMs: 1784271600000,
+      isMeetings: false,
+      items: [
+        { title: '1ª Entrega', subtitle: '', statusKey: 'concluido', owner: 'Guilherme', date: '09/07' },
+        { title: 'Entrega do Prototipo', subtitle: '', statusKey: 'concluido', owner: '', date: '17/07' },
+      ],
+    },
+    {
+      key: 'wdpu2ydxrn',
+      label: 'Desenvolvimento',
+      dateRange: '17/07 - 04/08',
+      statusKey: 'pendentes',
+      startMs: 1784271600000,
+      dueMs: 1785826800000,
+      isMeetings: false,
+      items: [
+        { title: 'Componentes', subtitle: '', statusKey: 'planejamento', owner: 'Erik', date: '' },
+        { title: 'Setup Inicial', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '17/07' },
+        { title: 'Home', subtitle: '', statusKey: 'em-andamento', owner: 'Erik', date: '27/07' },
+        { title: 'Página do Produto', subtitle: '', statusKey: 'pendentes', owner: 'Erik', date: '30/07' },
+        { title: 'Páginas Adicionais', subtitle: '', statusKey: 'pendentes', owner: 'Erik', date: '31/07' },
+      ],
+    },
+    {
+      key: 'wdpu2ydxua',
+      label: 'Integrações',
+      dateRange: '29/07 - 04/08',
+      statusKey: 'pendentes',
+      startMs: 1785308400000,
+      dueMs: 1785826800000,
+      isMeetings: false,
+      items: [
+        { title: 'Gateway de Pagamento', subtitle: '', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'ERP', subtitle: '', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'Hub de Frete', subtitle: '', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'CRM', subtitle: '', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'Backlinks', subtitle: '', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+      ],
+    },
+    {
+      key: 'wdpu2ydxu5',
+      label: 'Reuniões',
+      dateRange: '',
+      statusKey: 'pendentes',
+      startMs: null,
+      dueMs: null,
+      isMeetings: true,
+      items: [
+        { title: 'Kick-off', subtitle: 'Briefing inicial do projeto', tag: 'Kickoff', date: '03/07', dueMs: 1783062000000 },
+        { title: '1ª Entrega', subtitle: 'Apresentação da identidade visual', tag: 'Revisão', date: '10/07', dueMs: 1783666800000 },
+        { title: 'Integrações', subtitle: 'Definir quais integrações serão feitas e apresentar', tag: 'Revisão', date: '30/07', dueMs: 1785394800000 },
+        { title: 'Apresentação final', subtitle: 'Apresentação do desenvolvimento e integrações', tag: 'Entrega Final do Projeto', date: '05/08', dueMs: 1785913200000 },
+      ],
+    },
+  ];
 
   const STATUS_LABELS = {
     'pendentes': 'Pendente',
