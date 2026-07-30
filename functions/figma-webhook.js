@@ -114,20 +114,10 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify(items), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
     if (payload.item_node_id) {
-      const { log, deeper } = await syncOneItem(client, payload.item_node_id, env);
-      const summary = `${client.name} / ${payload.item_node_id}: ${log.length === 0 ? 'no changes' : log.join('; ')}`;
-      return new Response(JSON.stringify({ summary, deeper }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      const log = await syncOneItem(client, payload.item_node_id, env);
+      return new Response(`${client.name} / ${payload.item_node_id}: ${log.length === 0 ? 'no changes' : log.join('; ')}`, { status: 200 });
     }
-    // Continuação de um nó que apareceu em `deeper` numa resposta anterior —
-    // um agrupamento de Frames que ainda não teve os filhos sincronizados,
-    // porque descer tudo numa chamada só estoura o limite de subrequests do
-    // Worker. Uma chamada por nível, quantos níveis o Figma tiver.
-    if (payload.deep_node_id && payload.deep_parent_task_id) {
-      const { log, deeper } = await syncDeeperNode(client, payload.deep_node_id, payload.deep_parent_task_id, env);
-      const summary = `${client.name} / ${payload.deep_node_id}: ${log.length === 0 ? 'no changes' : log.join('; ')}`;
-      return new Response(JSON.stringify({ summary, deeper }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-    }
-    return new Response('Body precisa de "list_items": true, "item_node_id": "<id>" ou "deep_node_id"+"deep_parent_task_id"', { status: 400 });
+    return new Response('Body precisa de "list_items": true ou "item_node_id": "<id>"', { status: 400 });
   } catch (err) {
     return new Response(`${client.name}: FAILED - ${err.message}`, { status: 500 });
   }
@@ -239,14 +229,15 @@ async function listItemFrames(client, figmaToken) {
 // frame um nível abaixo disso. Frames fora de qualquer section continuam
 // direto sob "Desenvolvimento", como sempre.
 //
-// Devolve `deeper`: lista de agrupamentos de Frame (ex: um frame "Formulário
-// do Produto" contendo só os frames "Form" e "Imagem") que ainda não tiveram
-// os filhos sincronizados — cada um precisa de mais uma chamada (`deep_node_id`
-// + `deep_parent_task_id`), pra não estourar o limite de subrequests do
-// Worker descendo tudo de uma vez.
+// Profundidade fixa: item -> demandas, sem descer mais. Se algo dentro de
+// uma demanda precisar virar sub-tasks também, marca como Section no Figma
+// (mesmo mecanismo do "Componentes"/"Páginas Adicionais") em vez de
+// depender de detecção automática — não dá pra distinguir de forma
+// confiável "isso é um agrupamento de verdade" de "isso é só o conteúdo
+// interno normal da demanda" só pela estrutura (ambos podem ser um frame
+// contendo só frames dentro).
 async function syncOneItem(client, itemNodeId, env) {
   const log = [];
-  const deeper = [];
   const units = await getSyncUnits(client, env.FIGMA_API_TOKEN);
   const unit = units.find(u => u.frame.id === itemNodeId);
   if (!unit) throw new Error(`Frame com node-id ${itemNodeId} nao encontrado na pagina Prototype`);
@@ -262,23 +253,10 @@ async function syncOneItem(client, itemNodeId, env) {
 
   const demandaNodes = childrenInPanelOrder(unit.frame).filter(isVisible);
   if (demandaNodes.length > 0) {
-    await syncChildrenOneLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, client.name, deeper);
+    await syncChildrenOneLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, client.name);
   }
 
-  return { log, deeper };
-}
-
-// Continuação de um `deeper` de uma chamada anterior: acha o nó em qualquer
-// profundidade da árvore do Figma e sincroniza só os filhos diretos dele.
-async function syncDeeperNode(client, nodeId, parentTaskId, env) {
-  const log = [];
-  const deeper = [];
-  const fileData = await fetchFigmaFile(client.fileKey, env.FIGMA_API_TOKEN);
-  const node = findNodeById(fileData.document, nodeId);
-  if (!node) throw new Error(`Node ${nodeId} nao encontrado no arquivo`);
-  const childNodes = childrenInPanelOrder(node).filter(isVisible);
-  await syncChildrenOneLevel(childNodes, parentTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, client.name, deeper);
-  return { log, deeper };
+  return log;
 }
 
 // Se um frame de topo só embrulha um único filho (ex: um frame sem nome
@@ -321,23 +299,16 @@ async function findOrCreateTask(node, parentTaskId, token, fileKey, log) {
   return created.id;
 }
 
-// Cria/renomeia as tasks dos filhos DIRETOS de um nó (demandas ou um nível
-// de agrupamento) — não desce mais fundo que isso. `include_subtasks=true`
+// Cria/renomeia as demandas (filhos diretos de um item) a partir dos nós do
+// Figma — não desce mais fundo que isso, sem exceção. `include_subtasks=true`
 // não devolve tags nem descrição completas (só campos "core" tipo
 // nome/status), então em vez de listar os filhos existentes e cruzar
 // localmente, busca cada node-id direto por tag na lista inteira
 // (`?tags[]=...`) — funciona não importa embaixo de qual task ela esteja
-// hoje. `clientNameForDedup`: cada nó novo também recebe uma tag por nome
-// (`demanda-{cliente}-{nome}`) e, se essa tag já existir em qualquer outro
-// nó, a criação é pulada — evita repetir "Footer" etc. em todo item.
-//
-// Se os filhos de um nó forem TODOS do tipo Frame (ex: um frame "Formulário
-// do Produto" contendo só os frames "Form" e "Imagem"), esse nó é um
-// agrupamento que também tem filhos pra sincronizar — mas não desce direto
-// aqui (estouraria o limite de subrequests numa árvore funda numa chamada
-// só). Em vez disso entra em `deeper`, pro chamador continuar com mais uma
-// chamada HTTP (`deep_node_id`).
-async function syncChildrenOneLevel(figmaNodes, parentTaskId, token, fileKey, log, clientNameForDedup, deeper) {
+// hoje. `clientNameForDedup`: cada demanda nova também recebe uma tag por
+// nome (`demanda-{cliente}-{nome}`) e, se essa tag já existir em qualquer
+// outro item, a criação é pulada — evita repetir "Footer" etc. em todo item.
+async function syncChildrenOneLevel(figmaNodes, parentTaskId, token, fileKey, log, clientNameForDedup) {
   const resultMap = new Map();
   for (const node of figmaNodes) {
     try {
@@ -375,12 +346,6 @@ async function syncChildrenOneLevel(figmaNodes, parentTaskId, token, fileKey, lo
         await sleep(300);
       }
       resultMap.set(node.id, taskId);
-
-      const childNodes = childrenInPanelOrder(node).filter(isVisible);
-      const isFrameGroup = childNodes.length > 0 && childNodes.every(c => c.type === 'FRAME');
-      if (isFrameGroup) {
-        deeper.push({ nodeId: node.id, parentTaskId: taskId, name: node.name });
-      }
     } catch (err) {
       // Um nó com problema (ex: nome que gera tag inválida) não deve
       // derrubar o resto do item — loga e segue pros outros.
