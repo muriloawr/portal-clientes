@@ -4,10 +4,10 @@
 // página "Prototype" do arquivo tem frames de topo que viram itens (nível 2,
 // sob a stage "Desenvolvimento" do cliente), e os filhos diretos de cada um
 // viram demandas (nível 4, ocultas do cliente). Identificação é sempre por
-// node-id do Figma (guardado numa tag escondida na task do ClickUp, tipo
-// "figma-298-1175" — não dá pra usar a descrição porque o endpoint de
-// listagem de subtasks não devolve ela completa), nunca por nome — nome pode
-// mudar à vontade que a automação continua reconhecendo a mesma task.
+// node-id do Figma (guardado numa tag na task do ClickUp, tipo
+// "figma-298-1175", buscada direto por tag na lista — nem descrição nem tag
+// vêm completas no endpoint de listagem de subtasks), nunca por nome — nome
+// pode mudar à vontade que a automação continua reconhecendo a mesma task.
 //
 // Cada invocação do Worker tem limite de subrequests (50 no plano free do
 // Cloudflare) — processar todos os itens de um cliente numa chamada só
@@ -134,13 +134,12 @@ async function syncOneItem(client, itemNodeId, env) {
   if (!itemNode) throw new Error(`Frame de item com node-id ${itemNodeId} nao encontrado na pagina Prototype`);
 
   const devTaskId = await findDevelopmentTaskId(client.taskId, env.CLICKUP_API_TOKEN);
-  const itemMap = await syncFigmaLevel([itemNode], devTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log);
+  const itemMap = await syncFigmaLevel([itemNode], devTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, null);
   const itemTaskId = itemMap.get(itemNode.id);
 
   const demandaNodes = itemNode.children || [];
   if (demandaNodes.length > 0) {
-    const globalNames = await fetchGlobalDemandaNames(devTaskId, itemTaskId, env.CLICKUP_API_TOKEN);
-    await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, globalNames);
+    await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, client.name);
   }
 
   return log;
@@ -166,39 +165,21 @@ async function findDevelopmentTaskId(clientTaskId, token) {
   return dev.id;
 }
 
-// Nomes de demanda que já existem em QUALQUER outro item do cliente (ex:
-// "Footer" repetido em toda página) — usado pra criar cada nome só uma vez
-// no total, não uma vez por item. Só olha o nome, não o node-id: a demanda
-// "oficial" fica vinculada a qualquer um dos frames que a geraram.
-async function fetchGlobalDemandaNames(devTaskId, currentItemTaskId, token) {
-  const items = await fetchClickUpSubtasks(devTaskId, token);
-  const names = new Set();
-  for (const item of items) {
-    if (item.id === currentItemTaskId) continue;
-    const children = await fetchClickUpSubtasks(item.id, token);
-    for (const c of children) names.add(c.name);
-  }
-  return names;
-}
-
 // Cria/renomeia as tasks de um nível (item ou demandas) a partir dos nós do
-// Figma, comparando pelo node-id gravado na tag. Retorna um mapa node-id do
-// Figma → id da task no ClickUp, pros filhos usarem como parent. `globalNames`
-// é opcional (só faz sentido pro nível de demanda): pula a criação se o nome
-// já existe em outro item do mesmo cliente.
-async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log, globalNames = new Set()) {
-  const existing = await fetchClickUpSubtasks(parentTaskId, token);
-  const byNodeId = new Map();
-  for (const t of existing) {
-    const tagNames = (t.tags || []).map(tg => tg.name);
-    const figmaTag = tagNames.find(n => n.startsWith(FIGMA_TAG_PREFIX));
-    const nodeId = figmaTag ? tagToNodeId(figmaTag) : null;
-    if (nodeId) byNodeId.set(nodeId, t);
-  }
-
+// Figma. `include_subtasks=true` não devolve tags nem descrição completas
+// (só campos "core" tipo nome/status), então em vez de listar os filhos
+// existentes e cruzar localmente, busca cada node-id direto por tag na lista
+// inteira (`?tags[]=...`) — funciona não importa embaixo de qual task ela
+// esteja hoje. Retorna um mapa node-id do Figma → id da task no ClickUp,
+// pros filhos usarem como parent.
+// `clientNameForDedup` é opcional (só faz sentido pro nível de demanda):
+// quando presente, cada demanda nova também recebe uma tag por nome
+// (`demanda-{cliente}-{nome}`) e, se essa tag já existir em qualquer outro
+// nó, a criação é pulada — evita repetir "Footer" etc. em todo item.
+async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log, clientNameForDedup) {
   const resultMap = new Map();
   for (const node of figmaNodes) {
-    const existingTask = byNodeId.get(node.id);
+    const existingTask = await findClickUpTaskByTag(nodeIdToTag(node.id), token);
     if (existingTask) {
       if (existingTask.name !== node.name) {
         await renameClickUpTask(existingTask.id, node.name, token);
@@ -206,24 +187,44 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log, glo
         await sleep(300);
       }
       resultMap.set(node.id, existingTask.id);
-    } else if (globalNames.has(node.name)) {
-      log.push(`pulado (repetido em outro item): '${node.name}'`);
-    } else {
-      const created = await createClickUpTask(parentTaskId, node.name, nodeIdToTag(node.id), token);
-      // Link só na criação — repetir a cada sync duplicaria o comentário.
-      // Vai em comentário (não descrição) porque a integração nativa do
-      // ClickUp com o Figma reconhece link solto e converte pra formato de
-      // apresentação (proto) sozinha, sobrescrevendo o /design/ que a gente
-      // manda. Formatação de código (crase) evita esse auto-unfurl, mantendo
-      // a URL exata — sem preview visual, mas com o link certo.
-      await addClickUpComment(created.id, `\`${figmaDesignLink(fileKey, node.id)}\``, token);
-      log.push(`criado: '${node.name}' (task ${created.id})`);
-      resultMap.set(node.id, created.id);
-      globalNames.add(node.name);
-      await sleep(300);
+      continue;
     }
+
+    const nameTag = clientNameForDedup ? nameDedupTag(clientNameForDedup, node.name) : null;
+    if (nameTag) {
+      const dupTask = await findClickUpTaskByTag(nameTag, token);
+      if (dupTask) {
+        log.push(`pulado (repetido em outro item): '${node.name}'`);
+        continue;
+      }
+    }
+
+    const tags = nameTag ? [nodeIdToTag(node.id), nameTag] : [nodeIdToTag(node.id)];
+    const created = await createClickUpTask(parentTaskId, node.name, tags, token);
+    // Link só na criação — repetir a cada sync duplicaria o comentário.
+    // Vai em comentário (não descrição) porque a integração nativa do
+    // ClickUp com o Figma reconhece link solto e converte pra formato de
+    // apresentação (proto) sozinha, sobrescrevendo o /design/ que a gente
+    // manda. Formatação de código (crase) evita esse auto-unfurl, mantendo
+    // a URL exata — sem preview visual, mas com o link certo.
+    await addClickUpComment(created.id, `\`${figmaDesignLink(fileKey, node.id)}\``, token);
+    log.push(`criado: '${node.name}' (task ${created.id})`);
+    resultMap.set(node.id, created.id);
+    await sleep(300);
   }
   return resultMap;
+}
+
+function nameDedupTag(clientName, demandaName) {
+  return `demanda-${slugify(clientName)}-${slugify(demandaName)}`;
+}
+
+function slugify(str) {
+  return str
+    .normalize('NFD').replace(/[̀-ͯ]/g, '') // remove acentos
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 // Link de design (editor), não de prototype/apresentação — pula e dá zoom
@@ -233,21 +234,8 @@ function figmaDesignLink(fileKey, nodeId) {
   return `https://www.figma.com/design/${fileKey}?node-id=${nodeId.replace(':', '-')}`;
 }
 
-// Identificação por tag, não por descrição — o endpoint de listagem de
-// subtasks (?include_subtasks=true) não devolve a descrição completa das
-// tasks, só um fetch individual devolveria. Tags, ao contrário, já vêm
-// completas nessa listagem.
-const FIGMA_TAG_PREFIX = 'figma-';
-
 function nodeIdToTag(nodeId) {
-  return FIGMA_TAG_PREFIX + nodeId.replace(':', '-');
-}
-
-function tagToNodeId(tag) {
-  const rest = tag.slice(FIGMA_TAG_PREFIX.length);
-  const dashIdx = rest.indexOf('-');
-  if (dashIdx === -1) return null;
-  return `${rest.slice(0, dashIdx)}:${rest.slice(dashIdx + 1)}`;
+  return `figma-${nodeId.replace(':', '-')}`;
 }
 
 function sleep(ms) {
@@ -275,14 +263,27 @@ async function fetchClickUpSubtasks(taskId, token) {
   return data.subtasks || [];
 }
 
-async function createClickUpTask(parentTaskId, name, tagName, token) {
+async function createClickUpTask(parentTaskId, name, tags, token) {
   const res = await fetch(`https://api.clickup.com/api/v2/list/${LIST_ID}/task`, {
     method: 'POST',
     headers: { Authorization: token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, tags: [tagName], parent: parentTaskId }),
+    body: JSON.stringify({ name, tags, parent: parentTaskId }),
   });
   if (!res.ok) throw new Error(`ClickUp API error (create): ${res.status} ${await res.text()}`);
   return res.json();
+}
+
+// Busca uma task pela tag na lista inteira (não só nos filhos de uma task
+// específica) — como as tags que a gente usa são únicas por node-id/nome,
+// encontrar por tag já garante que é a task certa, não importa embaixo de
+// qual item ela esteja.
+async function findClickUpTaskByTag(tag, token) {
+  const res = await fetch(`https://api.clickup.com/api/v2/list/${LIST_ID}/task?tags[]=${encodeURIComponent(tag)}&include_closed=true`, {
+    headers: { Authorization: token },
+  });
+  if (!res.ok) throw new Error(`ClickUp API error (tag search): ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.tasks && data.tasks[0] ? data.tasks[0] : null;
 }
 
 async function addClickUpComment(taskId, commentText, token) {
