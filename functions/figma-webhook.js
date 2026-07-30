@@ -251,9 +251,15 @@ async function syncOneItem(client, itemNodeId, env) {
 
   const itemTaskId = await findOrCreateTask(unit.frame, parentForFrame, env.CLICKUP_API_TOKEN, client.fileKey, log);
 
-  const demandaNodes = childrenInPanelOrder(unit.frame).filter(isVisible);
-  if (demandaNodes.length > 0) {
-    await syncChildrenOneLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, client.name);
+  // "Componentes" é exceção: os frames ali dentro (Cart, Menu etc.) ficam só
+  // como itens soltos, sem quebrar o conteúdo interno em demandas — são
+  // componentes reutilizáveis pequenos, não páginas.
+  const isComponentesGroup = unit.group && unit.group.name.trim().toLowerCase() === 'componentes';
+  if (!isComponentesGroup) {
+    const demandaNodes = childrenInPanelOrder(unit.frame).filter(isVisible);
+    if (demandaNodes.length > 0) {
+      await syncChildrenOneLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, client.name);
+    }
   }
 
   return log;
