@@ -3,11 +3,16 @@
 // passcode, pra teste). Pra cada cliente cadastrado em FIGMA_CLIENTS, a
 // página "Prototype" do arquivo tem frames de topo que viram itens (nível 2,
 // sob a stage "Desenvolvimento" do cliente), e os filhos diretos de cada um
-// viram demandas (nível 4, ocultas do cliente). Identificação é sempre por
-// node-id do Figma (guardado numa tag na task do ClickUp, tipo
-// "figma-298-1175", buscada direto por tag na lista — nem descrição nem tag
-// vêm completas no endpoint de listagem de subtasks), nunca por nome — nome
-// pode mudar à vontade que a automação continua reconhecendo a mesma task.
+// viram demandas (nível 4, ocultas do cliente). Se o frame estiver dentro de
+// uma Section do Figma (ex: "Componentes", "Páginas Adicionais"), a Section
+// vira uma task com o nome do agrupamento e o frame fica aninhado um nível
+// abaixo dela (a demanda cai mais um nível). Regra fixa: a Section
+// "Responsividade" (onde entra a versão mobile) é sempre ignorada por
+// inteiro. Identificação é sempre por node-id do Figma (guardado numa tag na
+// task do ClickUp, tipo "figma-298-1175", buscada direto por tag na lista —
+// nem descrição nem tag vêm completas no endpoint de listagem de subtasks),
+// nunca por nome — nome pode mudar à vontade que a automação continua
+// reconhecendo a mesma task.
 //
 // Cada invocação do Worker tem limite de subrequests (50 no plano free do
 // Cloudflare) — processar todos os itens de um cliente numa chamada só
@@ -110,32 +115,31 @@ export async function onRequestGet() {
 
 // --- sincronização ---
 
-async function getItemFrames(client, figmaToken) {
+// Cada "unidade" é um frame de topo (dentro ou fora de uma Section do
+// Figma), junto com o grupo (Section) a que pertence, se houver.
+async function getSyncUnits(client, figmaToken) {
   const fileData = await fetchFigmaFile(client.fileKey, figmaToken);
   const prototypePage = (fileData.document.children || []).find(
     c => c.type === 'CANVAS' && c.name === 'Prototype',
   );
   if (!prototypePage) throw new Error('Pagina "Prototype" nao encontrada no arquivo');
-  const rawNodes = flattenSections(prototypePage.children || []).filter(isVisible).map(resolveEffectiveNode);
-  return mergeDesktopMobile(rawNodes);
-}
 
-// "Section" do Figma (diferente de Frame) é só agrupamento visual no canvas
-// — os frames dentro viram itens normalmente, cada um com o próprio nome
-// (ex: as sections "Páginas Adicionais" e "Componentes"). Regra fixa: a
-// section "Responsividade" (onde entrou a versão mobile) é sempre ignorada
-// por inteiro, não importa o que tenha dentro.
-function flattenSections(nodes) {
-  const result = [];
-  for (const node of nodes) {
+  const units = [];
+  for (const node of (prototypePage.children || [])) {
+    if (!isVisible(node)) continue;
     if (node.type === 'SECTION') {
+      // Regra fixa: a section "Responsividade" (onde entra a versão mobile)
+      // é sempre ignorada por inteiro.
       if (node.name.trim().toLowerCase() === 'responsividade') continue;
-      result.push(...(node.children || []));
+      for (const child of (node.children || [])) {
+        if (!isVisible(child)) continue;
+        units.push({ frame: resolveEffectiveNode(child), group: { id: node.id, name: node.name } });
+      }
     } else {
-      result.push(node);
+      units.push({ frame: resolveEffectiveNode(node), group: null });
     }
   }
-  return result;
+  return mergeDesktopMobileUnits(units);
 }
 
 // Frame/seção com o "olho fechado" no Figma (visible: false) não vira task —
@@ -148,9 +152,25 @@ function isVisible(node) {
 // Frames "X Desktop" e "X Mobile" viram um item só, "X" — pro cliente não
 // importa a plataforma, e o conteúdo do Mobile sempre acompanha o Desktop.
 // Usa sempre o Desktop como fonte de nome/demandas (cai pro Mobile se só
-// ele existir). Frames sem esse sufixo (Cart, Menu, componentes soltos
-// etc.) ficam exatamente como estão, cada um seu próprio item — mesmo que
-// o nome se repita entre dois frames com ids diferentes.
+// ele existir). Frames sem esse sufixo ficam exatamente como estão, cada
+// um seu próprio item — mesmo que o nome se repita entre dois frames com
+// ids diferentes. Só mescla dentro do mesmo grupo (Section).
+function mergeDesktopMobileUnits(units) {
+  const buckets = new Map();
+  for (const u of units) {
+    const key = u.group ? u.group.id : '__none__';
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(u);
+  }
+  const result = [];
+  for (const list of buckets.values()) {
+    const merged = mergeDesktopMobile(list.map(u => u.frame));
+    const group = list[0].group;
+    for (const frame of merged) result.push({ frame, group });
+  }
+  return result;
+}
+
 function mergeDesktopMobile(nodes) {
   const groups = new Map();
   const result = [];
@@ -173,21 +193,38 @@ function mergeDesktopMobile(nodes) {
 }
 
 async function listItemFrames(client, figmaToken) {
-  const itemFrames = await getItemFrames(client, figmaToken);
-  return itemFrames.map(n => ({ id: n.id, name: n.name, demandas: (n.children || []).filter(isVisible).length }));
+  const units = await getSyncUnits(client, figmaToken);
+  return units.map(u => ({
+    id: u.frame.id,
+    name: u.frame.name,
+    group: u.group ? u.group.name : null,
+    demandas: (u.frame.children || []).filter(isVisible).length,
+  }));
 }
 
+// Sections do Figma (ex: "Componentes", "Páginas Adicionais") viram elas
+// mesmas uma task com o nome do agrupamento, e os frames que estão dentro
+// ficam aninhados dentro dela (um nível a mais), com as demandas de cada
+// frame um nível abaixo disso. Frames fora de qualquer section continuam
+// direto sob "Desenvolvimento", como sempre.
 async function syncOneItem(client, itemNodeId, env) {
   const log = [];
-  const itemFrames = await getItemFrames(client, env.FIGMA_API_TOKEN);
-  const itemNode = itemFrames.find(n => n.id === itemNodeId);
-  if (!itemNode) throw new Error(`Frame de item com node-id ${itemNodeId} nao encontrado na pagina Prototype`);
+  const units = await getSyncUnits(client, env.FIGMA_API_TOKEN);
+  const unit = units.find(u => u.frame.id === itemNodeId);
+  if (!unit) throw new Error(`Frame com node-id ${itemNodeId} nao encontrado na pagina Prototype`);
 
   const devTaskId = await findDevelopmentTaskId(client.taskId, env.CLICKUP_API_TOKEN);
-  const itemMap = await syncFigmaLevel([itemNode], devTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, null);
-  const itemTaskId = itemMap.get(itemNode.id);
 
-  const demandaNodes = (itemNode.children || []).filter(isVisible);
+  let parentForFrame = devTaskId;
+  if (unit.group) {
+    const groupMap = await syncFigmaLevel([unit.group], devTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, null);
+    parentForFrame = groupMap.get(unit.group.id);
+  }
+
+  const itemMap = await syncFigmaLevel([unit.frame], parentForFrame, env.CLICKUP_API_TOKEN, client.fileKey, log, null);
+  const itemTaskId = itemMap.get(unit.frame.id);
+
+  const demandaNodes = (unit.frame.children || []).filter(isVisible);
   if (demandaNodes.length > 0) {
     await syncFigmaLevel(demandaNodes, itemTaskId, env.CLICKUP_API_TOKEN, client.fileKey, log, client.name);
   }
