@@ -80,7 +80,7 @@ export async function onRequestPost(context) {
     return new Response(`status ${res.status}`, { status: 200 });
   }
   if (payload.post_comment_task_id) {
-    const created = await addClickUpComment(payload.post_comment_task_id, payload.post_comment_text, env.CLICKUP_API_TOKEN);
+    const created = await addClickUpComment(payload.post_comment_task_id, 'Ver no Figma', payload.post_comment_url, env.CLICKUP_API_TOKEN);
     return new Response(JSON.stringify(created), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
 
@@ -238,10 +238,10 @@ async function syncFigmaLevel(figmaNodes, parentTaskId, token, fileKey, log, cli
       // Vai em comentário (não descrição) porque a integração nativa do
       // ClickUp com o Figma reconhece link solto e converte pra formato de
       // apresentação (proto) sozinha, sobrescrevendo o /design/ que a gente
-      // manda. Formatação de código (crase) evita esse auto-unfurl e continua
-      // clicável — o formato "texto com link anexado" (comment rico) não
-      // renderizou como link de verdade na aba de comentários.
-      await addClickUpComment(created.id, `\`${figmaDesignLink(fileKey, node.id)}\``, token);
+      // manda. Comentário rico (texto "Ver no Figma" com link anexado) —
+      // confirmado que fica hyperlink de verdade na aba de comentários,
+      // diferente da URL em crase (que fica estática, sem link).
+      await addClickUpComment(created.id, 'Ver no Figma', figmaDesignLink(fileKey, node.id), token);
       log.push(`criado: '${node.name}' (task ${created.id})`);
       resultMap.set(node.id, created.id);
       await sleep(300);
@@ -328,11 +328,14 @@ async function findClickUpTaskByTag(tag, token) {
   return data.tasks && data.tasks[0] ? data.tasks[0] : null;
 }
 
-async function addClickUpComment(taskId, commentText, token) {
+// Comentário rico (texto com link anexado) — confirmado pelo usuário que
+// fica como hyperlink de verdade na aba de comentários do ClickUp,
+// diferente de uma URL em crase (que fica estática).
+async function addClickUpComment(taskId, text, url, token) {
   const res = await fetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
     method: 'POST',
     headers: { Authorization: token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ comment_text: commentText }),
+    body: JSON.stringify({ comment: [{ text, attributes: { link: url } }] }),
   });
   if (!res.ok) throw new Error(`ClickUp API error (comment): ${res.status} ${await res.text()}`);
   return res.json();
