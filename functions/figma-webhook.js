@@ -1,6 +1,9 @@
 // Cloudflare Pages Function — POST /figma-webhook
-// Disparada pelo webhook FILE_UPDATE do Figma (ou manualmente, com o mesmo
-// passcode, pra teste). Pra cada cliente cadastrado em FIGMA_CLIENTS, a
+// Disparada pelo workflow agendado do GitHub Actions (mesmo padrão do sync
+// do ClickUp — ver docs/FIGMA_SYNC_SETUP.md), não por um webhook em tempo
+// real do Figma: uma chamada só do Worker não aguenta percorrer todos os
+// itens de um cliente sem estourar o limite de subrequests. Pra cada
+// cliente cadastrado em FIGMA_CLIENTS, a
 // página "Prototype" do arquivo tem frames de topo que viram itens (nível 2,
 // sob a stage "Desenvolvimento" do cliente), e os filhos diretos de cada um
 // viram demandas (nível 4, ocultas do cliente). Se o frame estiver dentro de
@@ -44,9 +47,9 @@ export async function onRequestPost(context) {
     return new Response('Invalid passcode', { status: 401 });
   }
 
-  // Modo administrativo temporário, pra limpar tasks criadas por engano sem
-  // depender da cota da integração MCP do ClickUp (token separado, cota
-  // própria). Remover depois que não precisar mais.
+  // Modo administrativo: limpar tasks criadas por engano (ex: teste, ou uma
+  // reorganização no Figma que deixou task órfã) e inspecionar a estrutura
+  // sem depender da cota da integração MCP do ClickUp (token separado).
   if (Array.isArray(payload.delete_task_ids)) {
     const log = await deleteClickUpTasks(payload.delete_task_ids, env.CLICKUP_API_TOKEN);
     return new Response(log.join('\n'), { status: 200 });
@@ -54,52 +57,6 @@ export async function onRequestPost(context) {
   if (payload.list_clickup_subtasks) {
     const subtasks = await fetchClickUpSubtasks(payload.list_clickup_subtasks, env.CLICKUP_API_TOKEN);
     const summary = subtasks.map(t => ({ id: t.id, name: t.name, tags: t.tags }));
-    return new Response(JSON.stringify(summary), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  }
-  if (payload.get_clickup_task) {
-    const res = await fetch(`https://api.clickup.com/api/v2/task/${payload.get_clickup_task}`, {
-      headers: { Authorization: env.CLICKUP_API_TOKEN },
-    });
-    const data = await res.json();
-    return new Response(JSON.stringify({ id: data.id, name: data.name, tags: data.tags }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  }
-  if (payload.find_by_tag) {
-    const url = `https://api.clickup.com/api/v2/list/${LIST_ID}/task?tags[]=${encodeURIComponent(payload.find_by_tag)}&include_closed=true&subtasks=true`;
-    const res = await fetch(url, { headers: { Authorization: env.CLICKUP_API_TOKEN } });
-    const data = await res.json();
-    return new Response(JSON.stringify({ url, status: res.status, count: data.tasks ? data.tasks.length : null, raw: data }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  }
-  if (payload.list_comments) {
-    const res = await fetch(`https://api.clickup.com/api/v2/task/${payload.list_comments}/comment`, {
-      headers: { Authorization: env.CLICKUP_API_TOKEN },
-    });
-    const data = await res.json();
-    const summary = (data.comments || []).map(c => ({ id: c.id, comment_text: c.comment_text, comment: c.comment }));
-    return new Response(JSON.stringify(summary), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  }
-  if (payload.delete_comment) {
-    const res = await fetch(`https://api.clickup.com/api/v2/comment/${payload.delete_comment}`, {
-      method: 'DELETE',
-      headers: { Authorization: env.CLICKUP_API_TOKEN },
-    });
-    return new Response(`status ${res.status}`, { status: 200 });
-  }
-  if (payload.post_comment_task_id) {
-    const created = await addClickUpComment(payload.post_comment_task_id, 'Ver no Figma', payload.post_comment_url, env.CLICKUP_API_TOKEN);
-    return new Response(JSON.stringify(created), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  }
-  if (payload.inspect_node) {
-    const client = FIGMA_CLIENTS.find(c => c.fileKey === payload.file_key || c.name === payload.client);
-    if (!client) return new Response('client not found', { status: 400 });
-    const fileData = await fetchFigmaFile(client.fileKey, env.FIGMA_API_TOKEN);
-    const found = findNodeById(fileData.document, payload.inspect_node);
-    if (!found) return new Response('node not found', { status: 404 });
-    const summary = {
-      id: found.id,
-      name: found.name,
-      type: found.type,
-      children: (found.children || []).map(c => ({ id: c.id, name: c.name, type: c.type })),
-    };
     return new Response(JSON.stringify(summary), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
 
@@ -389,15 +346,6 @@ function nodeIdToTag(nodeId) {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function findNodeById(node, id) {
-  if (node.id === id) return node;
-  for (const child of (node.children || [])) {
-    const found = findNodeById(child, id);
-    if (found) return found;
-  }
-  return null;
 }
 
 // --- Figma ---
