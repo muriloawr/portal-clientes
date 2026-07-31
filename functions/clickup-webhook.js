@@ -240,11 +240,16 @@ async function buildProjectStages(taskId, token) {
 
   for (const stageTask of stageTasks) {
     const isMeetings = /reuni/i.test(stageTask.name);
+    // A etapa "Desenvolvimento" recebe tasks da sync Figma->ClickUp, que
+    // sempre cria um comentário "Ver no Figma" (link interno pros devs) em
+    // cada task — isso não pode vazar como subtítulo no cronograma do
+    // cliente, então pula a busca de comentário pra essa etapa inteira.
+    const isDevelopment = /desenvolv/i.test(stageTask.name);
     const children = await fetchSubtasks(stageTask.id, token);
     const items = [];
 
     for (const item of children) {
-      const subtitle = await fetchComment(item.id, token);
+      const subtitle = isDevelopment ? '' : await fetchComment(item.id, token);
       const refDateMs = item.due_date ? Number(item.due_date) : (item.start_date ? Number(item.start_date) : Number(item.date_created));
 
       if (isMeetings) {
