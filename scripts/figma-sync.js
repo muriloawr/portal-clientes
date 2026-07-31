@@ -35,6 +35,8 @@ const FIGMA_API_TOKEN = process.env.FIGMA_API_TOKEN;
 const CLICKUP_API_TOKEN = process.env.CLICKUP_API_TOKEN;
 
 async function main() {
+  console.log('figma-sync build: retry-429-v1'); // marcador pra confirmar qual versao do script rodou
+
   if (!FIGMA_API_TOKEN || !CLICKUP_API_TOKEN) {
     console.error('Faltam FIGMA_API_TOKEN e/ou CLICKUP_API_TOKEN nas variáveis de ambiente.');
     process.exit(1);
@@ -327,6 +329,7 @@ const CLICKUP_RETRY_WAIT_MS = 65000; // um pouco mais que 1 min, pra garantir qu
 async function clickUpFetch(url, options, attempt = 1) {
   const res = await fetch(url, options);
   if (res.status === 429 && attempt <= CLICKUP_MAX_RETRIES) {
+    console.log(`  [429] aguardando ${CLICKUP_RETRY_WAIT_MS / 1000}s antes de tentar de novo (tentativa ${attempt}/${CLICKUP_MAX_RETRIES})...`);
     await sleep(CLICKUP_RETRY_WAIT_MS);
     return clickUpFetch(url, options, attempt + 1);
   }
