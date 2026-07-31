@@ -365,4 +365,7 @@ async function renameClickUpTask(taskId, name) {
   return res.json();
 }
 
-main();
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
