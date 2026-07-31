@@ -204,14 +204,12 @@ async function findOrCreateTask(node, parentTaskId, fileKey, log) {
     if (existingTask.name !== node.name) {
       await renameClickUpTask(existingTask.id, node.name);
       log.push(`renomeado: '${existingTask.name}' -> '${node.name}'`);
-      await sleep(300);
     }
     return existingTask.id;
   }
   const created = await createClickUpTask(parentTaskId, node.name, [nodeIdToTag(node.id)]);
   await addClickUpComment(created.id, 'Ver no Figma', figmaDesignLink(fileKey, node.id));
   log.push(`criado: '${node.name}' (task ${created.id})`);
-  await sleep(300);
   return created.id;
 }
 
@@ -233,7 +231,6 @@ async function syncChildrenOneLevel(figmaNodes, parentTaskId, fileKey, log, clie
         if (existingTask.name !== node.name) {
           await renameClickUpTask(existingTask.id, node.name);
           log.push(`renomeado: '${existingTask.name}' -> '${node.name}'`);
-          await sleep(300);
         }
         continue;
       }
@@ -258,7 +255,6 @@ async function syncChildrenOneLevel(figmaNodes, parentTaskId, fileKey, log, clie
       // solta (que fica estática, sem link).
       await addClickUpComment(created.id, 'Ver no Figma', figmaDesignLink(fileKey, node.id));
       log.push(`criado: '${node.name}' (task ${created.id})`);
-      await sleep(300);
     } catch (err) {
       // Um nó com problema (ex: nome que gera tag inválida) não deve
       // derrubar o resto do item — loga e segue pros outros.
@@ -311,8 +307,22 @@ async function fetchFigmaFile(fileKey) {
 
 // --- ClickUp ---
 
+// O limite do ClickUp é ~100 req/min por token e vale pro token inteiro,
+// leitura ou escrita (o 429 apareceu até em busca por tag). Um cliente novo
+// gera 3 chamadas por nó (busca + criação + comentário) pra cada item e
+// demanda, então uma pausa só depois da última chamada de cada nó não é
+// suficiente — centraliza a pausa aqui, depois de toda chamada à API do
+// ClickUp, pra garantir o ritmo certo não importa quem chamou.
+const CLICKUP_REQUEST_DELAY_MS = 650; // ~92 req/min, com margem abaixo do limite
+
+async function clickUpFetch(url, options) {
+  const res = await fetch(url, options);
+  await sleep(CLICKUP_REQUEST_DELAY_MS);
+  return res;
+}
+
 async function fetchClickUpSubtasks(taskId) {
-  const res = await fetch(`https://api.clickup.com/api/v2/task/${taskId}?include_subtasks=true`, {
+  const res = await clickUpFetch(`https://api.clickup.com/api/v2/task/${taskId}?include_subtasks=true`, {
     headers: { Authorization: CLICKUP_API_TOKEN },
   });
   if (!res.ok) throw new Error(`ClickUp API error: ${res.status} ${await res.text()}`);
@@ -321,7 +331,7 @@ async function fetchClickUpSubtasks(taskId) {
 }
 
 async function createClickUpTask(parentTaskId, name, tags) {
-  const res = await fetch(`https://api.clickup.com/api/v2/list/${LIST_ID}/task`, {
+  const res = await clickUpFetch(`https://api.clickup.com/api/v2/list/${LIST_ID}/task`, {
     method: 'POST',
     headers: { Authorization: CLICKUP_API_TOKEN, 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, tags, parent: parentTaskId }),
@@ -335,7 +345,7 @@ async function createClickUpTask(parentTaskId, name, tags) {
 // encontrar por tag já garante que é a task certa, não importa embaixo de
 // qual item ela esteja.
 async function findClickUpTaskByTag(tag) {
-  const res = await fetch(`https://api.clickup.com/api/v2/list/${LIST_ID}/task?tags[]=${encodeURIComponent(tag)}&include_closed=true&subtasks=true`, {
+  const res = await clickUpFetch(`https://api.clickup.com/api/v2/list/${LIST_ID}/task?tags[]=${encodeURIComponent(tag)}&include_closed=true&subtasks=true`, {
     headers: { Authorization: CLICKUP_API_TOKEN },
   });
   if (!res.ok) throw new Error(`ClickUp API error (tag search): ${res.status} ${await res.text()}`);
@@ -347,7 +357,7 @@ async function findClickUpTaskByTag(tag) {
 // na aba de comentários do ClickUp, diferente de uma URL em texto solto
 // (que fica estática, sem link).
 async function addClickUpComment(taskId, text, url) {
-  const res = await fetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
+  const res = await clickUpFetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
     method: 'POST',
     headers: { Authorization: CLICKUP_API_TOKEN, 'Content-Type': 'application/json' },
     body: JSON.stringify({ comment: [{ text, attributes: { link: url } }] }),
@@ -357,7 +367,7 @@ async function addClickUpComment(taskId, text, url) {
 }
 
 async function renameClickUpTask(taskId, name) {
-  const res = await fetch(`https://api.clickup.com/api/v2/task/${taskId}`, {
+  const res = await clickUpFetch(`https://api.clickup.com/api/v2/task/${taskId}`, {
     method: 'PUT',
     headers: { Authorization: CLICKUP_API_TOKEN, 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
