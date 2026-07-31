@@ -1,20 +1,19 @@
 name: Figma to ClickUp sync
 
-# Roda scripts/figma-sync.js direto no runner do GitHub Actions, de 45 em 45
-# minutos, só em dias úteis e horário comercial (08:30–18:15, América/São
-# Paulo, UTC-3). Essa sync só lê o Figma e cria/atualiza tasks no ClickUp —
-# não mexe no site do cliente — então não tem motivo pra depender do
-# Cloudflare (isso ficou só pra sync que atualiza o cronograma, que precisa
-# commitar/publicar HTML). Rodando aqui, sem limite de subrequests do
-# Worker, sincroniza tudo numa execução só, sem chunking artificial.
+# Roda scripts/figma-sync.js direto no runner do GitHub Actions, uma vez por
+# dia à meia-noite (América/São Paulo, UTC-3) — funciona como uma auditoria
+# diária, não precisa ser tão frequente quanto a sync do cronograma: o Figma
+# normalmente só muda quando alguém termina uma sessão de design, não a cada
+# 45 min. Essa sync só lê o Figma e cria/atualiza tasks no ClickUp — não mexe
+# no site do cliente — então não tem motivo pra depender do Cloudflare (isso
+# ficou só pra sync que atualiza o cronograma, que precisa commitar/publicar
+# HTML). Rodando aqui, sem limite de subrequests do Worker, sincroniza tudo
+# numa execução só, sem chunking artificial.
 # Ver docs/FIGMA_SYNC_SETUP.md pra detalhes e como adicionar um cliente novo.
 
 on:
   schedule:
-    - cron: '30 11,14,17,20 * * 1-5'
-    - cron: '15 12,15,18,21 * * 1-5'
-    - cron: '0 13,16,19 * * 1-5'
-    - cron: '45 13,16,19 * * 1-5'
+    - cron: '0 3 * * *' # 00:00 America/Sao_Paulo (UTC-3), todo dia
   workflow_dispatch: {}
 
 concurrency:

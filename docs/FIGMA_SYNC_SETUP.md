@@ -2,7 +2,11 @@
 
 Script em [scripts/figma-sync.js](../scripts/figma-sync.js), rodado direto pelo runner do
 GitHub Actions ([.github/workflows/figma-sync-schedule.yml](../.github/workflows/figma-sync-schedule.yml)),
-de 45 em 45 minutos, só em dias úteis, das 08:30 às 18:15 (América/São Paulo, UTC-3).
+uma vez por dia à meia-noite (América/São Paulo, UTC-3) — funciona como uma auditoria
+diária, não precisa ser tão frequente quanto a sync do cronograma, já que o Figma
+normalmente só muda quando alguém termina uma sessão de design. Pra ver o resultado na
+hora (sem esperar a meia-noite), dispara manualmente em Actions → "Figma to ClickUp sync"
+→ Run workflow.
 
 Essa sync só lê o Figma e cria/atualiza tasks no ClickUp — não mexe no site do cliente —
 por isso não depende do Cloudflare (diferente da sync que atualiza o cronograma, essa sim
