@@ -315,8 +315,21 @@ async function fetchFigmaFile(fileKey) {
 // ClickUp, pra garantir o ritmo certo não importa quem chamou.
 const CLICKUP_REQUEST_DELAY_MS = 650; // ~92 req/min, com margem abaixo do limite
 
-async function clickUpFetch(url, options) {
+// O limite do ClickUp parece ser por janela fixa de 1 min, não deslizante:
+// depois de um 429, as chamadas seguintes continuam falhando em cascata até
+// a janela virar — só espaçar as chamadas não resolve se a janela já
+// estourou (ex: essa sync e a do cronograma, que roda a cada 45min em
+// horário comercial, competem pelo mesmo CLICKUP_API_TOKEN). Em vez de
+// desistir do nó no primeiro 429, espera a janela virar e tenta de novo.
+const CLICKUP_MAX_RETRIES = 5;
+const CLICKUP_RETRY_WAIT_MS = 65000; // um pouco mais que 1 min, pra garantir que a janela virou
+
+async function clickUpFetch(url, options, attempt = 1) {
   const res = await fetch(url, options);
+  if (res.status === 429 && attempt <= CLICKUP_MAX_RETRIES) {
+    await sleep(CLICKUP_RETRY_WAIT_MS);
+    return clickUpFetch(url, options, attempt + 1);
+  }
   await sleep(CLICKUP_REQUEST_DELAY_MS);
   return res;
 }
