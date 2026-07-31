@@ -1,13 +1,12 @@
 name: Figma to ClickUp sync
 
-# Dispara a function functions/figma-webhook.js via HTTP, de 45 em 45 minutos,
-# só em dias úteis e horário comercial (08:30–18:15, América/São_Paulo,
-# UTC-3), mesmo padrão do clickup-sync-schedule.yml. Não é um webhook em
-# tempo real do Figma — uma chamada só do Worker não aguenta percorrer todos
-# os itens de um cliente sem estourar o limite de subrequests (50 no plano
-# free do Cloudflare), então isso roda em duas etapas por cliente:
-#   1. list_items: true → lista os itens (frames de topo) do cliente.
-#   2. item_node_id: "<id>" → sincroniza um item por vez.
+# Roda scripts/figma-sync.js direto no runner do GitHub Actions, de 45 em 45
+# minutos, só em dias úteis e horário comercial (08:30–18:15, América/São
+# Paulo, UTC-3). Essa sync só lê o Figma e cria/atualiza tasks no ClickUp —
+# não mexe no site do cliente — então não tem motivo pra depender do
+# Cloudflare (isso ficou só pra sync que atualiza o cronograma, que precisa
+# commitar/publicar HTML). Rodando aqui, sem limite de subrequests do
+# Worker, sincroniza tudo numa execução só, sem chunking artificial.
 # Ver docs/FIGMA_SYNC_SETUP.md pra detalhes e como adicionar um cliente novo.
 
 on:
@@ -18,9 +17,6 @@ on:
     - cron: '45 13,16,19 * * 1-5'
   workflow_dispatch: {}
 
-# Garante que só uma sincronização rode por vez — mesmo motivo do
-# clickup-sync-schedule.yml (evita duas execuções batendo na API do Figma/
-# ClickUp ao mesmo tempo se um disparo manual coincidir com o cron).
 concurrency:
   group: figma-sync
   cancel-in-progress: false
@@ -29,47 +25,12 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Sync each Figma client, one item per call
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Sync Figma -> ClickUp
         env:
-          FIGMA_SYNC_PASSCODE: ${{ secrets.FIGMA_WEBHOOK_PASSCODE }}
-        run: |
-          # Precisa bater com os "name" cadastrados em FIGMA_CLIENTS no
-          # functions/figma-webhook.js — atualize os dois juntos ao
-          # adicionar um cliente novo.
-          CLIENTS=(
-            "PROTS"
-          )
-          FAILED=0
-          for CLIENT in "${CLIENTS[@]}"; do
-            echo "=== $CLIENT: listando itens ==="
-            LIST_BODY=$(printf '{"passcode":"%s","client":"%s","list_items":true}' "$FIGMA_SYNC_PASSCODE" "$CLIENT")
-            ITEMS_JSON=$(curl -sS -X POST \
-              https://clientes.vanzaklabs.com/figma-webhook \
-              -H 'Content-Type: application/json' \
-              -d "$LIST_BODY")
-            echo "$ITEMS_JSON"
-
-            while read -r ITEM; do
-              [ -z "$ITEM" ] && continue
-              ITEM_ID=$(echo "$ITEM" | jq -r '.id')
-              ITEM_NAME=$(echo "$ITEM" | jq -r '.name')
-              BODY=$(printf '{"passcode":"%s","client":"%s","item_node_id":"%s"}' "$FIGMA_SYNC_PASSCODE" "$CLIENT" "$ITEM_ID")
-              HTTP_STATUS=$(curl -sS -o response.txt -w '%{http_code}' -X POST \
-                https://clientes.vanzaklabs.com/figma-webhook \
-                -H 'Content-Type: application/json' \
-                -d "$BODY")
-              echo "--- $CLIENT / $ITEM_NAME ($ITEM_ID): HTTP $HTTP_STATUS ---"
-              cat response.txt
-              echo
-              if [ "$HTTP_STATUS" -ge 400 ]; then
-                FAILED=1
-              fi
-              # Espaça as chamadas pra não estourar o rate limit da API do
-              # ClickUp/Figma (mesmo motivo do clickup-sync-schedule.yml).
-              sleep 5
-            done < <(echo "$ITEMS_JSON" | jq -c '.[]')
-          done
-          if [ "$FAILED" -eq 1 ]; then
-            echo "::error::One or more Figma item syncs failed"
-            exit 1
-          fi
+          FIGMA_API_TOKEN: ${{ secrets.FIGMA_API_TOKEN }}
+          CLICKUP_API_TOKEN: ${{ secrets.CLICKUP_API_TOKEN }}
+        run: node scripts/figma-sync.js

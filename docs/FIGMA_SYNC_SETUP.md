@@ -1,19 +1,20 @@
 # Sincronização automática Figma → ClickUp (tasks de desenvolvimento)
 
-Function em [functions/figma-webhook.js](../functions/figma-webhook.js). Pra cada cliente
-cadastrado em `FIGMA_CLIENTS` no topo do arquivo, ela lê a página **"Prototype"** do arquivo
-do Figma e cria/atualiza no ClickUp: um **item** (nível 2, sob a stage "Desenvolvimento" do
-cliente) por frame de topo, e uma **demanda** (nível 4, oculta do cliente) por seção dentro
-desse frame. Essas tasks nunca aparecem no cronograma que o cliente vê — são só pra
-organizar o trabalho dos devs.
+Script em [scripts/figma-sync.js](../scripts/figma-sync.js), rodado direto pelo runner do
+GitHub Actions ([.github/workflows/figma-sync-schedule.yml](../.github/workflows/figma-sync-schedule.yml)),
+de 45 em 45 minutos, só em dias úteis, das 08:30 às 18:15 (América/São Paulo, UTC-3).
 
-**Disparo:** igual à sync do ClickUp, um workflow agendado do GitHub Actions
-([.github/workflows/figma-sync-schedule.yml](../.github/workflows/figma-sync-schedule.yml))
-chama essa function de 45 em 45 minutos, só em dias úteis, das 08:30 às 18:15 (América/São
-Paulo, UTC-3). Não é um webhook em tempo real do Figma — uma chamada só do Worker não
-aguenta percorrer todos os itens de um cliente sem estourar o limite de subrequests do
-plano free do Cloudflare (50 por invocação), então o endpoint funciona em duas etapas por
-cliente: lista os itens, depois sincroniza um por um.
+Essa sync só lê o Figma e cria/atualiza tasks no ClickUp — não mexe no site do cliente —
+por isso não depende do Cloudflare (diferente da sync que atualiza o cronograma, essa sim
+precisa do Cloudflare pra commitar/publicar o HTML, ver
+[CLICKUP_SYNC_SETUP.md](./CLICKUP_SYNC_SETUP.md)). Rodando no runner do GitHub Actions, sem
+limite de subrequests, o script sincroniza tudo numa execução só, sem chunking artificial.
+
+Pra cada cliente cadastrado em `FIGMA_CLIENTS` no topo do script, ele lê a página
+**"Prototype"** do arquivo do Figma e cria/atualiza no ClickUp: um **item** (nível 2, sob a
+stage "Desenvolvimento" do cliente) por frame de topo, e uma **demanda** (nível 4, oculta do
+cliente) por seção dentro desse frame. Essas tasks nunca aparecem no cronograma que o
+cliente vê — são só pra organizar o trabalho dos devs.
 
 ## Estrutura esperada no arquivo do Figma
 
@@ -51,45 +52,32 @@ cliente: lista os itens, depois sincroniza um por um.
 1. O arquivo do Figma do cliente precisa ter a página "Prototype" organizada conforme a
    seção acima.
 2. A task-mãe do cliente no ClickUp precisa ter uma subtask chamada "Desenvolvimento" — é
-   dentro dela que os itens entram (mesma task-mãe já usada pela sync do ClickUp, ver
-   [CLICKUP_SYNC_SETUP.md](./CLICKUP_SYNC_SETUP.md)).
-3. Adicione uma entrada em `FIGMA_CLIENTS` no topo de `functions/figma-webhook.js`, com o
+   dentro dela que os itens entram (mesma task-mãe já usada pela sync do ClickUp).
+3. Adicione uma entrada em `FIGMA_CLIENTS` no topo de `scripts/figma-sync.js`, com o
    `fileKey` do arquivo do Figma (pega na URL: `figma.com/design/{file_key}/...`) e o
    `taskId` da task-mãe do cliente no ClickUp.
-4. Adicione o mesmo `name` (igual ao que você usou no passo 3) no array `CLIENTS` dentro de
-   `.github/workflows/figma-sync-schedule.yml` — lista separada da do ClickUp, mesma lógica
-   de "uma chamada por vez" pra não estourar limite de subrequests.
-5. Commit e push.
+4. Commit e push — não precisa mexer no workflow nem duplicar o nome em lugar nenhum, o
+   script já percorre `FIGMA_CLIENTS` inteiro numa execução só.
 
-## Variáveis de ambiente (Cloudflare Pages)
-
-Mesmo lugar de sempre (Dashboard do projeto → **Settings → Environment variables** →
-**Production**):
-
-| Nome | Valor |
-|---|---|
-| `FIGMA_API_TOKEN` | Personal Access Token do Figma (Settings → Security → Personal access tokens), com escopo **File content: Read** |
-| `FIGMA_WEBHOOK_PASSCODE` | String aleatória forte — precisa bater com o secret do GitHub Actions abaixo |
-
-`CLICKUP_API_TOKEN` já existe do projeto do ClickUp e é reaproveitado aqui (a function
-também cria/renomeia tasks, não só lê).
-
-## Secret no GitHub Actions
+## Secrets necessários (GitHub Actions)
 
 Cadastre em **GitHub → Settings do repositório → Secrets and variables → Actions → New
 repository secret**:
 
 | Nome | Valor |
 |---|---|
-| `FIGMA_WEBHOOK_PASSCODE` | O mesmo valor exato colocado no Cloudflare acima |
+| `FIGMA_API_TOKEN` | Personal Access Token do Figma (Settings → Security → Personal access tokens), com escopo **File content: Read** |
+| `CLICKUP_API_TOKEN` | Personal API Token do ClickUp (Settings → Apps → API Token) — pode ser o mesmo já usado na sync do cronograma |
+
+Não precisa de nenhum secret duplicado no Cloudflare pra essa parte — os dois tokens ficam
+só aqui, e o script roda inteiramente dentro do GitHub Actions.
 
 ## Testar
 
 - Manualmente, sem esperar o horário: GitHub → aba **Actions** → workflow **"Figma to
   ClickUp sync"** → **Run workflow**.
-- Confira o log da execução — deve mostrar a lista de itens de cada cliente e, pra cada um,
-  `HTTP 200` com o resultado (`no changes`, `criado: ...`, `renomeado: ...` ou
-  `pulado (repetido em outro item): ...`).
+- Confira o log da execução — mostra, pra cada cliente, um resultado por item (`no changes`,
+  `criado: ...`, `renomeado: ...` ou `pulado (repetido em outro item): ...`).
 - Confira no ClickUp se as tasks apareceram sob "Desenvolvimento" do cliente certo.
 
 ## Notas
@@ -103,3 +91,6 @@ repository secret**:
   vira task na primeira vez — nos itens seguintes, a criação é pulada.
 - Se um frame/section for removido do Figma, a task correspondente **não** é apagada
   automaticamente — fica órfã no ClickUp até alguém decidir o que fazer com ela.
+- Não tem mais nenhum endpoint administrativo de debug/limpeza pra essa sync (a versão
+  antiga, hospedada no Cloudflare, tinha). Uma limpeza pontual pode ser feita com um script
+  ad-hoc chamando a API do ClickUp diretamente com o mesmo `CLICKUP_API_TOKEN`.
