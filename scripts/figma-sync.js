@@ -26,6 +26,7 @@
 
 const FIGMA_CLIENTS = [
   { name: 'PROTS', fileKey: '8pk8WhFEFBO42cKnXtHai5', taskId: 'wdpu2ybucf' },
+  { name: 'Beeva', fileKey: 'vdzoUDzr7DlhSLCUlVUlGd', taskId: 'wdpu2ydyzj' },
 ];
 
 const LIST_ID = '901324765433'; // lista "Projetos" no ClickUp
