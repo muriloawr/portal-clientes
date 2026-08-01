@@ -468,11 +468,22 @@ async function discoverAndProvisionNewClients(env) {
     try {
       const msg = await provisionNewClient(task, ownSource, ownSha, env);
       results.push(`novo cliente "${task.name}": ${msg}`);
-      const refreshed = await getGithubFile('functions/clickup-webhook.js', env.GITHUB_TOKEN);
-      ownSource = refreshed.content;
-      ownSha = refreshed.sha;
     } catch (err) {
       results.push(`novo cliente "${task.name}": FAILED - ${err.message}`);
+    } finally {
+      // Sempre relê depois de CADA candidato, com sucesso ou não — se o
+      // passo 2 (CLIENTS) mudou o arquivo mas o passo 3 (workflow) falhou
+      // e lançou, sem isso o próximo candidato do mesmo lote usaria source
+      // e sha desatualizados (409 no GitHub). Se nem essa releitura der
+      // certo, aborta o resto do lote em vez de arriscar sha errado.
+      try {
+        const refreshed = await getGithubFile('functions/clickup-webhook.js', env.GITHUB_TOKEN);
+        ownSource = refreshed.content;
+        ownSha = refreshed.sha;
+      } catch (err) {
+        results.push(`descoberta de clientes novos: lote interrompido - não foi possível reler o próprio arquivo após "${task.name}": ${err.message}`);
+        break;
+      }
     }
   }
   return results;
@@ -483,16 +494,29 @@ async function provisionNewClient(task, ownSource, ownSha, env) {
   const filePath = `${slug}/index.html`;
   const html = buildNewClientHtml(task.name, task.id);
 
-  // 1) cria a página do cliente (sha omitido = GitHub cria o arquivo)
-  await commitGithubFile(filePath, html, undefined, task.name, env.GITHUB_TOKEN);
+  // 1) cria (ou atualiza, se uma tentativa anterior já criou mas falhou
+  // depois) a página do cliente — sha omitido só quando o arquivo ainda
+  // não existe, senão o GitHub rejeita a criação com 422.
+  let pageSha;
+  try {
+    pageSha = (await getGithubFile(filePath, env.GITHUB_TOKEN)).sha;
+  } catch (err) {
+    pageSha = undefined;
+  }
+  await commitGithubFile(filePath, html, pageSha, task.name, env.GITHUB_TOKEN);
 
-  // 2) cadastra em CLIENTS, nesse mesmo arquivo
-  const updatedSource = insertClientEntry(ownSource, task.name, task.id, filePath);
-  await commitGithubFile('functions/clickup-webhook.js', updatedSource, ownSha, task.name, env.GITHUB_TOKEN);
+  // 2) cadastra em CLIENTS, nesse mesmo arquivo — só insere se ainda não
+  // está lá (retry depois de falha parcial não deve duplicar a entrada).
+  if (!ownSource.includes(`taskId: '${task.id}'`)) {
+    const updatedSource = insertClientEntry(ownSource, task.name, task.id, filePath);
+    await commitGithubFile('functions/clickup-webhook.js', updatedSource, ownSha, task.name, env.GITHUB_TOKEN);
+  }
 
-  // 3) adiciona o nome no array bash do workflow agendado — se isso falhar,
-  // a página e o CLIENTS já foram, só falta alguém adicionar o nome manual
-  // no workflow pra entrar no ciclo de sync.
+  // 3) adiciona o nome no array bash do workflow agendado — página e
+  // CLIENTS já valem mesmo se isso falhar (ex: token sem escopo "workflow"),
+  // então só anota no retorno em vez de derrubar o provisionamento inteiro
+  // (derrubar aqui deixava o próximo candidato do lote com sha desatualizado).
+  let workflowNote = '';
   try {
     const { content: wfContent, sha: wfSha } = await getGithubFile('.github/workflows/clickup-sync-schedule.yml', env.GITHUB_TOKEN);
     const updatedWf = insertWorkflowClientName(wfContent, task.name);
@@ -500,10 +524,10 @@ async function provisionNewClient(task, ownSource, ownSha, env) {
       await commitGithubFile('.github/workflows/clickup-sync-schedule.yml', updatedWf, wfSha, task.name, env.GITHUB_TOKEN);
     }
   } catch (err) {
-    throw new Error(`página e CLIENTS ok, mas falhou ao atualizar o workflow: ${err.message}`);
+    workflowNote = ` — falta adicionar "${task.name}" manualmente no workflow (${err.message})`;
   }
 
-  return `provisionado (${filePath})`;
+  return `provisionado (${filePath})${workflowNote}`;
 }
 
 function slugify(str) {
