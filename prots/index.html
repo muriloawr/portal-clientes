@@ -255,7 +255,11 @@
   const kickoffMs = (meetings.length && meetings[0].dueMs) ? meetings[0].dueMs
     : (flow.length && flow[0].startMs) ? flow[0].startMs
     : null;
-  const finalMs = flow.length ? flow[flow.length - 1].dueMs : null;
+  // "Reuniões" também conta pro prazo final — a apresentação final às vezes
+  // fica marcada alguns dias depois da última etapa de entrega.
+  const flowFinalMs = flow.length ? flow[flow.length - 1].dueMs : null;
+  const meetingsFinalMs = meetings.length ? meetings[meetings.length - 1].dueMs : null;
+  const finalMs = Math.max(flowFinalMs || 0, meetingsFinalMs || 0) || null;
 
   function renderTimeline() {
     const wrap = document.getElementById('barWrap');
