@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cronograma - MUUPI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-grotesk@600&display=swap">
+<style>
+  :root{
+    --bg:#F2F6FC;
+    --panel:#FFFFFF;
+    --ink:#0B1C33;
+    --ink-soft:#5A6B85;
+    --line:#DCE5F0;
+    --brand:#015EC5;
+    --tint-1:#EAF1FC;
+    --tint-2:#C7DCF5;
+    --grey-bg:#EDEFF2;
+  }
+  *{box-sizing:border-box;}
+  html{overflow-x:hidden;}
+  body{
+    margin:0;color:var(--ink);font-family:'Inter',sans-serif;font-weight:500;padding:0 0 90px;
+    background:var(--bg);
+    position:relative;overflow-x:hidden;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(circle at 88% -8%, rgba(1,94,197,0.16), transparent 42%),
+      radial-gradient(circle at -6% 18%, rgba(1,94,197,0.08), transparent 38%);
+  }
+  body::before{
+    content:"";position:fixed;inset:0;
+    background-image:radial-gradient(rgba(11,28,51,0.07) 1px, transparent 1px);
+    background-size:22px 22px;pointer-events:none;z-index:0;
+    mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.15) 60%, transparent 100%);
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 24px 0;position:relative;z-index:1;}
+  .topbar{height:5px;width:100%;background:linear-gradient(90deg, var(--tint-1), var(--brand) 50%, var(--ink));background-size:200% 100%;animation:flow 7s ease-in-out infinite alternate;position:relative;z-index:1;}
+  @keyframes flow{0%{background-position:0% 0;}100%{background-position:100% 0;}}
+
+  .head{margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
+  .agency-logo{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;letter-spacing:0.06em;color:var(--brand);text-transform:uppercase;}
+  .eyebrow{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:#2FBE6C;flex-shrink:0;box-shadow:0 0 0 0 rgba(47,190,108,0.6);animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,190,108,0.55);}70%{box-shadow:0 0 0 7px rgba(47,190,108,0);}100%{box-shadow:0 0 0 0 rgba(47,190,108,0);}}
+  h1{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:32px;margin:0;line-height:1.1;color:var(--ink);}
+
+  .bar-wrap{margin-bottom:34px;}
+  .bar-edges{display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+  .bar-caption{display:flex;justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:14px;}
+  .status-side{display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
+  .status-side.right{align-items:flex-end;text-align:right;}
+  .cap-label{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--ink-soft);}
+  .cap-value{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:17px;color:var(--brand);line-height:1.2;}
+  .cap-value.muted{color:var(--ink);font-size:15px;}
+  .status-next{font-size:11.5px;color:var(--ink-soft);}
+  .overview-track-wrap{position:relative;height:8px;}
+  .overview-track{height:8px;border-radius:4px;background:var(--line);overflow:hidden;position:relative;}
+  .overview-fill{position:absolute;top:0;left:0;height:100%;width:0%;background:var(--brand);border-radius:4px;transition:width .7s ease;}
+  .tick{position:absolute;top:50%;width:9px;height:9px;border-radius:50%;background:var(--panel);border:2px solid var(--brand);transform:translate(-50%,-50%);z-index:2;}
+  .tick .tick-tip{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:'Inter',sans-serif;font-size:10.5px;padding:4px 9px;border-radius:7px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease;}
+  .tick:hover .tick-tip{opacity:1;}
+  .tick:hover{background:var(--brand);}
+  .now-marker{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--ink);border:2px solid var(--panel);transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(11,28,51,0.35);z-index:3;}
+
+  .stage-block{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-top:22px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .stage-block-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 16px;margin-bottom:6px;}
+  .stage-block h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:17px;margin:0;}
+  .stage-tag{font-family:'Inter',sans-serif;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--bg);color:var(--ink-soft);white-space:nowrap;flex-shrink:0;}
+  .stage-block .sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;}
+
+  .phase-row{display:grid;grid-template-columns:1fr 100px 190px 90px;gap:26px;align-items:center;padding:13px 0;border-top:1px solid var(--line);}
+  .phase-row:first-of-type{border-top:none;}
+  .phase-head{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--ink-soft);padding:12px 0 6px;border-top:none;}
+  .phase-name{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14.5px;}
+  .phase-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .phase-owner{font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:7px;}
+  .owner-avatar{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:10.5px;font-weight:500;flex-shrink:0;}
+  .phase-status{font-size:11px;padding:4px 10px;border-radius:20px;text-align:center;white-space:nowrap;background:var(--grey-bg);color:var(--ink-soft);}
+  .phase-status.active{background:var(--tint-2);color:var(--brand);}
+  .phase-status.solid{background:var(--brand);color:#fff;}
+  .phase-dates{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);text-align:right;}
+
+  .meetings{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin-top:32px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .meetings h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:18px;margin:0 0 4px;}
+  .meetings .sub{font-size:13px;color:var(--ink-soft);margin-bottom:14px;}
+  .meeting-row{display:grid;grid-template-columns:130px 1fr auto;gap:16px;align-items:center;padding:12px 0;border-top:1px solid var(--line);}
+  .meeting-row:first-of-type{border-top:none;}
+  .m-date{font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--brand);}
+  .m-title{font-size:14px;}
+  .m-tag{font-family:'Inter',sans-serif;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--tint-1);color:var(--brand);white-space:nowrap;}
+  .m-tag.final{background:var(--ink);color:#fff;}
+
+  .empty-state{padding:24px 0;text-align:center;color:var(--ink-soft);font-size:13.5px;}
+
+  .footnote{margin-top:26px;font-size:12px;color:var(--ink-soft);text-align:center;}
+
+  @media (max-width:640px){
+    .phase-head{display:none;}
+    .phase-row{
+      grid-template-columns:1fr 1fr;
+      grid-template-areas:"main main" "owner dates" "status status";
+      gap:8px;
+    }
+    .phase-main{grid-area:main;}
+    .phase-owner{grid-area:owner;}
+    .phase-status{grid-area:status;justify-self:start;width:fit-content;}
+    .phase-dates{grid-area:dates;text-align:left;}
+    .phase-dates::before{content:"Prazo";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
+    .meeting-row{grid-template-columns:1fr;gap:4px;}
+    .meeting-row .m-date,.meeting-row .m-tag{justify-self:start;}
+    .bar-caption{flex-direction:column;gap:8px;}
+    .status-side.right{align-items:flex-start;text-align:left;margin-top:8px;}
+  }
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<div class="wrap">
+
+  <div class="head">
+    <div class="agency-logo">Vanzak Labs</div>
+    <div class="eyebrow"><span class="live-dot"></span>Cronograma do Projeto</div>
+    <h1>MUUPI</h1>
+  </div>
+
+  <div class="bar-wrap" id="barWrap">
+    <div class="bar-edges">
+      <div><span class="cap-label">Kick-off</span><br><span class="cap-value muted" id="edgeStart">-</span></div>
+      <div style="text-align:right;"><span class="cap-label">Go Live</span><br><span class="cap-value muted" id="edgeEnd">-</span></div>
+    </div>
+    <div class="overview-track-wrap">
+      <div class="overview-track"><div class="overview-fill" id="overviewFill"></div></div>
+      <div id="overviewTicks"></div>
+    </div>
+    <div class="bar-caption">
+      <div class="status-side">
+        <span class="cap-label">Etapa atual</span>
+        <span class="cap-value" id="capCurrent">-</span>
+        <span class="status-next" id="capNext">-</span>
+      </div>
+      <div class="status-side right">
+        <span class="cap-label" id="kpiDaysLabel">Faltam para o Go Live</span>
+        <span class="cap-value muted" id="kpiDaysLeft">-</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="stageSections"></div>
+
+  <div class="meetings" id="meetingsSection">
+    <h2 id="meetingsTitle">Reuniões previstas</h2>
+    <div class="sub" id="meetingsSub"></div>
+    <div id="meetingList"></div>
+  </div>
+
+  <div class="footnote">Atualizado sempre que uma etapa muda de status</div>
+
+</div>
+
+<script>
+  // --- dados: um objeto por etapa do projeto. Sincronizado automaticamente a partir do ClickUp. ---
+  // Página criada automaticamente pela rotina de descoberta de clientes
+  // novos (status "CLIENTES" na lista Projetos), a partir da task 86agvb320.
+  // Fica vazio até a task-mãe ganhar subtasks (etapas) — qualquer nome de
+  // subtask vira etapa, sem lista fixa.
+  const stages = [];
+
+  const STATUS_LABELS = {
+    'pendentes': 'Pendente',
+    'planejamento': 'Planejamento',
+    'importante': 'Importante',
+    'em-andamento': 'Em andamento',
+    'concluido': 'Concluído',
+    'fechado': 'Fechado',
+  };
+
+  function statusLabel(key) {
+    return STATUS_LABELS[key] || key || '-';
+  }
+
+  function fmtFull(date) {
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+  function fmtShort(date) {
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+  }
+
+  const flow = stages.filter(function (s) { return !s.isMeetings; });
+  const meetingsStage = stages.find(function (s) { return s.isMeetings; });
+  const meetings = meetingsStage ? meetingsStage.items : [];
+
+  const kickoffMs = (meetings.length && meetings[0].dueMs) ? meetings[0].dueMs
+    : (flow.length && flow[0].startMs) ? flow[0].startMs
+    : null;
+  const flowDueValues = flow.map(function (s) { return s.dueMs; }).filter(Boolean);
+  const flowFinalMs = flowDueValues.length ? Math.max.apply(null, flowDueValues) : null;
+  const meetingsFinalMs = meetings.length ? meetings[meetings.length - 1].dueMs : null;
+  const finalMs = Math.max(flowFinalMs || 0, meetingsFinalMs || 0) || null;
+
+  function renderTimeline() {
+    const wrap = document.getElementById('barWrap');
+    if (!kickoffMs || !finalMs || finalMs <= kickoffMs) { wrap.style.display = 'none'; return; }
+
+    const now = Date.now();
+    const pct = function (ms) { return Math.min(100, Math.max(0, ((ms - kickoffMs) / (finalMs - kickoffMs)) * 100)); };
+
+    document.getElementById('edgeStart').textContent = fmtFull(new Date(kickoffMs));
+    document.getElementById('edgeEnd').textContent = fmtFull(new Date(finalMs));
+    const midnight = function (ms) { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
+    const diffDays = Math.round((midnight(finalMs) - midnight(now)) / 86400000);
+    const daysEl = document.getElementById('kpiDaysLeft');
+    const daysLabelEl = document.getElementById('kpiDaysLabel');
+    if (diffDays > 1) {
+      daysLabelEl.textContent = 'Faltam para o Go Live';
+      daysEl.textContent = diffDays + ' dias';
+    } else if (diffDays === 1) {
+      daysLabelEl.textContent = 'Faltam para o Go Live';
+      daysEl.textContent = '1 dia';
+    } else if (diffDays === 0) {
+      daysLabelEl.textContent = 'Go Live';
+      daysEl.textContent = 'Hoje';
+    } else {
+      daysLabelEl.textContent = 'Go Live';
+      daysEl.textContent = 'Prazo encerrado';
+    }
+    document.getElementById('overviewFill').style.width = pct(now).toFixed(1) + '%';
+
+    document.getElementById('overviewTicks').innerHTML = meetings.filter(function (m) { return m.dueMs; }).map(function (m) {
+      return '<div class="tick" style="left:' + pct(m.dueMs).toFixed(1) + '%;">' +
+        '<div class="tick-tip"><b>' + m.title + '</b> &middot; ' + fmtShort(new Date(m.dueMs)) + '</div></div>';
+    }).join('');
+
+    if (now >= kickoffMs && now <= finalMs) {
+      const marker = document.createElement('div');
+      marker.className = 'now-marker';
+      marker.style.left = pct(now).toFixed(1) + '%';
+      document.querySelector('.overview-track-wrap').appendChild(marker);
+    }
+
+    let currentIdx = flow.findIndex(function (s) { return s.statusKey !== 'concluido' && s.statusKey !== 'fechado'; });
+    const capCurrent = document.getElementById('capCurrent');
+    const capNext = document.getElementById('capNext');
+    if (currentIdx === -1) {
+      const finalMeeting = meetings.length ? meetings[meetings.length - 1] : null;
+      if (finalMeeting && finalMeeting.dueMs && now < finalMeeting.dueMs) {
+        capCurrent.textContent = finalMeeting.title + ' · ' + fmtShort(new Date(finalMeeting.dueMs));
+      } else {
+        capCurrent.textContent = 'Projeto entregue';
+      }
+      capNext.textContent = '';
+    } else {
+      const s = flow[currentIdx];
+      capCurrent.textContent = s.label + (s.dueMs ? ' · até ' + fmtShort(new Date(s.dueMs)) : '');
+      const nextS = flow[currentIdx + 1];
+      capNext.textContent = nextS
+        ? nextS.label + (nextS.startMs ? ' · inicia em ' + fmtShort(new Date(nextS.startMs)) : '')
+        : 'Go Live · ' + fmtShort(new Date(finalMs));
+    }
+  }
+
+  function renderStages() {
+    document.getElementById('stageSections').innerHTML = flow.map(function (s) {
+      var rows;
+      if (s.items.length === 0) {
+        rows = '<div class="empty-state">Nenhum item registrado ainda.</div>';
+      } else {
+        var head = '<div class="phase-row phase-head"><div></div><div>Responsável</div>' +
+          '<div style="text-align:center;">Status</div><div style="text-align:right;">Prazo</div></div>';
+        var body = s.items.map(function (it) {
+          var statusClass = (it.statusKey === 'concluido' || it.statusKey === 'fechado') ? ' solid'
+            : (it.statusKey === 'em-andamento') ? ' active'
+            : '';
+          var ownerHtml = it.owner ? ('<span class="owner-avatar">' + it.owner.charAt(0) + '</span>' + it.owner) : '-';
+          return '<div class="phase-row">' +
+            '<div class="phase-main"><div class="phase-name">' + it.title + '</div><div class="phase-sub">' + (it.subtitle || '') + '</div></div>' +
+            '<div class="phase-owner">' + ownerHtml + '</div>' +
+            '<div class="phase-status' + statusClass + '">' + statusLabel(it.statusKey) + '</div>' +
+            '<div class="phase-dates">' + (it.date || '-') + '</div>' +
+          '</div>';
+        }).join('');
+        rows = head + body;
+      }
+      var tagHtml = s.dateRange ? ('<span class="stage-tag">' + s.dateRange + '</span>') : '';
+      var subHtml = s.subtitle ? ('<div class="sub">' + s.subtitle + '</div>') : '';
+      return '<div class="stage-block">' +
+        '<div class="stage-block-head"><h2>' + s.label + '</h2>' + tagHtml + '</div>' +
+        subHtml + rows +
+      '</div>';
+    }).join('');
+  }
+
+  function renderMeetings() {
+    const section = document.getElementById('meetingsSection');
+    if (!meetingsStage) { section.style.display = 'none'; return; }
+    document.getElementById('meetingsTitle').textContent = meetingsStage.label || 'Reuniões previstas';
+    document.getElementById('meetingsSub').textContent = meetingsStage.subtitle || '';
+    const listEl = document.getElementById('meetingList');
+    if (meetings.length === 0) {
+      listEl.innerHTML = '<div class="empty-state">Nenhuma reunião registrada ainda.</div>';
+    } else {
+      listEl.innerHTML = meetings.map(function (m, i) {
+        var tagHtml = m.tag
+          ? ('<div class="m-tag' + (i === meetings.length - 1 ? ' final' : '') + '">' + m.tag + '</div>')
+          : '<div></div>';
+        return '<div class="meeting-row">' +
+          '<div class="m-date">' + (m.date || '-') + '</div>' +
+          '<div class="m-title">' + m.title + '<div class="phase-sub">' + (m.subtitle || '') + '</div></div>' +
+          tagHtml +
+        '</div>';
+      }).join('');
+    }
+  }
+
+  renderTimeline();
+  renderStages();
+  renderMeetings();
+</script>
+</body>
+</html>
