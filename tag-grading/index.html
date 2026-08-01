@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cronograma - TAG Grading Brazil</title>
+<title>Timeline - TAG Grading Brazil</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-grotesk@600&display=swap">
@@ -49,7 +49,7 @@
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,190,108,0.55);}70%{box-shadow:0 0 0 7px rgba(47,190,108,0);}100%{box-shadow:0 0 0 0 rgba(47,190,108,0);}}
   h1{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:32px;margin:0;line-height:1.1;color:var(--ink);}
 
-  /* barra com o intervalo do projeto, e etapa atual + contador logo abaixo */
+  /* progress bar with the project range, and current stage + countdown below */
   .bar-wrap{margin-bottom:34px;}
   .bar-edges{display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
   .bar-caption{display:flex;justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:14px;}
@@ -111,7 +111,7 @@
     .phase-owner{grid-area:owner;}
     .phase-status{grid-area:status;justify-self:start;width:fit-content;}
     .phase-dates{grid-area:dates;text-align:left;}
-    .phase-dates::before{content:"Prazo";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
+    .phase-dates::before{content:"Deadline";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
     .meeting-row{grid-template-columns:1fr;gap:4px;}
     .meeting-row .m-date,.meeting-row .m-tag{justify-self:start;}
     .bar-caption{flex-direction:column;gap:8px;}
@@ -128,7 +128,7 @@
       <path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM69.0009 32.5515H75.3891L77.2882 10.0425L69.0009 32.5515ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/>
       <path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/>
     </svg>
-    <div class="eyebrow"><span class="live-dot"></span>Cronograma do Projeto</div>
+    <div class="eyebrow"><span class="live-dot"></span>Project Timeline</div>
     <h1>TAG Grading Brazil</h1>
   </div>
 
@@ -143,12 +143,12 @@
     </div>
     <div class="bar-caption">
       <div class="status-side">
-        <span class="cap-label">Etapa atual</span>
+        <span class="cap-label">Current stage</span>
         <span class="cap-value" id="capCurrent">-</span>
         <span class="status-next" id="capNext">-</span>
       </div>
       <div class="status-side right">
-        <span class="cap-label" id="kpiDaysLabel">Faltam para o Go Live</span>
+        <span class="cap-label" id="kpiDaysLabel">Time to Go Live</span>
         <span class="cap-value muted" id="kpiDaysLeft">-</span>
       </div>
     </div>
@@ -157,20 +157,20 @@
   <div id="stageSections"></div>
 
   <div class="meetings" id="meetingsSection">
-    <h2 id="meetingsTitle">Reuniões previstas</h2>
-    <div class="sub" id="meetingsSub">A última reunião marca o encerramento do projeto.</div>
+    <h2 id="meetingsTitle">Upcoming meetings</h2>
+    <div class="sub" id="meetingsSub"></div>
     <div id="meetingList"></div>
   </div>
 
-  <div class="footnote">Atualizado sempre que uma etapa muda de status</div>
+  <div class="footnote">Updated whenever a stage's status changes</div>
 
 </div>
 
 <script>
-  // --- dados: um objeto por etapa do projeto. Sincronizado automaticamente a partir do ClickUp. ---
-  // Preenchido pela sync (functions/clickup-webhook.js) a partir das subtasks
-  // da task-mãe "TAG Grading Brazil" (wdpu2yejnj) — sem nomes fixos, qualquer
-  // subtask vira uma etapa.
+  // --- data: one object per project stage. Synced automatically from ClickUp. ---
+  // Filled by the sync (functions/clickup-webhook.js) from the subtasks of
+  // the "TAG Grading Brazil" parent task (wdpu2yejnj) — no fixed names, any
+  // subtask becomes a stage.
   const stages = [
     {
       key: 'wdpu2yejr2',
@@ -234,12 +234,12 @@
   ];
 
   const STATUS_LABELS = {
-    'pendentes': 'Pendente',
-    'planejamento': 'Planejamento',
-    'importante': 'Importante',
-    'em-andamento': 'Em andamento',
-    'concluido': 'Concluído',
-    'fechado': 'Fechado',
+    'pendentes': 'Pending',
+    'planejamento': 'Planning',
+    'importante': 'Important',
+    'em-andamento': 'In progress',
+    'concluido': 'Completed',
+    'fechado': 'Closed',
   };
 
   function statusLabel(key) {
@@ -247,10 +247,10 @@
   }
 
   function fmtFull(date) {
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
   }
   function fmtShort(date) {
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
   }
 
   const flow = stages.filter(s => !s.isMeetings);
@@ -260,11 +260,11 @@
   const kickoffMs = (meetings.length && meetings[0].dueMs) ? meetings[0].dueMs
     : (flow.length && flow[0].startMs) ? flow[0].startMs
     : null;
-  // "Reuniões" também conta pro prazo final — a apresentação final às vezes
-  // fica marcada alguns dias depois da última etapa de entrega. E não dá pra
-  // assumir que a ÚLTIMA etapa da lista é quem tem a data mais tardia — uma
-  // etapa sem data preenchida (ex: escopo ainda em definição) no fim da
-  // lista não pode esconder a data de uma etapa anterior que já tem prazo.
+  // Meetings also count toward the final deadline — the final presentation
+  // is sometimes scheduled a few days after the last delivery stage. And we
+  // can't assume the LAST stage in the list has the latest date — a stage
+  // without a date yet (e.g. scope still under review) at the end of the
+  // list shouldn't hide the deadline of an earlier stage that already has one.
   const flowDueValues = flow.map(s => s.dueMs).filter(Boolean);
   const flowFinalMs = flowDueValues.length ? Math.max(...flowDueValues) : null;
   const meetingsFinalMs = meetings.length ? meetings[meetings.length - 1].dueMs : null;
@@ -284,17 +284,17 @@
     const daysEl = document.getElementById('kpiDaysLeft');
     const daysLabelEl = document.getElementById('kpiDaysLabel');
     if (diffDays > 1) {
-      daysLabelEl.textContent = 'Faltam para o Go Live';
-      daysEl.textContent = diffDays + ' dias';
+      daysLabelEl.textContent = 'Time to Go Live';
+      daysEl.textContent = diffDays + ' days';
     } else if (diffDays === 1) {
-      daysLabelEl.textContent = 'Faltam para o Go Live';
-      daysEl.textContent = '1 dia';
+      daysLabelEl.textContent = 'Time to Go Live';
+      daysEl.textContent = '1 day';
     } else if (diffDays === 0) {
       daysLabelEl.textContent = 'Go Live';
-      daysEl.textContent = 'Hoje';
+      daysEl.textContent = 'Today';
     } else {
       daysLabelEl.textContent = 'Go Live';
-      daysEl.textContent = 'Prazo encerrado';
+      daysEl.textContent = 'Deadline passed';
     }
     document.getElementById('overviewFill').style.width = pct(now).toFixed(1) + '%';
 
@@ -315,22 +315,22 @@
     const capCurrent = document.getElementById('capCurrent');
     const capNext = document.getElementById('capNext');
     if (currentIdx === -1) {
-      // Etapas normais concluídas não significa projeto entregue de fato se
-      // ainda falta a reunião de entrega final (Go Live) — mostra o nome
-      // dela em vez de já cravar "Projeto entregue".
+      // All regular stages done doesn't mean the project is actually
+      // delivered if the final meeting (Go Live) hasn't happened yet —
+      // show its name instead of jumping straight to "Project delivered".
       const finalMeeting = meetings.length ? meetings[meetings.length - 1] : null;
       if (finalMeeting && finalMeeting.dueMs && now < finalMeeting.dueMs) {
         capCurrent.textContent = finalMeeting.title + ' · ' + fmtShort(new Date(finalMeeting.dueMs));
       } else {
-        capCurrent.textContent = 'Projeto entregue';
+        capCurrent.textContent = 'Project delivered';
       }
       capNext.textContent = '';
     } else {
       const s = flow[currentIdx];
-      capCurrent.textContent = s.label + (s.dueMs ? ' · até ' + fmtShort(new Date(s.dueMs)) : '');
+      capCurrent.textContent = s.label + (s.dueMs ? ' · until ' + fmtShort(new Date(s.dueMs)) : '');
       const nextS = flow[currentIdx + 1];
       capNext.textContent = nextS
-        ? nextS.label + (nextS.startMs ? ' · inicia em ' + fmtShort(new Date(nextS.startMs)) : '')
+        ? nextS.label + (nextS.startMs ? ' · starts ' + fmtShort(new Date(nextS.startMs)) : '')
         : 'Go Live · ' + fmtShort(new Date(finalMs));
     }
   }
@@ -338,10 +338,10 @@
   function renderStages() {
     document.getElementById('stageSections').innerHTML = flow.map(s => {
       const rows = s.items.length === 0
-        ? `<div class="empty-state">Nenhum item registrado ainda.</div>`
+        ? `<div class="empty-state">No items yet.</div>`
         : `
           <div class="phase-row phase-head">
-            <div></div><div>Responsável</div><div style="text-align:center;">Status</div><div style="text-align:right;">Prazo</div>
+            <div></div><div>Owner</div><div style="text-align:center;">Status</div><div style="text-align:right;">Deadline</div>
           </div>
         ` + s.items.map(it => {
           const statusClass = (it.statusKey === 'concluido' || it.statusKey === 'fechado') ? ' solid'
@@ -372,10 +372,10 @@
   function renderMeetings() {
     const section = document.getElementById('meetingsSection');
     if (!meetingsStage) { section.style.display = 'none'; return; }
-    document.getElementById('meetingsTitle').textContent = meetingsStage.label || 'Reuniões previstas';
-    document.getElementById('meetingsSub').textContent = meetingsStage.subtitle || 'A última reunião marca o encerramento do projeto.';
+    document.getElementById('meetingsTitle').textContent = meetingsStage.label || 'Upcoming meetings';
+    document.getElementById('meetingsSub').textContent = meetingsStage.subtitle || '';
     document.getElementById('meetingList').innerHTML = meetings.length === 0
-      ? `<div class="empty-state">Nenhuma reunião registrada ainda.</div>`
+      ? `<div class="empty-state">No meetings scheduled yet.</div>`
       : meetings.map((m, i) => `
         <div class="meeting-row">
           <div class="m-date">${m.date || '-'}</div>
