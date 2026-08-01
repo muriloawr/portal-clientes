@@ -248,6 +248,9 @@ async function buildProjectStages(taskId, token) {
     // cada task — isso não pode vazar como subtítulo no cronograma do
     // cliente, então pula a busca de comentário pra essa etapa inteira.
     const isDevelopment = /desenvolv|development/i.test(stageTask.name);
+    // Comentário da etapa em si (não dos itens dela) — tasks diferentes, não
+    // tem risco de pegar o "Ver no Figma" que a sync do Figma deixa nos itens.
+    const stageSubtitle = await fetchComment(stageTask.id, token);
     const children = await fetchSubtasks(stageTask.id, token);
     const items = [];
 
@@ -296,6 +299,7 @@ async function buildProjectStages(taskId, token) {
     stages.push({
       key: stageTask.id,
       label: stageTask.name,
+      subtitle: stageSubtitle,
       dateRange: formatDateRange(stageTask.start_date, stageTask.due_date),
       statusKey: statusKeyOf(stageTask),
       startMs: stageTask.start_date ? Number(stageTask.start_date) : null,
@@ -316,7 +320,7 @@ function stagesArrayLiteral(stages) {
       }
       return `        { title: '${escapeJs(it.title)}', subtitle: '${escapeJs(it.subtitle)}', statusKey: '${it.statusKey}', owner: '${escapeJs(it.owner)}', date: '${escapeJs(it.date)}' },`;
     }).join('\n');
-    return `    {\n      key: '${escapeJs(s.key)}',\n      label: '${escapeJs(s.label)}',\n      dateRange: '${escapeJs(s.dateRange)}',\n      statusKey: '${s.statusKey}',\n      startMs: ${s.startMs == null ? 'null' : s.startMs},\n      dueMs: ${s.dueMs == null ? 'null' : s.dueMs},\n      isMeetings: ${s.isMeetings},\n      items: [\n${itemsJs}\n      ],\n    },`;
+    return `    {\n      key: '${escapeJs(s.key)}',\n      label: '${escapeJs(s.label)}',\n      subtitle: '${escapeJs(s.subtitle)}',\n      dateRange: '${escapeJs(s.dateRange)}',\n      statusKey: '${s.statusKey}',\n      startMs: ${s.startMs == null ? 'null' : s.startMs},\n      dueMs: ${s.dueMs == null ? 'null' : s.dueMs},\n      isMeetings: ${s.isMeetings},\n      items: [\n${itemsJs}\n      ],\n    },`;
   }).join('\n');
   return `[\n${body}\n  ]`;
 }

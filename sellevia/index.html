@@ -72,6 +72,7 @@
   .stage-block-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 16px;margin-bottom:6px;}
   .stage-block h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:17px;margin:0;}
   .stage-tag{font-family:'Inter',sans-serif;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--bg);color:var(--ink-soft);white-space:nowrap;flex-shrink:0;}
+  .stage-block .sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;}
 
   .phase-row{display:grid;grid-template-columns:1fr 100px 190px 90px;gap:26px;align-items:center;padding:13px 0;border-top:1px solid var(--line);}
   .phase-row:first-of-type{border-top:none;}
@@ -261,8 +262,12 @@
     : (flow.length && flow[0].startMs) ? flow[0].startMs
     : null;
   // "Reuniões" também conta pro prazo final — a apresentação final às vezes
-  // fica marcada alguns dias depois da última etapa de entrega.
-  const flowFinalMs = flow.length ? flow[flow.length - 1].dueMs : null;
+  // fica marcada alguns dias depois da última etapa de entrega. E não dá pra
+  // assumir que a ÚLTIMA etapa da lista é quem tem a data mais tardia — uma
+  // etapa sem data preenchida (ex: escopo ainda em definição) no fim da
+  // lista não pode esconder a data de uma etapa anterior que já tem prazo.
+  const flowDueValues = flow.map(s => s.dueMs).filter(Boolean);
+  const flowFinalMs = flowDueValues.length ? Math.max(...flowDueValues) : null;
   const meetingsFinalMs = meetings.length ? meetings[meetings.length - 1].dueMs : null;
   const finalMs = Math.max(flowFinalMs || 0, meetingsFinalMs || 0) || null;
 
@@ -360,6 +365,7 @@
             <h2>${s.label}</h2>
             ${s.dateRange ? `<span class="stage-tag">${s.dateRange}</span>` : ''}
           </div>
+          ${s.subtitle ? `<div class="sub">${s.subtitle}</div>` : ''}
           ${rows}
         </div>
       `;
