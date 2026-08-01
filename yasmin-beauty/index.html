@@ -292,7 +292,18 @@
     const capCurrent = document.getElementById('capCurrent');
     const capNext = document.getElementById('capNext');
     if (currentIdx === -1) {
-      capCurrent.textContent = 'Projeto entregue';
+      // Etapas normais concluídas não significa projeto entregue de fato se
+      // ainda falta a reunião de entrega final (ex: Go Live) — mostra a
+      // contagem pra ela em vez de já cravar "Projeto entregue".
+      const finalMeeting = meetings.length ? meetings[meetings.length - 1] : null;
+      if (finalMeeting && finalMeeting.dueMs && now < finalMeeting.dueMs) {
+        const daysToMeeting = Math.round((midnight(finalMeeting.dueMs) - midnight(now)) / 86400000);
+        capCurrent.textContent = daysToMeeting > 0
+          ? `Faltam ${daysToMeeting} ${daysToMeeting === 1 ? 'dia' : 'dias'} para ${finalMeeting.title}`
+          : `${finalMeeting.title} é hoje`;
+      } else {
+        capCurrent.textContent = 'Projeto entregue';
+      }
       capNext.textContent = '';
     } else {
       const s = flow[currentIdx];
