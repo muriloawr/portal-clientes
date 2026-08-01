@@ -171,7 +171,72 @@
   // novos (status "CLIENTES" na lista Projetos), a partir da task 86agvb320.
   // Fica vazio até a task-mãe ganhar subtasks (etapas) — qualquer nome de
   // subtask vira etapa, sem lista fixa.
-  const stages = [];
+  const stages = [
+    {
+      key: 'wdpu2ydxj4',
+      label: 'Protótipo',
+      subtitle: '',
+      dateRange: '30/03 - 20/04',
+      statusKey: 'concluido',
+      startMs: 1774854000000,
+      dueMs: 1776668400000,
+      isMeetings: false,
+      items: [
+        { title: '1ª Entrega', subtitle: 'Identidade visual', statusKey: 'concluido', owner: 'Guilherme', date: '10/04' },
+        { title: 'Entrega do Protótipo', subtitle: 'Figma completo', statusKey: 'concluido', owner: 'Guilherme', date: '20/04' },
+      ],
+    },
+    {
+      key: 'wdpu2ydxj7',
+      label: 'Desenvolvimento',
+      subtitle: 'Home, PDP, Componentes e Páginas Adicionais',
+      dateRange: '17/04 - 05/05',
+      statusKey: 'concluido',
+      startMs: 1776409200000,
+      dueMs: 1777964400000,
+      isMeetings: false,
+      items: [
+        { title: 'Home', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '24/04' },
+        { title: 'PDP', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '30/04' },
+        { title: 'Componentes', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '04/05' },
+        { title: 'Páginas Adicionais', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '05/05' },
+        { title: 'Modelo de Produto', subtitle: '', statusKey: 'concluido', owner: 'Erik', date: '11/05' },
+      ],
+    },
+    {
+      key: 'wdpu2ydxjc',
+      label: 'Integrações',
+      subtitle: '',
+      dateRange: '03/08 - 05/08',
+      statusKey: 'pendentes',
+      startMs: 1785740400000,
+      dueMs: 1785913200000,
+      isMeetings: false,
+      items: [
+        { title: 'ERP', subtitle: 'Olist', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'Gateway de Pagamento', subtitle: 'Appmax', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'Hub de Frete', subtitle: 'Frenet', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'CRM', subtitle: 'Reportana', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'Backlinks', subtitle: 'Importação de Redirects 301', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+      ],
+    },
+    {
+      key: 'wdpu2ydxjk',
+      label: 'Reuniões',
+      subtitle: '',
+      dateRange: '02/04 - 07/08',
+      statusKey: 'pendentes',
+      startMs: 1775113200000,
+      dueMs: 1786086000000,
+      isMeetings: true,
+      items: [
+        { title: 'Kick-off', subtitle: 'Briefing inicial do projeto', tag: 'Kickoff', date: '02/04', dueMs: 1775113200000 },
+        { title: '1ª Entrega', subtitle: 'Apresentação da identidade visual', tag: 'Revisão', date: '10/04', dueMs: 1775804400000 },
+        { title: 'Integrações', subtitle: 'Definir quais integrações serão feitas e apresentar', tag: 'Revisão', date: '03/08', dueMs: 1785740400000 },
+        { title: 'Apresentação final', subtitle: 'Apresentação do desenvolvimento e integrações', tag: 'Entrega Final do Projeto', date: '07/08', dueMs: 1786086000000 },
+      ],
+    },
+  ];
 
   const STATUS_LABELS = {
     'pendentes': 'Pendente',
