@@ -158,8 +158,8 @@
   <div id="stageSections"></div>
 
   <div class="meetings" id="meetingsSection">
-    <h2>Reuniões previstas</h2>
-    <div class="sub">A última reunião marca o encerramento do projeto.</div>
+    <h2 id="meetingsTitle">Reuniões previstas</h2>
+    <div class="sub" id="meetingsSub">A última reunião marca o encerramento do projeto.</div>
     <div id="meetingList"></div>
   </div>
 
@@ -376,6 +376,8 @@
   function renderMeetings() {
     const section = document.getElementById('meetingsSection');
     if (!meetingsStage) { section.style.display = 'none'; return; }
+    document.getElementById('meetingsTitle').textContent = meetingsStage.label || 'Reuniões previstas';
+    document.getElementById('meetingsSub').textContent = meetingsStage.subtitle || 'A última reunião marca o encerramento do projeto.';
     document.getElementById('meetingList').innerHTML = meetings.length === 0
       ? `<div class="empty-state">Nenhuma reunião registrada ainda.</div>`
       : meetings.map((m, i) => `
