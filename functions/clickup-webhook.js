@@ -34,8 +34,8 @@ const CLIENTS = [
   { name: 'Beeva', type: 'projeto', taskId: 'wdpu2ydyzj', filePath: 'beeva/index.html' },
   { name: 'PROTS', type: 'projeto', taskId: 'wdpu2ybucf', filePath: 'prots/index.html' },
   // Estrutura customizada (2 frentes: Shopify e OMS) mas mesma sync genérica
-  // por subtask — ver tag/index.html pra lógica de agrupamento em frentes.
-  { name: 'TAG Grading Brazil', type: 'projeto', taskId: 'wdpu2yejnj', filePath: 'tag/index.html' },
+  // por subtask — ver tag-grading/index.html pra lógica de agrupamento em frentes.
+  { name: 'TAG Grading Brazil', type: 'projeto', taskId: 'wdpu2yejnj', filePath: 'tag-grading/index.html' },
 ];
 
 const REPO_OWNER = 'muriloawr';
