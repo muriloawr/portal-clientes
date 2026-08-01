@@ -358,7 +358,11 @@ function replaceStagesArray(html, stages) {
 }
 
 function escapeJs(str) {
-  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+  // Escapa crase também (não só \, ' e \n) — necessário pro provisionamento
+  // automático de cliente novo, que interpola stagesArrayLiteral(...) direto
+  // dentro do template literal do gerador (buildNewClientHtml); um nome de
+  // task/comentário com crase sem escapar quebraria essa template literal.
+  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/`/g, '\\`').replace(/\n/g, '\\n');
 }
 
 function monthsArrayLiteral(months) {
@@ -493,7 +497,11 @@ async function discoverAndProvisionNewClients(env) {
 async function provisionNewClient(task, ownSource, ownSha, env) {
   const slug = uniqueSlug(slugify(task.name), ownSource);
   const filePath = `${slug}/index.html`;
-  const html = buildNewClientHtml(task.name, task.id);
+  // Busca o estado atual da task-mãe — se ela já tiver subtasks (etapas)
+  // na hora do provisionamento, a página já nasce preenchida em vez de
+  // esperar o próximo ciclo de sync normal pra ela aparecer.
+  const stages = await buildProjectStages(task.id, env.CLICKUP_API_TOKEN);
+  const html = buildNewClientHtml(task.name, task.id, stages);
 
   // 1) cria (ou atualiza, se uma tentativa anterior já criou mas falhou
   // depois) a página do cliente — sha omitido só quando o arquivo ainda
@@ -578,12 +586,14 @@ function escapeHtml(str) {
 
 // Template padrão "projeto" pra cliente provisionado sozinho — mesmo
 // padrão visual e mesma lógica (Go Live, prazo final robusto, subtítulo de
-// etapa via comentário) usada nos clientes cadastrados manualmente, só que
-// com logo de agência genérico (Vanzak Labs) em vez de logo do cliente, já
-// que a automação não tem como saber a marca dele. Sem template literals
-// aninhados dentro do script gerado (usa concatenação de string) — evita
-// qualquer conflito de crase com o template literal desta função.
-function buildNewClientHtml(clientName, taskId) {
+// etapa via comentário) usada nos clientes cadastrados manualmente. `stages`
+// já vem preenchido com o que a task-mãe tinha na hora do provisionamento
+// (ver provisionNewClient) — a página não nasce vazia se a task-mãe já
+// tiver subtasks. Sem template literals aninhados dentro do script gerado
+// (usa concatenação de string) — evita qualquer conflito de crase com o
+// template literal desta função; `stagesArrayLiteral` é seguro de
+// interpolar porque escapeJs também escapa crase.
+function buildNewClientHtml(clientName, taskId, stages) {
   const safeName = escapeHtml(clientName);
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -756,9 +766,9 @@ function buildNewClientHtml(clientName, taskId) {
   // --- dados: um objeto por etapa do projeto. Sincronizado automaticamente a partir do ClickUp. ---
   // Página criada automaticamente pela rotina de descoberta de clientes
   // novos (status "CLIENTES" na lista Projetos), a partir da task ${taskId}.
-  // Fica vazio até a task-mãe ganhar subtasks (etapas) — qualquer nome de
-  // subtask vira etapa, sem lista fixa.
-  const stages = [];
+  // Já nasce preenchido com o que a task-mãe já tinha na hora da criação —
+  // qualquer nome de subtask vira etapa, sem lista fixa.
+  const stages = ${stagesArrayLiteral(stages)};
 
   const STATUS_LABELS = {
     'pendentes': 'Pendente',
