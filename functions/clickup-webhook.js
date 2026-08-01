@@ -37,6 +37,7 @@ const CLIENTS = [
   { name: 'PROTS', type: 'projeto', taskId: 'wdpu2ybucf', filePath: 'prots/index.html' },
   { name: 'TAG Grading Brazil', type: 'projeto', taskId: 'wdpu2yejnj', filePath: 'tag-grading/index.html' },
   { name: 'Cookie Dreams', type: 'projeto', taskId: '86ahp88m4', filePath: 'cookie-dreams/index.html' },
+  { name: 'MUUPI', type: 'projeto', taskId: '86agvb320', filePath: 'muupi/index.html' },
 ];
 
 const REPO_OWNER = 'muriloawr';
