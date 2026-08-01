@@ -174,8 +174,33 @@ function timingSafeEqual(a, b) {
 
 // --- ClickUp ---
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// O limite do ClickUp é ~100 req/min por token, valendo pro token inteiro
+// (não só por cliente) — clientes com bastante subtask/item, mais o
+// fetchComment novo por etapa, empurraram algumas invocações pra cima
+// desse limite. Diferente do script do Figma (que roda no GitHub Actions,
+// sem pressa), aqui é um Cloudflare Worker com tempo de execução curto —
+// pausa e retry bem mais curtos, focando em espaçar as chamadas em vez de
+// esperar a janela de limite virar de verdade.
+const CLICKUP_REQUEST_DELAY_MS = 300;
+const CLICKUP_MAX_RETRIES = 3;
+const CLICKUP_RETRY_WAIT_MS = 3000;
+
+async function clickUpFetch(url, options, attempt = 1) {
+  const res = await fetch(url, options);
+  if (res.status === 429 && attempt <= CLICKUP_MAX_RETRIES) {
+    await sleep(CLICKUP_RETRY_WAIT_MS);
+    return clickUpFetch(url, options, attempt + 1);
+  }
+  await sleep(CLICKUP_REQUEST_DELAY_MS);
+  return res;
+}
+
 async function fetchSubtasks(taskId, token) {
-  const res = await fetch(`https://api.clickup.com/api/v2/task/${taskId}?include_subtasks=true`, {
+  const res = await clickUpFetch(`https://api.clickup.com/api/v2/task/${taskId}?include_subtasks=true`, {
     headers: { Authorization: token },
   });
   if (!res.ok) throw new Error(`ClickUp API error: ${res.status} ${await res.text()}`);
@@ -236,7 +261,7 @@ async function buildMonths(taskId, token) {
 // --- ClickUp: clientes de projeto ---
 
 async function fetchComment(taskId, token) {
-  const res = await fetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
+  const res = await clickUpFetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
     headers: { Authorization: token },
   });
   if (!res.ok) throw new Error(`ClickUp API error (comment): ${res.status} ${await res.text()}`);
@@ -447,7 +472,7 @@ async function commitGithubFile(filePath, content, sha, clientName, token) {
 // "projeto", em branco até a task-mãe ganhar subtasks/etapas), cadastra em
 // CLIENTS (esse mesmo arquivo) e adiciona o nome no workflow agendado.
 async function fetchListTasks(listId, token) {
-  const res = await fetch(`https://api.clickup.com/api/v2/list/${listId}/task?include_closed=true`, {
+  const res = await clickUpFetch(`https://api.clickup.com/api/v2/list/${listId}/task?include_closed=true`, {
     headers: { Authorization: token },
   });
   if (!res.ok) throw new Error(`ClickUp API error (list tasks): ${res.status} ${await res.text()}`);
