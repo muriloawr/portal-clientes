@@ -50,6 +50,7 @@ jobs:
             "Beeva"
             "PROTS"
             "TAG Grading Brazil"
+            "MUUPI"
           )
           FAILED=0
           for CLIENT in "${CLIENTS[@]}"; do
