@@ -24,17 +24,17 @@ const CLIENTS = [
       { key: 'crm', label: 'CRM', taskId: 'wdpu2ydp1p' },
     ],
   },
-  // Clientes de projeto (type: 'projeto') usam uma task-mãe com 4 subtasks fixas —
-  // Protótipo, Desenvolvimento, Integrações, Reuniões — cada uma com itens client-facing
-  // como subtasks dela. Demandas dentro desses itens (nível 3) ficam ocultas de propósito.
+  // Clientes de projeto (type: 'projeto') usam uma task-mãe com subtasks que
+  // viram etapas — qualquer nome serve (não precisa ser Protótipo/
+  // Desenvolvimento/Integrações/Reuniões, o nome de cada cliente pode ser
+  // diferente), cada uma com itens client-facing como subtasks dela.
+  // Demandas dentro desses itens (nível 3) ficam ocultas de propósito.
   { name: 'Sellévia', type: 'projeto', taskId: 'wdpu2yadde', filePath: 'sellevia/index.html' },
   { name: 'Booma', type: 'projeto', taskId: 'wdpu2ybtcm', filePath: 'booma/index.html' },
   { name: 'Beleza Brasileira', type: 'projeto', taskId: 'wdpu2y7wq1', filePath: 'beleza-brasileira/index.html' },
   { name: 'Yasmin Beauty', type: 'projeto', taskId: '86ahgcemc', filePath: 'yasmin-beauty/index.html' },
   { name: 'Beeva', type: 'projeto', taskId: 'wdpu2ydyzj', filePath: 'beeva/index.html' },
   { name: 'PROTS', type: 'projeto', taskId: 'wdpu2ybucf', filePath: 'prots/index.html' },
-  // Estrutura customizada (2 frentes: Shopify e OMS) mas mesma sync genérica
-  // por subtask — ver tag-grading/index.html pra lógica de agrupamento em frentes.
   { name: 'TAG Grading Brazil', type: 'projeto', taskId: 'wdpu2yejnj', filePath: 'tag-grading/index.html' },
 ];
 

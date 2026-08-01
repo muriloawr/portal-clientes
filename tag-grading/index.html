@@ -49,7 +49,7 @@
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,190,108,0.55);}70%{box-shadow:0 0 0 7px rgba(47,190,108,0);}100%{box-shadow:0 0 0 0 rgba(47,190,108,0);}}
   h1{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:32px;margin:0;line-height:1.1;color:var(--ink);}
 
-  /* barra com o intervalo da Frente 1 (Shopify), e etapa atual + contador logo abaixo */
+  /* barra com o intervalo do projeto, e etapa atual + contador logo abaixo */
   .bar-wrap{margin-bottom:34px;}
   .bar-edges{display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
   .bar-caption{display:flex;justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:14px;}
@@ -68,14 +68,9 @@
   .tick:hover{background:var(--brand);}
   .now-marker{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--ink);border:2px solid var(--panel);transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(11,28,51,0.35);z-index:3;}
 
-  .track-label{display:flex;align-items:center;gap:8px;margin:34px 0 14px;}
-  .track-label .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-  .track-label span:last-child{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);}
-
-  .stage-block{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-top:14px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .stage-block{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-top:22px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
   .stage-block-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 16px;margin-bottom:6px;}
   .stage-block h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:17px;margin:0;}
-  .stage-block .sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;}
   .stage-tag{font-family:'Inter',sans-serif;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--bg);color:var(--ink-soft);white-space:nowrap;flex-shrink:0;}
 
   .phase-row{display:grid;grid-template-columns:1fr 100px 190px 90px;gap:26px;align-items:center;padding:13px 0;border-top:1px solid var(--line);}
@@ -89,10 +84,6 @@
   .phase-status.active{background:var(--tint-2);color:var(--brand);}
   .phase-status.solid{background:var(--brand);color:#fff;}
   .phase-dates{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);text-align:right;}
-
-  .scope-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;}
-  .scope-list li{font-size:13px;color:var(--ink-soft);padding-left:16px;position:relative;}
-  .scope-list li::before{content:"-";position:absolute;left:0;color:var(--brand);}
 
   .meetings{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin-top:32px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
   .meetings h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:18px;margin:0 0 4px;}
@@ -162,11 +153,7 @@
     </div>
   </div>
 
-  <div class="track-label"><span class="dot" style="background:var(--brand);"></span><span>Frente 1 · Shopify</span></div>
-  <div id="track1Sections"></div>
-
-  <div class="track-label"><span class="dot" style="background:var(--ink);"></span><span>Frente 2 · OMS</span></div>
-  <div id="track2Sections"></div>
+  <div id="stageSections"></div>
 
   <div class="meetings" id="meetingsSection">
     <h2>Reuniões previstas</h2>
@@ -174,15 +161,15 @@
     <div id="meetingList"></div>
   </div>
 
-  <div class="footnote">Datas de Desenvolvimento e Integrações são fixas (escopo fechado) — o escopo do OMS ainda está em definição com o time dos EUA. Atualizado sempre que uma etapa muda de status.</div>
+  <div class="footnote">Atualizado sempre que uma etapa muda de status</div>
 
 </div>
 
 <script>
   // --- dados: um objeto por etapa do projeto. Sincronizado automaticamente a partir do ClickUp. ---
-  // Preenchido pela sync (functions/clickup-webhook.js) assim que a task-mãe
-  // "TAG Grading Brazil" (wdpu2yejnj) tiver as subtasks Desenvolvimento,
-  // Integrações, OMS e Reuniões.
+  // Preenchido pela sync (functions/clickup-webhook.js) a partir das subtasks
+  // da task-mãe "TAG Grading Brazil" (wdpu2yejnj) — sem nomes fixos, qualquer
+  // subtask vira uma etapa.
   const stages = [
     {
       key: 'wdpu2yejr2',
@@ -265,16 +252,12 @@
   const meetingsStage = stages.find(s => s.isMeetings);
   const meetings = meetingsStage ? meetingsStage.items : [];
 
-  // Frente 2 (OMS) tem prazo próprio, ainda em definição com o time dos EUA
-  // — não conta pro Kick-off/Go Live da Frente 1 (Shopify), que é a que tem
-  // escopo fechado e data comprometida.
-  const track1 = flow.filter(s => !/oms/i.test(s.label));
-  const track2 = flow.filter(s => /oms/i.test(s.label));
-
   const kickoffMs = (meetings.length && meetings[0].dueMs) ? meetings[0].dueMs
-    : (track1.length && track1[0].startMs) ? track1[0].startMs
+    : (flow.length && flow[0].startMs) ? flow[0].startMs
     : null;
-  const flowFinalMs = track1.length ? track1[track1.length - 1].dueMs : null;
+  // "Reuniões" também conta pro prazo final — a apresentação final às vezes
+  // fica marcada alguns dias depois da última etapa de entrega.
+  const flowFinalMs = flow.length ? flow[flow.length - 1].dueMs : null;
   const meetingsFinalMs = meetings.length ? meetings[meetings.length - 1].dueMs : null;
   const finalMs = Math.max(flowFinalMs || 0, meetingsFinalMs || 0) || null;
 
@@ -319,12 +302,12 @@
       document.querySelector('.overview-track-wrap').appendChild(marker);
     }
 
-    let currentIdx = track1.findIndex(s => s.statusKey !== 'concluido' && s.statusKey !== 'fechado');
+    let currentIdx = flow.findIndex(s => s.statusKey !== 'concluido' && s.statusKey !== 'fechado');
     const capCurrent = document.getElementById('capCurrent');
     const capNext = document.getElementById('capNext');
     if (currentIdx === -1) {
-      // Etapas da Frente 1 concluídas não significa projeto entregue de fato
-      // se ainda falta a reunião de entrega final (Go Live) — mostra o nome
+      // Etapas normais concluídas não significa projeto entregue de fato se
+      // ainda falta a reunião de entrega final (Go Live) — mostra o nome
       // dela em vez de já cravar "Projeto entregue".
       const finalMeeting = meetings.length ? meetings[meetings.length - 1] : null;
       if (finalMeeting && finalMeeting.dueMs && now < finalMeeting.dueMs) {
@@ -334,17 +317,17 @@
       }
       capNext.textContent = '';
     } else {
-      const s = track1[currentIdx];
+      const s = flow[currentIdx];
       capCurrent.textContent = s.label + (s.dueMs ? ' · até ' + fmtShort(new Date(s.dueMs)) : '');
-      const nextS = track1[currentIdx + 1];
+      const nextS = flow[currentIdx + 1];
       capNext.textContent = nextS
         ? nextS.label + (nextS.startMs ? ' · inicia em ' + fmtShort(new Date(nextS.startMs)) : '')
         : 'Go Live · ' + fmtShort(new Date(finalMs));
     }
   }
 
-  function renderStageBlocks(stagesForTrack) {
-    return stagesForTrack.map(s => {
+  function renderStages() {
+    document.getElementById('stageSections').innerHTML = flow.map(s => {
       const rows = s.items.length === 0
         ? `<div class="empty-state">Nenhum item registrado ainda.</div>`
         : `
@@ -374,34 +357,6 @@
         </div>
       `;
     }).join('');
-  }
-
-  function renderStages() {
-    document.getElementById('track1Sections').innerHTML = renderStageBlocks(track1);
-
-    // Escopo do OMS ainda em definição com o time dos EUA — enquanto não
-    // existir a subtask "OMS" no ClickUp, mostra o placeholder de escopo em
-    // vez de um bloco vazio. Assim que a task existir, vira etapa normal
-    // igual as da Frente 1.
-    document.getElementById('track2Sections').innerHTML = track2.length > 0
-      ? renderStageBlocks(track2)
-      : `
-        <div class="stage-block">
-          <div class="stage-block-head">
-            <h2>Adaptação e integração do OMS</h2>
-            <span class="stage-tag">escopo em definição</span>
-          </div>
-          <div class="sub">Track conduzido em paralelo, alinhado diretamente com o time internacional (EUA). Prazo final depende dessa validação.</div>
-          <ul class="scope-list">
-            <li>Mapeamento e validação dos dados trafegados entre Shopify e OMS</li>
-            <li>Definição e parametrização dos campos necessários para a operação brasileira</li>
-            <li>Adequação dos fluxos operacionais e das regras de negócio do OMS</li>
-            <li>Suporte técnico e alinhamento junto à equipe internacional</li>
-            <li>Execução de testes integrados, homologação funcional e validação dos fluxos</li>
-            <li>Validação da integração dos eventos do OMS com o CRM via API</li>
-          </ul>
-        </div>
-      `;
   }
 
   function renderMeetings() {
