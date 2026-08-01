@@ -134,7 +134,7 @@
   <div class="bar-wrap" id="barWrap">
     <div class="bar-edges">
       <div><span class="cap-label">Kick-off</span><br><span class="cap-value muted" id="edgeStart">-</span></div>
-      <div style="text-align:right;"><span class="cap-label">Entrega final</span><br><span class="cap-value muted" id="edgeEnd">-</span></div>
+      <div style="text-align:right;"><span class="cap-label">Go Live</span><br><span class="cap-value muted" id="edgeEnd">-</span></div>
     </div>
     <div class="overview-track-wrap">
       <div class="overview-track"><div class="overview-fill" id="overviewFill"></div></div>
@@ -147,7 +147,7 @@
         <span class="status-next" id="capNext">-</span>
       </div>
       <div class="status-side right">
-        <span class="cap-label" id="kpiDaysLabel">Faltam para a entrega final</span>
+        <span class="cap-label" id="kpiDaysLabel">Faltam para o Go Live</span>
         <span class="cap-value muted" id="kpiDaysLeft">-</span>
       </div>
     </div>
@@ -275,16 +275,16 @@
     const daysEl = document.getElementById('kpiDaysLeft');
     const daysLabelEl = document.getElementById('kpiDaysLabel');
     if (diffDays > 1) {
-      daysLabelEl.textContent = 'Faltam para a entrega final';
+      daysLabelEl.textContent = 'Faltam para o Go Live';
       daysEl.textContent = diffDays + ' dias';
     } else if (diffDays === 1) {
-      daysLabelEl.textContent = 'Faltam para a entrega final';
+      daysLabelEl.textContent = 'Faltam para o Go Live';
       daysEl.textContent = '1 dia';
     } else if (diffDays === 0) {
-      daysLabelEl.textContent = 'Entrega final';
+      daysLabelEl.textContent = 'Go Live';
       daysEl.textContent = 'Hoje';
     } else {
-      daysLabelEl.textContent = 'Entrega final';
+      daysLabelEl.textContent = 'Go Live';
       daysEl.textContent = 'Prazo encerrado';
     }
     document.getElementById('overviewFill').style.width = pct(now).toFixed(1) + '%';
@@ -312,7 +312,7 @@
       const finalMeeting = meetings.length ? meetings[meetings.length - 1] : null;
       if (finalMeeting && finalMeeting.dueMs && now < finalMeeting.dueMs) {
         // Sem "Faltam N dias" aqui — isso já aparece no KPI da direita
-        // ("Faltam para a entrega final"), repetir seria redundante.
+        // ("Faltam para o Go Live"), repetir seria redundante.
         capCurrent.textContent = finalMeeting.title + ' · ' + fmtShort(new Date(finalMeeting.dueMs));
       } else {
         capCurrent.textContent = 'Projeto entregue';
@@ -324,7 +324,7 @@
       const nextS = flow[currentIdx + 1];
       capNext.textContent = nextS
         ? nextS.label + (nextS.startMs ? ' · inicia em ' + fmtShort(new Date(nextS.startMs)) : '')
-        : 'Entrega final · ' + fmtShort(new Date(finalMs));
+        : 'Go Live · ' + fmtShort(new Date(finalMs));
     }
   }
 
