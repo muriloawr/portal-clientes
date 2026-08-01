@@ -33,6 +33,9 @@ const CLIENTS = [
   { name: 'Yasmin Beauty', type: 'projeto', taskId: '86ahgcemc', filePath: 'yasmin-beauty/index.html' },
   { name: 'Beeva', type: 'projeto', taskId: 'wdpu2ydyzj', filePath: 'beeva/index.html' },
   { name: 'PROTS', type: 'projeto', taskId: 'wdpu2ybucf', filePath: 'prots/index.html' },
+  // Estrutura customizada (2 frentes: Shopify e OMS) mas mesma sync genérica
+  // por subtask — ver tag/index.html pra lógica de agrupamento em frentes.
+  { name: 'TAG Grading Brazil', type: 'projeto', taskId: 'wdpu2yejnj', filePath: 'tag/index.html' },
 ];
 
 const REPO_OWNER = 'muriloawr';
@@ -244,7 +247,7 @@ async function buildProjectStages(taskId, token) {
     // sempre cria um comentário "Ver no Figma" (link interno pros devs) em
     // cada task — isso não pode vazar como subtítulo no cronograma do
     // cliente, então pula a busca de comentário pra essa etapa inteira.
-    const isDevelopment = /desenvolv/i.test(stageTask.name);
+    const isDevelopment = /desenvolv|development/i.test(stageTask.name);
     const children = await fetchSubtasks(stageTask.id, token);
     const items = [];
 

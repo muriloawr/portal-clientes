@@ -49,6 +49,7 @@ jobs:
             "Yasmin Beauty"
             "Beeva"
             "PROTS"
+            "TAG Grading Brazil"
           )
           FAILED=0
           for CLIENT in "${CLIENTS[@]}"; do
