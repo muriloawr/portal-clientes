@@ -183,7 +183,63 @@
   // Preenchido pela sync (functions/clickup-webhook.js) assim que a task-mãe
   // "TAG Grading Brazil" (wdpu2yejnj) tiver as subtasks Desenvolvimento,
   // Integrações, OMS e Reuniões.
-  const stages = [];
+  const stages = [
+    {
+      key: 'wdpu2yejr2',
+      label: 'Development',
+      dateRange: '03/08 - 21/08',
+      statusKey: 'pendentes',
+      startMs: 1785740400000,
+      dueMs: 1787295600000,
+      isMeetings: false,
+      items: [
+        { title: 'Home', subtitle: '', statusKey: 'pendentes', owner: 'Tiago', date: '03/08 - 07/08' },
+        { title: 'Services page', subtitle: '', statusKey: 'pendentes', owner: 'Tiago', date: '10/08 - 14/08' },
+        { title: 'Components', subtitle: '', statusKey: 'pendentes', owner: 'Tiago', date: '17/08 - 18/08' },
+        { title: 'Additional Pages', subtitle: '', statusKey: 'pendentes', owner: 'Tiago', date: '19/08 - 21/08' },
+      ],
+    },
+    {
+      key: 'wdpu2yejr3',
+      label: 'Integrations',
+      dateRange: '',
+      statusKey: 'pendentes',
+      startMs: null,
+      dueMs: null,
+      isMeetings: false,
+      items: [
+        { title: 'OMS', subtitle: 'Diddy will complete this after we generate the tokens', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'ERP', subtitle: 'Bling or Omie, subject to analysis', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'CRM', subtitle: 'Bevean or a similar solution', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'Payment', subtitle: 'Appmax', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+        { title: 'Return Shipping', subtitle: '', statusKey: 'pendentes', owner: 'Murilo', date: '' },
+      ],
+    },
+    {
+      key: 'wdpu2yejr1',
+      label: 'OMS',
+      dateRange: '',
+      statusKey: 'pendentes',
+      startMs: null,
+      dueMs: null,
+      isMeetings: false,
+      items: [
+        { title: 'Development', subtitle: '', statusKey: 'pendentes', owner: 'Erik', date: '' },
+      ],
+    },
+    {
+      key: 'wdpu2yejr5',
+      label: 'Meetings',
+      dateRange: '',
+      statusKey: 'pendentes',
+      startMs: null,
+      dueMs: null,
+      isMeetings: true,
+      items: [
+
+      ],
+    },
+  ];
 
   const STATUS_LABELS = {
     'pendentes': 'Pendente',
