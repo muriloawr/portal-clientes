@@ -253,11 +253,15 @@ async function buildProjectStages(taskId, token) {
       const refDateMs = item.due_date ? Number(item.due_date) : (item.start_date ? Number(item.start_date) : Number(item.date_created));
 
       if (isMeetings) {
+        // Cai pro start_date quando não tem due_date — mesmo fallback que o
+        // ramo normal já faz via formatDateRange, senão reunião com só data
+        // de início preenchida no ClickUp fica sem data no cronograma.
+        const meetingDateMs = item.due_date ? Number(item.due_date) : (item.start_date ? Number(item.start_date) : null);
         items.push({
           title: item.name,
           subtitle,
-          date: item.due_date ? formatDeadline(Number(item.due_date)) : '',
-          dueMs: item.due_date ? Number(item.due_date) : null,
+          date: meetingDateMs ? formatDeadline(meetingDateMs) : '',
+          dueMs: meetingDateMs,
           _sort: refDateMs,
         });
       } else {
