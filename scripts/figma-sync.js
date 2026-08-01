@@ -7,8 +7,15 @@
 // Sem limite de subrequests aqui (runner do GitHub Actions, não Worker), então
 // sincroniza tudo numa execução só, sem chunking artificial.
 //
-// Pra cada cliente cadastrado em FIGMA_CLIENTS, lê a página "Prototype" do
-// arquivo do Figma e cria/atualiza no ClickUp: um item (nível 2, sob a stage
+// Descobre os clientes sozinho a cada execução, em vez de depender de uma
+// lista fixa no código: procura na lista "Projetos" (mesma usada pela sync
+// do cronograma) as task-mãe com status "CLIENTES" que tiverem um link do
+// Figma em algum comentário (não na descrição — não aparece no cronograma
+// e fica mais fácil de manter, já que é a raiz do projeto). Cliente sem
+// link no comentário é simplesmente ignorado, sem erro.
+//
+// Pra cada cliente encontrado, lê a página "Prototype" do arquivo do Figma
+// e cria/atualiza no ClickUp: um item (nível 2, sob a stage
 // "Desenvolvimento" do cliente) por frame de topo, e uma demanda (nível 4,
 // oculta do cliente) por seção dentro desse frame. Se o frame estiver dentro
 // de uma Section do Figma (ex: "Componentes", "Páginas Adicionais"), a
@@ -24,26 +31,27 @@
 // ClickUp), nunca por nome — nome pode mudar à vontade que a automação
 // continua reconhecendo a mesma task. Ver docs/FIGMA_SYNC_SETUP.md.
 
-const FIGMA_CLIENTS = [
-  { name: 'PROTS', fileKey: '8pk8WhFEFBO42cKnXtHai5', taskId: 'wdpu2ybucf' },
-  { name: 'Beeva', fileKey: 'vdzoUDzr7DlhSLCUlVUlGd', taskId: 'wdpu2ydyzj' },
-];
-
 const LIST_ID = '901324765433'; // lista "Projetos" no ClickUp
 
 const FIGMA_API_TOKEN = process.env.FIGMA_API_TOKEN;
 const CLICKUP_API_TOKEN = process.env.CLICKUP_API_TOKEN;
 
 async function main() {
-  console.log('figma-sync build: retry-429-v1'); // marcador pra confirmar qual versao do script rodou
+  console.log('figma-sync build: auto-discovery-v1'); // marcador pra confirmar qual versao do script rodou
 
   if (!FIGMA_API_TOKEN || !CLICKUP_API_TOKEN) {
     console.error('Faltam FIGMA_API_TOKEN e/ou CLICKUP_API_TOKEN nas variáveis de ambiente.');
     process.exit(1);
   }
 
+  const clients = await discoverFigmaClients();
+  if (clients.length === 0) {
+    console.log('Nenhum cliente com link do Figma no comentário da task-mãe.');
+    return;
+  }
+
   let anyFailed = false;
-  for (const client of FIGMA_CLIENTS) {
+  for (const client of clients) {
     console.log(`\n=== ${client.name} ===`);
     try {
       const failed = await syncClient(client);
@@ -58,6 +66,36 @@ async function main() {
     console.error('\nUm ou mais itens falharam.');
     process.exit(1);
   }
+}
+
+// --- descoberta de clientes ---
+
+// Mesmo status "CLIENTES" usado pela sync do cronograma pra identificar
+// task-mãe de cliente na lista "Projetos".
+function statusKeyOf(task) {
+  return ((task.status && task.status.status) || '').toLowerCase();
+}
+
+function extractFigmaFileKey(text) {
+  const m = String(text || '').match(/figma\.com\/(?:design|file|proto)\/([a-zA-Z0-9]+)/);
+  return m ? m[1] : null;
+}
+
+async function discoverFigmaClients() {
+  const tasks = await fetchListTasks(LIST_ID);
+  const clientTasks = tasks.filter(t => statusKeyOf(t) === 'clientes');
+
+  const clients = [];
+  for (const task of clientTasks) {
+    const comments = await fetchTaskComments(task.id);
+    let fileKey = null;
+    for (const c of comments) {
+      fileKey = extractFigmaFileKey(c.comment_text);
+      if (fileKey) break;
+    }
+    if (fileKey) clients.push({ name: task.name, fileKey, taskId: task.id });
+  }
+  return clients;
 }
 
 async function syncClient(client) {
@@ -344,6 +382,24 @@ async function fetchClickUpSubtasks(taskId) {
   if (!res.ok) throw new Error(`ClickUp API error: ${res.status} ${await res.text()}`);
   const data = await res.json();
   return data.subtasks || [];
+}
+
+async function fetchListTasks(listId) {
+  const res = await clickUpFetch(`https://api.clickup.com/api/v2/list/${listId}/task?include_closed=true`, {
+    headers: { Authorization: CLICKUP_API_TOKEN },
+  });
+  if (!res.ok) throw new Error(`ClickUp API error (list tasks): ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.tasks || [];
+}
+
+async function fetchTaskComments(taskId) {
+  const res = await clickUpFetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
+    headers: { Authorization: CLICKUP_API_TOKEN },
+  });
+  if (!res.ok) throw new Error(`ClickUp API error (comments): ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.comments || [];
 }
 
 async function createClickUpTask(parentTaskId, name, tags) {

@@ -14,11 +14,14 @@ precisa do Cloudflare pra commitar/publicar o HTML, ver
 [CLICKUP_SYNC_SETUP.md](./CLICKUP_SYNC_SETUP.md)). Rodando no runner do GitHub Actions, sem
 limite de subrequests, o script sincroniza tudo numa execução só, sem chunking artificial.
 
-Pra cada cliente cadastrado em `FIGMA_CLIENTS` no topo do script, ele lê a página
-**"Prototype"** do arquivo do Figma e cria/atualiza no ClickUp: um **item** (nível 2, sob a
-stage "Desenvolvimento" do cliente) por frame de topo, e uma **demanda** (nível 4, oculta do
-cliente) por seção dentro desse frame. Essas tasks nunca aparecem no cronograma que o
-cliente vê — são só pra organizar o trabalho dos devs.
+A cada execução, o script descobre sozinho quais clientes sincronizar: procura na lista
+"Projetos" (mesma usada pela sync do cronograma) as task-mãe com status **CLIENTES** que
+tiverem um link do Figma em algum **comentário** (não na descrição — não aparece no
+cronograma, e é a raiz do projeto). Cliente sem link no comentário é ignorado, sem erro. Pra
+cada um encontrado, lê a página **"Prototype"** do arquivo do Figma e cria/atualiza no
+ClickUp: um **item** (nível 2, sob a stage "Desenvolvimento" do cliente) por frame de topo, e
+uma **demanda** (nível 4, oculta do cliente) por seção dentro desse frame. Essas tasks nunca
+aparecem no cronograma que o cliente vê — são só pra organizar o trabalho dos devs.
 
 ## Estrutura esperada no arquivo do Figma
 
@@ -53,15 +56,18 @@ cliente vê — são só pra organizar o trabalho dos devs.
 
 ## Adicionar um cliente novo
 
+Sem mexer em código:
+
 1. O arquivo do Figma do cliente precisa ter a página "Prototype" organizada conforme a
    seção acima.
 2. A task-mãe do cliente no ClickUp precisa ter uma subtask chamada "Desenvolvimento" — é
-   dentro dela que os itens entram (mesma task-mãe já usada pela sync do ClickUp).
-3. Adicione uma entrada em `FIGMA_CLIENTS` no topo de `scripts/figma-sync.js`, com o
-   `fileKey` do arquivo do Figma (pega na URL: `figma.com/design/{file_key}/...`) e o
-   `taskId` da task-mãe do cliente no ClickUp.
-4. Commit e push — não precisa mexer no workflow nem duplicar o nome em lugar nenhum, o
-   script já percorre `FIGMA_CLIENTS` inteiro numa execução só.
+   dentro dela que os itens entram (mesma task-mãe já usada pela sync do ClickUp) — e status
+   **CLIENTES** na lista "Projetos".
+3. Cole o link do arquivo do Figma (ex: `https://www.figma.com/design/{file_key}/...`) num
+   **comentário** dessa mesma task-mãe. Só precisa conter a URL em algum lugar do texto — a
+   automação extrai o `fileKey` sozinha.
+4. Pronto — a próxima execução (diária ou disparo manual) já encontra e sincroniza esse
+   cliente sozinha.
 
 ## Secrets necessários (GitHub Actions)
 
