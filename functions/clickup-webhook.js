@@ -242,7 +242,7 @@ async function buildProjectStages(taskId, token) {
   const stages = [];
 
   for (const stageTask of stageTasks) {
-    const isMeetings = /reuni/i.test(stageTask.name);
+    const isMeetings = /reuni|meeting/i.test(stageTask.name);
     // A etapa "Desenvolvimento" recebe tasks da sync Figma->ClickUp, que
     // sempre cria um comentário "Ver no Figma" (link interno pros devs) em
     // cada task — isso não pode vazar como subtítulo no cronograma do
