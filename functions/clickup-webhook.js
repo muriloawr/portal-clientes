@@ -307,7 +307,11 @@ async function buildProjectStages(taskId, token) {
 
     for (const item of children) {
       const subtitle = isDevelopment ? '' : await fetchComment(item.id, token);
-      const refDateMs = item.due_date ? Number(item.due_date) : (item.start_date ? Number(item.start_date) : Number(item.date_created));
+      // Item sem due_date/start_date sempre por último — cair pra
+      // date_created (quando a task foi criada no ClickUp) ordenava pela
+      // ordem de criação em vez de "sem prazo definido", o que colocava
+      // reuniões/itens sem data em posições aleatórias no meio da lista.
+      const refDateMs = item.due_date ? Number(item.due_date) : (item.start_date ? Number(item.start_date) : Number.MAX_SAFE_INTEGER);
 
       if (isMeetings) {
         // Cai pro start_date quando não tem due_date — mesmo fallback que o
