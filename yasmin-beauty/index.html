@@ -367,7 +367,7 @@
         <div class="meeting-row">
           <div class="m-date">${m.date || '-'}</div>
           <div class="m-title">${m.title}<div class="phase-sub">${m.subtitle || ''}</div></div>
-          ${m.tag ? `<div class="m-tag${i === meetings.length - 1 ? ' final' : ''}">${m.tag}</div>` : '<div></div>'}
+          ${m.tag ? `<div class="m-tag${m.tag === 'Entrega Final' ? ' final' : ''}">${m.tag}</div>` : '<div></div>'}
         </div>
       `).join('');
   }

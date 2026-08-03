@@ -340,14 +340,18 @@ async function buildProjectStages(taskId, token) {
     items.sort((a, b) => a._sort - b._sort);
     items.forEach(it => delete it._sort);
 
-    // Tag de reunião é definida pela posição, não por tag manual do ClickUp: a
-    // primeira é sempre Kick-off, a última é sempre a entrega final, e as do meio
-    // são Revisão.
+    // Tag de reunião é definida pela posição, não por tag manual do ClickUp:
+    // a primeira é sempre Kick-off, a última é sempre a entrega final, e as
+    // do meio são Revisão. Exceção por nome: "Go-Live" sempre vira
+    // Implementação, não importa a posição — sem isso, um Go-Live sem prazo
+    // (que agora vai pro fim da lista por não ter data) herdaria a tag de
+    // entrega final só por acaso estar por último.
     if (isMeetings) {
       items.forEach((it, idx) => {
-        if (idx === 0) it.tag = 'Kickoff';
-        else if (idx === items.length - 1) it.tag = 'Entrega Final do Projeto';
+        if (idx === 0) it.tag = 'Kick-off';
+        else if (idx === items.length - 1) it.tag = 'Entrega Final';
         else it.tag = 'Revisão';
+        if (/go[\s-]?live/i.test(it.title)) it.tag = 'Implementação';
       });
     }
 
@@ -927,7 +931,7 @@ function buildNewClientHtml(clientName, taskId, stages) {
     } else {
       listEl.innerHTML = meetings.map(function (m, i) {
         var tagHtml = m.tag
-          ? ('<div class="m-tag' + (i === meetings.length - 1 ? ' final' : '') + '">' + m.tag + '</div>')
+          ? ('<div class="m-tag' + (m.tag === 'Entrega Final' ? ' final' : '') + '">' + m.tag + '</div>')
           : '<div></div>';
         return '<div class="meeting-row">' +
           '<div class="m-date">' + (m.date || '-') + '</div>' +
