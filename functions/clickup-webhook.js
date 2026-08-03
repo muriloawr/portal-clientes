@@ -490,37 +490,26 @@ async function discoverAndProvisionNewClients(env) {
   if (candidates.length === 0) return [];
 
   // Confere contra o conteúdo ATUAL desse arquivo no GitHub (não contra o
-  // CLIENTS em memória, que é o código já publicado antes dessa execução) —
-  // assim, se essa mesma invocação já provisionou um cliente há poucas
-  // linhas atrás, não tenta de novo pro mesmo taskId.
-  let { content: ownSource, sha: ownSha } = await getGithubFile('functions/clickup-webhook.js', env.GITHUB_TOKEN);
+  // CLIENTS em memória, que é o código já publicado antes dessa execução).
+  const { content: ownSource, sha: ownSha } = await getGithubFile('functions/clickup-webhook.js', env.GITHUB_TOKEN);
   const newOnes = candidates.filter(t => !ownSource.includes(`taskId: '${t.id}'`));
   if (newOnes.length === 0) return [];
 
-  const results = [];
-  for (const task of newOnes) {
-    try {
-      const msg = await provisionNewClient(task, ownSource, ownSha, env);
-      results.push(`novo cliente "${task.name}": ${msg}`);
-    } catch (err) {
-      results.push(`novo cliente "${task.name}": FAILED - ${err.message}`);
-    } finally {
-      // Sempre relê depois de CADA candidato, com sucesso ou não — se o
-      // passo 2 (CLIENTS) mudou o arquivo mas o passo 3 (workflow) falhou
-      // e lançou, sem isso o próximo candidato do mesmo lote usaria source
-      // e sha desatualizados (409 no GitHub). Se nem essa releitura der
-      // certo, aborta o resto do lote em vez de arriscar sha errado.
-      try {
-        const refreshed = await getGithubFile('functions/clickup-webhook.js', env.GITHUB_TOKEN);
-        ownSource = refreshed.content;
-        ownSha = refreshed.sha;
-      } catch (err) {
-        results.push(`descoberta de clientes novos: lote interrompido - não foi possível reler o próprio arquivo após "${task.name}": ${err.message}`);
-        break;
-      }
-    }
+  // Só UM candidato por invocação — provisionar (buscar etapas existentes,
+  // criar a página, commitar CLIENTS e o workflow) já consome boa parte do
+  // limite de 50 subrequests por invocação do Worker, e essa mesma
+  // invocação ainda precisa sobrar orçamento pra sincronizar o cliente que
+  // o workflow pediu de verdade (visto na prática: 4 clientes novos ao
+  // mesmo tempo estourava o limite na segunda tentativa da mesma
+  // invocação). Com vários clientes novos aparecendo juntos, o resto do
+  // lote é pego pelas próximas invocações do mesmo ciclo, uma por vez.
+  const task = newOnes[0];
+  try {
+    const msg = await provisionNewClient(task, ownSource, ownSha, env);
+    return [`novo cliente "${task.name}": ${msg}`];
+  } catch (err) {
+    return [`novo cliente "${task.name}": FAILED - ${err.message}`];
   }
-  return results;
 }
 
 async function provisionNewClient(task, ownSource, ownSha, env) {
