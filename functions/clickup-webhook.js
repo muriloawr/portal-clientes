@@ -39,6 +39,7 @@ const CLIENTS = [
   { name: 'Cookie Dreams', type: 'projeto', taskId: '86ahp88m4', filePath: 'cookie-dreams/index.html' },
   { name: 'MUUPI', type: 'projeto', taskId: '86agvb320', filePath: 'muupi/index.html' },
   { name: 'Mye Mye', type: 'projeto', taskId: 'wdpu2ye60e', filePath: 'mye-mye/index.html' },
+  { name: 'Piny', type: 'projeto', taskId: 'wdpu2ye60b', filePath: 'piny/index.html' },
 ];
 
 const REPO_OWNER = 'muriloawr';
