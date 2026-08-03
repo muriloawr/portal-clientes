@@ -41,6 +41,7 @@ const CLIENTS = [
   { name: 'Mye Mye', type: 'projeto', taskId: 'wdpu2ye60e', filePath: 'mye-mye/index.html' },
   { name: 'Piny', type: 'projeto', taskId: 'wdpu2ye60b', filePath: 'piny/index.html' },
   { name: 'AIB Beauty', type: 'projeto', taskId: 'wdpu2ye60a', filePath: 'aib-beauty/index.html' },
+  { name: 'Bako', type: 'projeto', taskId: 'wdpu2ye3hg', filePath: 'bako/index.html' },
 ];
 
 const REPO_OWNER = 'muriloawr';
