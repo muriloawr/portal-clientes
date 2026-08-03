@@ -54,6 +54,7 @@ jobs:
             "MUUPI"
             "Mye Mye"
             "AIB Beauty"
+            "Bako"
           )
           FAILED=0
           for CLIENT in "${CLIENTS[@]}"; do
