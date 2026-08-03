@@ -52,6 +52,7 @@ jobs:
             "TAG Grading Brazil"
             "Cookie Dreams"
             "MUUPI"
+            "Mye Mye"
           )
           FAILED=0
           for CLIENT in "${CLIENTS[@]}"; do
