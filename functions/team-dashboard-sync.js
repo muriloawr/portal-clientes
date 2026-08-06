@@ -57,6 +57,12 @@ const IGNORED_STATUS = 'clientes';
 const HISTORY_LOOKBACK_DAYS = 14;
 const MAX_PAGES_PER_LIST = 40;
 
+// Janela do "ritmo de entrega" (gráfico de tendência semanal) — independente
+// do HISTORY_LOOKBACK_DAYS acima (que é string de dia em fuso SP, pra exibir
+// detalhe do que fechou quando). Aqui é só contagem por semana em ms corridos,
+// não precisa da mesma precisão de fuso.
+const TREND_WEEKS = 8;
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const rawBody = await request.text();
@@ -121,25 +127,54 @@ function ymdSaoPaulo(ms) {
   return SP_FORMATTER.format(new Date(ms));
 }
 
+// Sobe a cadeia `parent` de uma task até achar a task-mãe que representa o
+// cliente: em CRO/CRM/Planejamento, pára no primeiro ancestral com status
+// "clientes" (o marcador de pasta, ver IGNORED_STATUS); em Projetos, não tem
+// esse marcador — a raiz já É o projeto do cliente, então a cadeia sobe até
+// o topo. Cache por chamada (não top-level do módulo: o Worker pode reusar
+// isolate entre requests, um cache module-level vazaria entre syncs).
+function buildClientResolver(tasks) {
+  const byId = new Map(tasks.map(t => [t.id, t]));
+  const cache = new Map();
+  return function resolveClient(id) {
+    if (cache.has(id)) return cache.get(id);
+    const path = [];
+    let cur = byId.get(id);
+    let hops = 0;
+    while (cur && hops < 20) {
+      path.push(cur.id);
+      if (statusOf(cur) === IGNORED_STATUS) break;
+      const next = cur.parent ? byId.get(cur.parent) : null;
+      if (!next) break;
+      cur = next;
+      hops++;
+    }
+    const client = cur ? cur.name : null;
+    for (const pid of path) cache.set(pid, client);
+    return client;
+  };
+}
+
+function emptyPerson(id, name) {
+  return {
+    id, name,
+    today: [], overdue: [], upcoming: [], inProgress: [], backlog: [], doneRecent: [],
+    weeklyDone: new Array(TREND_WEEKS).fill(0),
+  };
+}
+
 function buildPeople(tasks) {
   const todayStr = ymdSaoPaulo(Date.now());
   const lookbackStartStr = ymdSaoPaulo(Date.now() - HISTORY_LOOKBACK_DAYS * 86400000);
+  const resolveClient = buildClientResolver(tasks);
   const peopleMap = new Map();
   for (const member of KNOWN_MEMBERS) {
-    peopleMap.set(member.id, {
-      id: member.id,
-      name: member.username,
-      today: [], overdue: [], upcoming: [], inProgress: [], backlog: [], doneRecent: [],
-    });
+    peopleMap.set(member.id, emptyPerson(member.id, member.username));
   }
 
   function personEntry(assignee) {
     if (!peopleMap.has(assignee.id)) {
-      peopleMap.set(assignee.id, {
-        id: assignee.id,
-        name: assignee.username || `#${assignee.id}`,
-        today: [], overdue: [], upcoming: [], inProgress: [], backlog: [], doneRecent: [],
-      });
+      peopleMap.set(assignee.id, emptyPerson(assignee.id, assignee.username || `#${assignee.id}`));
     }
     return peopleMap.get(assignee.id);
   }
@@ -160,6 +195,7 @@ function buildPeople(tasks) {
       title: t.name,
       url: t.url,
       list: t._listName,
+      client: resolveClient(t.id),
       status,
       dueMs,
     };
@@ -171,8 +207,19 @@ function buildPeople(tasks) {
         const closedMs = t.date_closed ? Number(t.date_closed) : null;
         const approxMs = closedMs == null ? dueMs : null;
         const effectiveMs = closedMs != null ? closedMs : approxMs;
-        if (effectiveMs != null && ymdSaoPaulo(effectiveMs) >= lookbackStartStr) {
-          person.doneRecent.push({ ...base, closedMs: effectiveMs, approx: closedMs == null });
+        if (effectiveMs != null) {
+          if (ymdSaoPaulo(effectiveMs) >= lookbackStartStr) {
+            person.doneRecent.push({ ...base, closedMs: effectiveMs, approx: closedMs == null });
+          }
+          // Independente da janela acima — bucket semanal pro gráfico de
+          // tendência. ageMs pode ser negativo quando cai no fallback
+          // approxMs (due date no "futuro" relativo a uma task fechada antes
+          // do prazo) — sem essa guarda o índice fica negativo e corrompe o
+          // array.
+          const ageMs = Date.now() - effectiveMs;
+          if (ageMs >= 0 && ageMs < TREND_WEEKS * 7 * 86400000) {
+            person.weeklyDone[Math.min(TREND_WEEKS - 1, Math.floor(ageMs / (7 * 86400000)))]++;
+          }
         }
         continue;
       }
@@ -206,7 +253,8 @@ function buildPeople(tasks) {
 
 function taskLiteral(t, extraFields) {
   const extra = extraFields ? `, ${extraFields}` : '';
-  return `{ id: '${escapeJs(t.id)}', title: '${escapeJs(t.title)}', url: '${escapeJs(t.url)}', list: '${escapeJs(t.list)}', status: '${escapeJs(t.status)}', dueMs: ${t.dueMs == null ? 'null' : t.dueMs}${extra} }`;
+  const client = t.client ? `'${escapeJs(t.client)}'` : 'null';
+  return `{ id: '${escapeJs(t.id)}', title: '${escapeJs(t.title)}', url: '${escapeJs(t.url)}', list: '${escapeJs(t.list)}', client: ${client}, status: '${escapeJs(t.status)}', dueMs: ${t.dueMs == null ? 'null' : t.dueMs}${extra} }`;
 }
 
 function taskListLiteral(items, extraFieldsFn) {
@@ -219,6 +267,7 @@ function personLiteral(p) {
   return `    {
       id: ${JSON.stringify(p.id)},
       name: '${escapeJs(p.name)}',
+      weeklyDone: ${JSON.stringify(p.weeklyDone)},
       today: ${taskListLiteral(p.today)},
       overdue: ${taskListLiteral(p.overdue)},
       upcoming: ${taskListLiteral(p.upcoming)},
