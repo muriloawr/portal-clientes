@@ -490,6 +490,10 @@
         color: var(--ink);
         font-weight: 600;
       }
+      .aging-critical {
+        color: var(--st-critical);
+        font-weight: 700;
+      }
       .history-day {
         font-size: 11px;
         color: var(--ink-soft);
@@ -1067,6 +1071,19 @@
         );
       }
 
+      // Sinaliza há quanto tempo uma tarefa atrasada está acumulando — uma
+      // "atrasada" desde ontem e uma "atrasada" há 3 semanas hoje mostram o
+      // mesmo chip vermelho; isso distingue as duas na própria linha.
+      // Aging=7 dias ganha destaque em negrito, sinalizando risco maior.
+      function agingLabel(t, accent) {
+        if (accent !== "critical" || !t.dueMs) return "";
+        const days = Math.max(1, Math.floor((Date.now() - t.dueMs) / 86400000));
+        const text = "atrasada há " + days + (days === 1 ? " dia" : " dias");
+        return days >= 7
+          ? ' · <strong class="aging-critical">' + text + "</strong>"
+          : " · " + text;
+      }
+
       function taskRow(t, accent, opts) {
         opts = opts || {};
         const dateLabel = t.dueMs
@@ -1095,6 +1112,7 @@
           " · " +
           dateLabel +
           statusLabel +
+          agingLabel(t, accent) +
           "</span>" +
           "</a>"
         );

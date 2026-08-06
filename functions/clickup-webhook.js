@@ -149,8 +149,13 @@ async function syncClient(client, env) {
     updated = replaceMonthsArray(content, months);
   }
 
+  // Checa mudança real ANTES de tocar em generatedAt (que fica numa região
+  // separada do HTML) — assim "Atualizado em" só avança quando o cronograma
+  // de verdade mudou, sem commitar (e disparar deploy) a cada ciclo do cron
+  // à toa.
   if (updated === content) return 'no changes';
 
+  updated = replaceGeneratedAt(updated, Date.now());
   await commitGithubFile(client.filePath, updated, sha, `sync: atualiza relatório ${client.name} a partir do ClickUp`, env.GITHUB_TOKEN);
   return 'synced';
 }
@@ -379,6 +384,12 @@ function replaceServicesArray(html, services) {
   return html.replace(regex, servicesToJs(services));
 }
 
+function replaceGeneratedAt(html, ms) {
+  const regex = /const\s+generatedAt\s*=\s*[^;]+;/;
+  if (!regex.test(html)) throw new Error('generatedAt not found in HTML');
+  return html.replace(regex, `const generatedAt = ${ms};`);
+}
+
 // --- descoberta e provisionamento de clientes novos ---
 
 // Task diretamente na lista "Projetos" (não subtask de nada) com status
@@ -561,6 +572,7 @@ function buildNewClientHtml(clientName, taskId, stages) {
 
   .head{margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
   .logo{height:34px;}
+  .head-meta{font-size:12px;color:var(--ink-soft);margin-top:8px;}
   .eyebrow{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
   .live-dot{width:7px;height:7px;border-radius:50%;background:#2FBE6C;flex-shrink:0;box-shadow:0 0 0 0 rgba(47,190,108,0.6);animation:pulse 1.8s infinite;}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,190,108,0.55);}70%{box-shadow:0 0 0 7px rgba(47,190,108,0);}100%{box-shadow:0 0 0 0 rgba(47,190,108,0);}}
@@ -646,6 +658,7 @@ function buildNewClientHtml(clientName, taskId, stages) {
     </svg>
     <div class="eyebrow"><span class="live-dot"></span>Cronograma do Projeto</div>
     <h1>${safeName}</h1>
+    <div class="head-meta" id="generatedAt">Atualizado em -</div>
   </div>
 
   <div class="bar-wrap" id="barWrap">
@@ -688,6 +701,7 @@ function buildNewClientHtml(clientName, taskId, stages) {
   // novos (status "CLIENTES" na lista Projetos), a partir da task ${taskId}.
   // Já nasce preenchido com o que a task-mãe já tinha na hora da criação —
   // qualquer nome de subtask vira etapa, sem lista fixa.
+  const generatedAt = null;
   const stages = ${stagesArrayLiteral(stages)};
 
   const STATUS_LABELS = {
@@ -835,6 +849,10 @@ function buildNewClientHtml(clientName, taskId, stages) {
       }).join('');
     }
   }
+
+  document.getElementById('generatedAt').textContent = generatedAt
+    ? 'Atualizado em ' + new Date(generatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : 'Ainda não sincronizado';
 
   renderTimeline();
   renderStages();

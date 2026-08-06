@@ -28,28 +28,6 @@ const LISTS = [
 
 const FILE_PATH = 'team-dashboard/index.html';
 
-// Membros conhecidos do workspace — pré-populam o painel pra quem está com a
-// fila zerada ainda aparecer (em vez de só sumir por não ter task atribuída).
-// Atualize esta lista ao contratar/desligar alguém (ids vêm de
-// clickup_get_workspace_members ou da URL do perfil no ClickUp).
-const KNOWN_MEMBERS = [
-  { id: 118070643, username: 'Isis Julek' },
-  { id: 118045958, username: 'Ian Rodnir Tulio' },
-  { id: 118011756, username: 'Tiago Correia Bian' },
-  { id: 112122962, username: 'Anna Carolina Strack Haus' },
-  { id: 278643652, username: 'Matheus Ramos' },
-  { id: 266565924, username: 'Erik Costa e Silva' },
-  { id: 111914276, username: 'Guilherme Galvão' },
-  { id: 111914275, username: 'Tiago de Souza Moro Conke' },
-  { id: 102693999, username: 'Murilo Woyciechovski' },
-];
-
-// Gente que não está mais na empresa mas ainda aparece como assignee em
-// tasks antigas no ClickUp (o ClickUp não limpa isso retroativamente ao
-// remover alguém do workspace) — filtrado por nome pra não depender de
-// achar o id exato de quem já saiu. Atualize ao desligar alguém.
-const EXCLUDED_MEMBER_NAMES = new Set(['michelangelo']);
-
 // "concluído" normalmente falta date_closed no ClickUp (só "fechado", o
 // status de arquivamento, grava esse campo de forma confiável) — ambos contam
 // como fechado pro painel, mas o histórico cai pro due_date como aproximação
@@ -80,18 +58,25 @@ export async function onRequestPost(context) {
   }
 
   try {
+    const members = await fetchWorkspaceMembers(env.CLICKUP_API_TOKEN);
     const allTasks = [];
     for (const list of LISTS) {
       const tasks = await fetchAllListTasks(list.id, list.name, env.CLICKUP_API_TOKEN);
       allTasks.push(...tasks);
     }
 
-    const people = buildPeople(allTasks);
+    const people = buildPeople(allTasks, members);
     const { content, sha } = await getGithubFile(FILE_PATH, env.GITHUB_TOKEN);
+
+    // Só recommita (e só avança o "Atualizado em") quando algo de verdade
+    // mudou — reusar o generatedAt já publicado pra essa comparação evita
+    // commitar (e disparar um deploy no Cloudflare) toda vez que o cron
+    // roda sem nenhuma mudança real vinda do ClickUp.
+    const prevGeneratedAt = extractGeneratedAt(content);
+    const sameTimestamp = replaceTeamData(content, { generatedAt: prevGeneratedAt, people });
+    if (sameTimestamp === content) return new Response('no changes', { status: 200 });
+
     const updated = replaceTeamData(content, { generatedAt: Date.now(), people });
-
-    if (updated === content) return new Response('no changes', { status: 200 });
-
     await commitGithubFile(FILE_PATH, updated, sha, 'sync: atualiza painel de gestão a partir do ClickUp', env.GITHUB_TOKEN);
     return new Response('synced', { status: 200 });
   } catch (err) {
@@ -117,6 +102,24 @@ async function fetchAllListTasks(listId, listName, token) {
     if (pageTasks.length === 0 || data.last_page) break;
   }
   return tasks;
+}
+
+// Membros do workspace, buscados a cada sync (em vez de uma lista fixa
+// mantida à mão) — pré-populam o painel pra quem está com a fila zerada
+// ainda aparecer, e servem de allowlist pra excluir quem já saiu da empresa
+// (o ClickUp não limpa retroativamente assignees antigos em tasks quando
+// alguém é removido do workspace, então sem esse filtro gente desligada
+// continuaria aparecendo pra sempre).
+async function fetchWorkspaceMembers(token) {
+  const res = await clickUpFetch('https://api.clickup.com/api/v2/team', { headers: { Authorization: token } });
+  if (!res.ok) throw new Error(`ClickUp API error (team members): ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  const team = (data.teams || [])[0];
+  if (!team) throw new Error('ClickUp API: nenhum workspace retornado em /team');
+  return (team.members || [])
+    .map(m => m.user)
+    .filter(Boolean)
+    .map(u => ({ id: u.id, username: u.username || `#${u.id}` }));
 }
 
 function statusOf(task) {
@@ -161,20 +164,6 @@ function buildClientResolver(tasks) {
   };
 }
 
-// Remove acentos antes de comparar — "Michelângelo" no ClickUp tem circunflexo,
-// então um match ASCII puro ("michelangelo") não bateria.
-function normalizeName(str) {
-  return String(str).normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
-}
-
-function isExcludedAssignee(assignee) {
-  const name = normalizeName(assignee.username || '');
-  for (const excluded of EXCLUDED_MEMBER_NAMES) {
-    if (name.includes(excluded)) return true;
-  }
-  return false;
-}
-
 function emptyPerson(id, name) {
   return {
     id, name,
@@ -183,12 +172,13 @@ function emptyPerson(id, name) {
   };
 }
 
-function buildPeople(tasks) {
+function buildPeople(tasks, members) {
   const todayStr = ymdSaoPaulo(Date.now());
   const lookbackStartStr = ymdSaoPaulo(Date.now() - HISTORY_LOOKBACK_DAYS * 86400000);
   const resolveClient = buildClientResolver(tasks);
+  const memberIds = new Set(members.map(m => m.id));
   const peopleMap = new Map();
-  for (const member of KNOWN_MEMBERS) {
+  for (const member of members) {
     peopleMap.set(member.id, emptyPerson(member.id, member.username));
   }
 
@@ -200,7 +190,7 @@ function buildPeople(tasks) {
   }
 
   for (const t of tasks) {
-    const assignees = (t.assignees || []).filter(a => !isExcludedAssignee(a));
+    const assignees = (t.assignees || []).filter(a => memberIds.has(a.id));
     if (assignees.length === 0) continue;
     const status = statusOf(t);
     if (status === IGNORED_STATUS) continue;
@@ -306,4 +296,12 @@ function replaceTeamData(html, teamData) {
   const regex = /const\s+teamData\s*=\s*\{[\s\S]*?\};/;
   if (!regex.test(html)) throw new Error('teamData not found in HTML');
   return html.replace(regex, teamDataToJs(teamData));
+}
+
+// Lê o generatedAt já publicado no HTML — usado pra montar uma versão
+// "mesmo timestamp" e comparar contra o conteúdo atual (ver onRequestPost),
+// sem precisar reimplementar o parser do literal inteiro.
+function extractGeneratedAt(html) {
+  const m = html.match(/const\s+teamData\s*=\s*\{\s*generatedAt:\s*(\d+|null)/);
+  return m ? m[1] : 'null';
 }
