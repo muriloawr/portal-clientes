@@ -44,6 +44,12 @@ const KNOWN_MEMBERS = [
   { id: 102693999, username: 'Murilo Woyciechovski' },
 ];
 
+// Gente que não está mais na empresa mas ainda aparece como assignee em
+// tasks antigas no ClickUp (o ClickUp não limpa isso retroativamente ao
+// remover alguém do workspace) — filtrado por nome pra não depender de
+// achar o id exato de quem já saiu. Atualize ao desligar alguém.
+const EXCLUDED_MEMBER_NAMES = new Set(['michelangelo']);
+
 // "concluído" normalmente falta date_closed no ClickUp (só "fechado", o
 // status de arquivamento, grava esse campo de forma confiável) — ambos contam
 // como fechado pro painel, mas o histórico cai pro due_date como aproximação
@@ -155,6 +161,20 @@ function buildClientResolver(tasks) {
   };
 }
 
+// Remove acentos antes de comparar — "Michelângelo" no ClickUp tem circunflexo,
+// então um match ASCII puro ("michelangelo") não bateria.
+function normalizeName(str) {
+  return String(str).normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+}
+
+function isExcludedAssignee(assignee) {
+  const name = normalizeName(assignee.username || '');
+  for (const excluded of EXCLUDED_MEMBER_NAMES) {
+    if (name.includes(excluded)) return true;
+  }
+  return false;
+}
+
 function emptyPerson(id, name) {
   return {
     id, name,
@@ -180,7 +200,7 @@ function buildPeople(tasks) {
   }
 
   for (const t of tasks) {
-    const assignees = t.assignees || [];
+    const assignees = (t.assignees || []).filter(a => !isExcludedAssignee(a));
     if (assignees.length === 0) continue;
     const status = statusOf(t);
     if (status === IGNORED_STATUS) continue;

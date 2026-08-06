@@ -276,94 +276,6 @@
         margin-bottom: 16px;
       }
 
-      /* --- gráfico de carga de trabalho --- */
-      .wl-row {
-        display: grid;
-        grid-template-columns: 150px 1fr 30px;
-        gap: 12px;
-        align-items: center;
-        padding: 6px 0;
-      }
-      .wl-name {
-        font-size: 12.5px;
-        color: var(--ink);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .wl-bar-wrap {
-        display: flex;
-        gap: 2px;
-        height: 14px;
-        border-radius: 4px;
-        overflow: hidden;
-        background: var(--grey-bg);
-      }
-      .wl-seg {
-        height: 100%;
-        position: relative;
-      }
-      .wl-seg:hover .wl-tip {
-        opacity: 1;
-      }
-      .wl-seg.critical {
-        background: var(--st-critical);
-      }
-      .wl-seg.warning {
-        background: #fab219;
-      }
-      .wl-seg.info {
-        background: var(--brand);
-      }
-      .wl-tip {
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--ink);
-        color: #fff;
-        font-size: 10.5px;
-        padding: 4px 9px;
-        border-radius: 7px;
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.15s ease;
-        z-index: 5;
-      }
-      .wl-total {
-        font-size: 12px;
-        color: var(--ink-soft);
-        text-align: right;
-        font-variant-numeric: tabular-nums;
-      }
-      .wl-legend {
-        display: flex;
-        gap: 18px;
-        flex-wrap: wrap;
-        margin-top: 16px;
-        padding-top: 14px;
-        border-top: 1px solid var(--line);
-      }
-      .wl-legend-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        color: var(--ink-soft);
-      }
-      .wl-legend-swatch {
-        width: 10px;
-        height: 10px;
-        border-radius: 3px;
-        flex-shrink: 0;
-      }
-      .empty-note {
-        font-size: 12.5px;
-        color: var(--ink-soft);
-        padding: 10px 0;
-      }
-
       /* --- cards por pessoa --- */
       .person-card {
         background: var(--panel);
@@ -392,6 +304,10 @@
         font-weight: 600;
         flex-shrink: 0;
         font-family: "Clash Grotesk", sans-serif;
+      }
+      .avatar.client {
+        border-radius: 8px;
+        background: var(--ink);
       }
       .person-name {
         font-family: "Clash Grotesk", sans-serif;
@@ -448,26 +364,50 @@
         background: var(--st-good);
       }
 
-      /* --- kanban por pessoa --- */
+      /* --- kanban (pessoa e cliente): grid de 3 colunas, o resto flui pra
+         baixo em novas linhas — sem scroll horizontal. */
       .kanban-row {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
         gap: 16px;
-        overflow-x: auto;
-        padding-bottom: 10px;
-        scroll-snap-type: x proximity;
+        align-items: start;
       }
-      .kanban-col {
-        flex: 0 0 280px;
-        scroll-snap-align: start;
+      @media (max-width: 900px) {
+        .kanban-row {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 600px) {
+        .kanban-row {
+          grid-template-columns: 1fr;
+        }
       }
       .kanban-col .person-card {
         margin-bottom: 0;
-        height: 100%;
       }
-      @media (max-width: 640px) {
-        .kanban-col {
-          flex-basis: 85vw;
-        }
+
+      /* Barra de acento no topo do card — sinaliza a urgência de relance,
+         antes mesmo de ler os chips (vermelho=atrasada, âmbar=hoje,
+         azul=em andamento, verde=em dia, cinza=parado). */
+      .person-card {
+        position: relative;
+        overflow: hidden;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .person-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: var(--card-accent, var(--line));
+      }
+      .kanban-row .person-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(11, 28, 51, 0.09);
       }
 
       .trend-spark {
@@ -537,13 +477,14 @@
       }
       .task-client {
         display: inline-block;
-        font-size: 10px;
-        font-weight: 600;
-        color: var(--brand);
-        background: var(--tint-1);
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: #fff;
+        background: var(--brand);
         border-radius: 5px;
-        padding: 1px 6px;
-        margin-bottom: 3px;
+        padding: 2px 8px;
+        margin-bottom: 4px;
       }
       .task-assignee {
         color: var(--ink);
@@ -601,10 +542,6 @@
         .summary-grid {
           grid-template-columns: repeat(2, 1fr);
         }
-        .wl-row {
-          grid-template-columns: 100px 1fr 26px;
-          gap: 8px;
-        }
         .person-chips {
           margin-left: 0;
           width: 100%;
@@ -654,34 +591,6 @@
       </div>
 
       <div class="summary-grid" id="summaryGrid"></div>
-
-      <div class="block">
-        <h2>Carga de trabalho atual</h2>
-        <div class="sub">
-          Atrasadas + tarefas de hoje + em andamento sem prazo hoje, por pessoa
-        </div>
-        <div id="workloadChart"></div>
-        <div class="wl-legend">
-          <div class="wl-legend-item">
-            <span
-              class="wl-legend-swatch"
-              style="background: var(--st-critical)"
-            ></span
-            >Atrasada
-          </div>
-          <div class="wl-legend-item">
-            <span class="wl-legend-swatch" style="background: #fab219"></span
-            >Hoje
-          </div>
-          <div class="wl-legend-item">
-            <span
-              class="wl-legend-swatch"
-              style="background: var(--brand)"
-            ></span
-            >Em andamento
-          </div>
-        </div>
-      </div>
 
       <div id="peopleGrid"></div>
       <div class="no-results" id="noResults" style="display: none">
@@ -1176,7 +1085,7 @@
           '" href="' +
           escapeHtml(t.url) +
           '" target="_blank" rel="noopener">' +
-          clientBadge(t) +
+          (opts.showClient === false ? "" : clientBadge(t)) +
           '<span class="task-title">' +
           escapeHtml(t.title) +
           "</span>" +
@@ -1373,80 +1282,13 @@
           .join("");
       }
 
-      function renderWorkloadChart(filterText) {
-        const rows = teamData.people
-          .map(function (p) {
-            return { p: p, w: personWorkload(p) };
-          })
-          .filter(function (r) {
-            return (
-              !filterText || r.p.name.toLowerCase().indexOf(filterText) !== -1
-            );
-          });
-
-        const maxTotal = Math.max(
-          1,
-          ...rows.map(function (r) {
-            return r.w.total;
-          }),
-        );
-        const container = document.getElementById("workloadChart");
-
-        if (rows.length === 0) {
-          container.innerHTML =
-            '<div class="empty-note">Nenhuma pessoa encontrada.</div>';
-          return;
-        }
-
-        container.innerHTML = rows
-          .map(function (r) {
-            const w = r.w;
-            const segs = [
-              { key: "critical", count: w.overdueCount, label: "Atrasada" },
-              { key: "warning", count: w.todayCount, label: "Hoje" },
-              {
-                key: "info",
-                count: w.inProgressExtra.length,
-                label: "Em andamento",
-              },
-            ].filter(function (s) {
-              return s.count > 0;
-            });
-
-            const barHtml = segs
-              .map(function (s) {
-                const pct = ((s.count / maxTotal) * 100).toFixed(1);
-                return (
-                  '<div class="wl-seg ' +
-                  s.key +
-                  '" style="width:' +
-                  pct +
-                  '%;">' +
-                  '<div class="wl-tip">' +
-                  s.label +
-                  ": " +
-                  s.count +
-                  "</div>" +
-                  "</div>"
-                );
-              })
-              .join("");
-
-            return (
-              '<div class="wl-row">' +
-              '<div class="wl-name">' +
-              escapeHtml(r.p.name) +
-              "</div>" +
-              '<div class="wl-bar-wrap">' +
-              barHtml +
-              "</div>" +
-              '<div class="wl-total">' +
-              w.total +
-              "</div>" +
-              "</div>"
-            );
-          })
-          .join("");
+      // Cor da barra de topo do card, do mais urgente pro menos: atrasada >
+      // hoje > em andamento > (bom/parado conforme isEmptyGood).
+      function urgencyAccent(criticalCount, warningCount, infoCount, isEmptyGood) {
+        if (criticalCount) return "var(--st-critical)";
+        if (warningCount) return "#fab219";
+        if (infoCount) return "var(--brand)";
+        return isEmptyGood ? "var(--st-good)" : "var(--ink-soft)";
       }
 
       function renderPersonKanban(filterText) {
@@ -1518,10 +1360,18 @@
               })
               .join("");
             const historyHtml = renderHistory(p.doneRecent);
+            const accent = urgencyAccent(
+              w.overdueCount,
+              w.todayCount,
+              w.inProgressExtra.length,
+              !isIdle(p, w),
+            );
 
             return (
               '<div class="kanban-col">' +
-              '<div class="person-card">' +
+              '<div class="person-card" style="--card-accent:' +
+              accent +
+              ';">' +
               '<div class="person-head">' +
               '<span class="avatar">' +
               initials(p.name) +
@@ -1612,42 +1462,89 @@
           return diff !== 0 ? diff : a.localeCompare(b);
         });
 
-        document.getElementById("peopleGrid").innerHTML = clients
+        const cols = clients
           .map(function (client) {
             const list = groups.get(client).slice().sort(function (x, y) {
               const rankDiff = ACCENT_RANK[x.accent] - ACCENT_RANK[y.accent];
               if (rankDiff !== 0) return rankDiff;
               return (x.task.dueMs || Infinity) - (y.task.dueMs || Infinity);
             });
-            const critical = urgentCount(list);
+            const criticalCount = list.filter(function (i) {
+              return i.accent === "critical";
+            }).length;
+            const warningCount = list.filter(function (i) {
+              return i.accent === "warning";
+            }).length;
+            const infoCount = list.filter(function (i) {
+              return i.accent === "info";
+            }).length;
+
+            const chips = [];
+            if (criticalCount)
+              chips.push(
+                '<span class="chip critical"><span class="chip-dot"></span>' +
+                  criticalCount +
+                  " atrasada" +
+                  (criticalCount > 1 ? "s" : "") +
+                  "</span>",
+              );
+            if (warningCount)
+              chips.push(
+                '<span class="chip warning"><span class="chip-dot"></span>' +
+                  warningCount +
+                  " hoje</span>",
+              );
+            if (infoCount)
+              chips.push(
+                '<span class="chip info"><span class="chip-dot"></span>' +
+                  infoCount +
+                  " em andamento</span>",
+              );
+            if (!chips.length)
+              chips.push(
+                '<span class="chip good"><span class="chip-dot"></span>em dia</span>',
+              );
+
             const rowsHtml = list
               .map(function (i) {
-                return taskRow(i.task, i.accent, { assignee: i.assignee });
+                return taskRow(i.task, i.accent, {
+                  assignee: i.assignee,
+                  showClient: false,
+                });
               })
               .join("");
+            const accent = urgencyAccent(criticalCount, warningCount, infoCount, true);
+
             return (
-              '<div class="block">' +
-              "<h2>" +
+              '<div class="kanban-col">' +
+              '<div class="person-card" style="--card-accent:' +
+              accent +
+              ';">' +
+              '<div class="person-head">' +
+              '<span class="avatar client">' +
+              initials(client) +
+              "</span>" +
+              '<span class="person-name">' +
               escapeHtml(client) +
-              "</h2>" +
-              '<div class="sub">' +
-              list.length +
-              " tarefa" +
-              (list.length > 1 ? "s" : "") +
-              " em aberto" +
-              (critical > 0 ? " · " + critical + " urgente" + (critical > 1 ? "s" : "") : "") +
+              "</span>" +
+              '<div class="person-chips">' +
+              chips.join("") +
+              "</div>" +
               "</div>" +
               '<div class="section-list">' +
               rowsHtml +
+              "</div>" +
               "</div>" +
               "</div>"
             );
           })
           .join("");
+
+        document.getElementById("peopleGrid").innerHTML =
+          '<div class="kanban-row">' + cols + "</div>";
       }
 
       function renderAll(filterText) {
-        renderWorkloadChart(filterText);
         if (viewMode === "client") renderClientBoard(filterText);
         else renderPersonKanban(filterText);
       }
