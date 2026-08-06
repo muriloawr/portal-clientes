@@ -81,3 +81,22 @@ jobs:
             echo "::error::One or more client syncs failed"
             exit 1
           fi
+
+      - name: Trigger team dashboard sync
+        env:
+          SYNC_SECRET: ${{ secrets.CLICKUP_WEBHOOK_SECRET }}
+        run: |
+          BODY='{"event":"scheduledSync","client":"team-dashboard"}'
+          SIG=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$SYNC_SECRET" | sed 's/^.* //')
+          HTTP_STATUS=$(curl -sS -o response.txt -w '%{http_code}' -X POST \
+            https://clientes.vanzaklabs.com/team-dashboard-sync \
+            -H 'Content-Type: application/json' \
+            -H "X-Signature: $SIG" \
+            -d "$BODY")
+          echo "=== team-dashboard: HTTP $HTTP_STATUS ==="
+          cat response.txt
+          echo
+          if [ "$HTTP_STATUS" -ge 400 ]; then
+            echo "::error::Team dashboard sync failed"
+            exit 1
+          fi
