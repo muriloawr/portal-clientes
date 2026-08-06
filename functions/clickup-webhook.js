@@ -6,6 +6,11 @@
 // no GitHub. O deploy do Cloudflare Pages já dispara sozinho a partir do commit.
 // Adicionar um cliente novo é só adicionar uma entrada em CLIENTS.
 
+import {
+  computeSignature, timingSafeEqual, clickUpFetch,
+  getGithubFile, commitGithubFile, escapeJs, escapeHtml,
+} from './_lib/clickup-shared.js';
+
 // Clientes com um serviço só usam `taskId` (escreve `const months = [...]` no HTML).
 // Clientes com mais de um serviço (ex: CRO + CRM) usam `services`, cada um com seu
 // próprio taskId — escreve `const services = [{ key, label, months }, ...]` no HTML,
@@ -43,10 +48,6 @@ const CLIENTS = [
   { name: 'AIB Beauty', type: 'projeto', taskId: 'wdpu2ye60a', filePath: 'aib-beauty/index.html' },
   { name: 'Bako', type: 'projeto', taskId: 'wdpu2ye3hg', filePath: 'bako/index.html' },
 ];
-
-const REPO_OWNER = 'muriloawr';
-const REPO_NAME = 'portal-clientes';
-const BRANCH = 'main';
 
 // Lista "Projetos" no ClickUp — mesma lista de onde vem a task-mãe de cada
 // cliente tipo "projeto" e onde a sync do Figma já procura a task-mãe pelo
@@ -150,57 +151,8 @@ async function syncClient(client, env) {
 
   if (updated === content) return 'no changes';
 
-  await commitGithubFile(client.filePath, updated, sha, client.name, env.GITHUB_TOKEN);
+  await commitGithubFile(client.filePath, updated, sha, `sync: atualiza relatório ${client.name} a partir do ClickUp`, env.GITHUB_TOKEN);
   return 'synced';
-}
-
-// --- assinatura ---
-
-async function computeSignature(rawBody, secret) {
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(secret || ''),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const sigBuffer = await crypto.subtle.sign('HMAC', key, enc.encode(rawBody));
-  return [...new Uint8Array(sigBuffer)].map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function timingSafeEqual(a, b) {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return result === 0;
-}
-
-// --- ClickUp ---
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// O limite do ClickUp é ~100 req/min por token, valendo pro token inteiro
-// (não só por cliente) — clientes com bastante subtask/item, mais o
-// fetchComment novo por etapa, empurraram algumas invocações pra cima
-// desse limite. Diferente do script do Figma (que roda no GitHub Actions,
-// sem pressa), aqui é um Cloudflare Worker com tempo de execução curto —
-// pausa e retry bem mais curtos, focando em espaçar as chamadas em vez de
-// esperar a janela de limite virar de verdade.
-const CLICKUP_REQUEST_DELAY_MS = 300;
-const CLICKUP_MAX_RETRIES = 3;
-const CLICKUP_RETRY_WAIT_MS = 3000;
-
-async function clickUpFetch(url, options, attempt = 1) {
-  const res = await fetch(url, options);
-  if (res.status === 429 && attempt <= CLICKUP_MAX_RETRIES) {
-    await sleep(CLICKUP_RETRY_WAIT_MS);
-    return clickUpFetch(url, options, attempt + 1);
-  }
-  await sleep(CLICKUP_REQUEST_DELAY_MS);
-  return res;
 }
 
 async function fetchSubtasks(taskId, token) {
@@ -394,14 +346,6 @@ function replaceStagesArray(html, stages) {
   return html.replace(regex, stagesToJs(stages));
 }
 
-function escapeJs(str) {
-  // Escapa crase também (não só \, ' e \n) — necessário pro provisionamento
-  // automático de cliente novo, que interpola stagesArrayLiteral(...) direto
-  // dentro do template literal do gerador (buildNewClientHtml); um nome de
-  // task/comentário com crase sem escapar quebraria essa template literal.
-  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/`/g, '\\`').replace(/\n/g, '\\n');
-}
-
 function monthsArrayLiteral(months) {
   const body = months.map(m => {
     const demandsJs = m.demands.map(d =>
@@ -433,47 +377,6 @@ function replaceServicesArray(html, services) {
   const regex = /const\s+services\s*=\s*\[[\s\S]*?\];/;
   if (!regex.test(html)) throw new Error('services array not found in HTML');
   return html.replace(regex, servicesToJs(services));
-}
-
-// --- GitHub ---
-
-async function getGithubFile(filePath, token) {
-  const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}?ref=${BRANCH}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'User-Agent': 'clickup-sync-worker',
-    },
-  });
-  if (!res.ok) throw new Error(`GitHub GET error: ${res.status} ${await res.text()}`);
-  const data = await res.json();
-  const binary = atob(data.content.replace(/\n/g, ''));
-  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
-  const content = new TextDecoder('utf-8').decode(bytes);
-  return { content, sha: data.sha };
-}
-
-async function commitGithubFile(filePath, content, sha, clientName, token) {
-  const bytes = new TextEncoder().encode(content);
-  let binary = '';
-  bytes.forEach(b => { binary += String.fromCharCode(b); });
-  const base64 = btoa(binary);
-
-  const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'User-Agent': 'clickup-sync-worker',
-    },
-    body: JSON.stringify({
-      message: `sync: atualiza relatório ${clientName} a partir do ClickUp`,
-      content: base64,
-      sha,
-      branch: BRANCH,
-    }),
-  });
-  if (!res.ok) throw new Error(`GitHub PUT error: ${res.status} ${await res.text()}`);
 }
 
 // --- descoberta e provisionamento de clientes novos ---
@@ -538,13 +441,13 @@ async function provisionNewClient(task, ownSource, ownSha, env) {
   } catch (err) {
     pageSha = undefined;
   }
-  await commitGithubFile(filePath, html, pageSha, task.name, env.GITHUB_TOKEN);
+  await commitGithubFile(filePath, html, pageSha, `sync: provisiona cliente ${task.name}`, env.GITHUB_TOKEN);
 
   // 2) cadastra em CLIENTS, nesse mesmo arquivo — só insere se ainda não
   // está lá (retry depois de falha parcial não deve duplicar a entrada).
   if (!ownSource.includes(`taskId: '${task.id}'`)) {
     const updatedSource = insertClientEntry(ownSource, task.name, task.id, filePath);
-    await commitGithubFile('functions/clickup-webhook.js', updatedSource, ownSha, task.name, env.GITHUB_TOKEN);
+    await commitGithubFile('functions/clickup-webhook.js', updatedSource, ownSha, `sync: cadastra cliente ${task.name} em CLIENTS`, env.GITHUB_TOKEN);
   }
 
   // 3) adiciona o nome no array bash do workflow agendado — página e
@@ -556,7 +459,7 @@ async function provisionNewClient(task, ownSource, ownSha, env) {
     const { content: wfContent, sha: wfSha } = await getGithubFile('.github/workflows/clickup-sync-schedule.yml', env.GITHUB_TOKEN);
     const updatedWf = insertWorkflowClientName(wfContent, task.name);
     if (updatedWf !== wfContent) {
-      await commitGithubFile('.github/workflows/clickup-sync-schedule.yml', updatedWf, wfSha, task.name, env.GITHUB_TOKEN);
+      await commitGithubFile('.github/workflows/clickup-sync-schedule.yml', updatedWf, wfSha, `sync: adiciona cliente ${task.name} no workflow agendado`, env.GITHUB_TOKEN);
     }
   } catch (err) {
     workflowNote = ` — falta adicionar "${task.name}" manualmente no workflow (${err.message})`;
@@ -599,15 +502,6 @@ function insertWorkflowClientName(yaml, clientName) {
   const indent = indentMatch ? indentMatch[1] : '            ';
   const escaped = String(clientName).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '\\$').replace(/`/g, '\\`');
   return yaml.replace(regex, `$1${indent}"${escaped}"\n$2`);
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 // Template padrão "projeto" pra cliente provisionado sozinho — mesmo
