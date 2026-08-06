@@ -234,7 +234,7 @@ function teamDataToJs(teamData) {
 }
 
 function replaceTeamData(html, teamData) {
-  const regex = /const\s+teamData\s*=\s*\{[\s\S]*?\n\};/;
+  const regex = /const\s+teamData\s*=\s*\{[\s\S]*?\};/;
   if (!regex.test(html)) throw new Error('teamData not found in HTML');
   return html.replace(regex, teamDataToJs(teamData));
 }
