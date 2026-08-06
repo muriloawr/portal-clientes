@@ -2,10 +2,11 @@
 // Painel interno de gestão: "o que cada pessoa tem pra fazer hoje" + "o que já
 // fez nos dias anteriores". Disparada pelo workflow agendado do GitHub Actions
 // (mesmo esquema de functions/clickup-webhook.js), na mesma janela de horário
-// comercial. Ao contrário do sync de clientes, aqui não há fan-out por item
-// (não busca comentário de cada task) — só pagina as 4 listas abaixo, então
-// dá pra sincronizar tudo numa invocação só sem estourar o limite de
-// subrequests do Worker.
+// comercial. A maior parte do trabalho é paginar as 4 listas abaixo (sem
+// fan-out por item) — a única exceção é buildRecurringHours, que busca
+// comentário de cada task-mãe de cliente recorrente (CRO+CRM, tipicamente
+// menos de 10 no total), pra ler "Horas Contratadas: N". Baixo volume o
+// suficiente pra não estourar o limite de subrequests do Worker.
 //
 // Escopo: listas "Clientes Recorrentes" (CRO, CRM, Planejamento) + "Projetos"
 // (Gestão de Projetos). "Horas Extras" fica de fora de propósito — é outro
@@ -65,7 +66,13 @@ export async function onRequestPost(context) {
       allTasks.push(...tasks);
     }
 
-    const people = buildPeople(allTasks, members);
+    // Um resolver só, compartilhado entre buildPeople (client por tarefa) e
+    // buildRecurringHours (agrupar horas por cliente+serviço) — evita montar
+    // o mapa de parent duas vezes na mesma invocação.
+    const resolveClient = buildClientResolver(allTasks);
+    const people = buildPeople(allTasks, members, resolveClient);
+    const recurringHours = await buildRecurringHours(allTasks, resolveClient, env.CLICKUP_API_TOKEN);
+
     const { content, sha } = await getGithubFile(FILE_PATH, env.GITHUB_TOKEN);
 
     // Só recommita (e só avança o "Atualizado em") quando algo de verdade
@@ -73,10 +80,10 @@ export async function onRequestPost(context) {
     // commitar (e disparar um deploy no Cloudflare) toda vez que o cron
     // roda sem nenhuma mudança real vinda do ClickUp.
     const prevGeneratedAt = extractGeneratedAt(content);
-    const sameTimestamp = replaceTeamData(content, { generatedAt: prevGeneratedAt, people });
+    const sameTimestamp = replaceTeamData(content, { generatedAt: prevGeneratedAt, people, recurringHours });
     if (sameTimestamp === content) return new Response('no changes', { status: 200 });
 
-    const updated = replaceTeamData(content, { generatedAt: Date.now(), people });
+    const updated = replaceTeamData(content, { generatedAt: Date.now(), people, recurringHours });
     await commitGithubFile(FILE_PATH, updated, sha, 'sync: atualiza painel de gestão a partir do ClickUp', env.GITHUB_TOKEN);
     return new Response('synced', { status: 200 });
   } catch (err) {
@@ -136,6 +143,16 @@ function ymdSaoPaulo(ms) {
   return SP_FORMATTER.format(new Date(ms));
 }
 
+// "YYYY-MM" no mesmo fuso — usado pra agrupar horas de clientes recorrentes
+// por mês. Ao contrário do agrupamento por mês em clickup-webhook.js (que
+// usa o fuso local do Worker, UTC, e tolera a imprecisão perto da virada),
+// aqui vale a mesma precisão do ymdSaoPaulo: o usuário acompanha de perto se
+// estourou o orçamento do mês, então um due_date de véspera não pode cair no
+// mês errado.
+function ymSaoPaulo(ms) {
+  return ymdSaoPaulo(ms).slice(0, 7);
+}
+
 // Sobe a cadeia `parent` de uma task até achar a task-mãe que representa o
 // cliente: em CRO/CRM/Planejamento, pára no primeiro ancestral com status
 // "clientes" (o marcador de pasta, ver IGNORED_STATUS); em Projetos, não tem
@@ -168,14 +185,17 @@ function emptyPerson(id, name) {
   return {
     id, name,
     today: [], overdue: [], upcoming: [], inProgress: [], backlog: [], doneRecent: [],
-    weeklyDone: new Array(TREND_WEEKS).fill(0),
+    // Separados por escopo (Recorrentes = CRO/CRM/Planejamento vs Projetos)
+    // pro sparkline de "ritmo de entrega" bater com a aba ativa no painel —
+    // um único array misturado ficaria incoerente ao trocar de escopo.
+    weeklyDoneRecurring: new Array(TREND_WEEKS).fill(0),
+    weeklyDoneProjetos: new Array(TREND_WEEKS).fill(0),
   };
 }
 
-function buildPeople(tasks, members) {
+function buildPeople(tasks, members, resolveClient) {
   const todayStr = ymdSaoPaulo(Date.now());
   const lookbackStartStr = ymdSaoPaulo(Date.now() - HISTORY_LOOKBACK_DAYS * 86400000);
-  const resolveClient = buildClientResolver(tasks);
   const memberIds = new Set(members.map(m => m.id));
   const peopleMap = new Map();
   for (const member of members) {
@@ -228,7 +248,8 @@ function buildPeople(tasks, members) {
           // array.
           const ageMs = Date.now() - effectiveMs;
           if (ageMs >= 0 && ageMs < TREND_WEEKS * 7 * 86400000) {
-            person.weeklyDone[Math.min(TREND_WEEKS - 1, Math.floor(ageMs / (7 * 86400000)))]++;
+            const bucketArr = t._listName === 'Projetos' ? person.weeklyDoneProjetos : person.weeklyDoneRecurring;
+            bucketArr[Math.min(TREND_WEEKS - 1, Math.floor(ageMs / (7 * 86400000)))]++;
           }
         }
         continue;
@@ -259,6 +280,92 @@ function buildPeople(tasks, members) {
   return people;
 }
 
+// --- horas contratadas (clientes recorrentes: CRO + CRM) ---
+
+// A frase decide se um comentário "fala sobre" horas contratadas; o valor
+// só é extraído se a frase realmente aparecer nesse comentário específico —
+// nunca busca a frase num comentário e o número em outro.
+const HOURS_COMMENT_RE = /horas\s+contratadas/i;
+const HOURS_VALUE_RE = /horas\s+contratadas\s*:?\s*(\d+(?:[.,]\d+)?)/i;
+const MONTHS_HISTORY = 3; // mês atual + 2 anteriores
+
+// Sobe os comentários da task-mãe da mais recente pra mais antiga (a API do
+// ClickUp já retorna nessa ordem). A primeira que mencionar "horas
+// contratadas" decide — com número válido, usa ele; sem número válido (ex:
+// "Horas Contratadas: renegociando"), pára ali e retorna null em vez de
+// cair pra um comentário mais antigo, que estaria desatualizado por
+// definição (foi por isso que alguém comentou de novo).
+async function fetchContractedHours(taskId, token) {
+  const res = await clickUpFetch(`https://api.clickup.com/api/v2/task/${taskId}/comment`, {
+    headers: { Authorization: token },
+  });
+  if (!res.ok) throw new Error(`ClickUp API error (comment): ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  for (const c of data.comments || []) {
+    const text = (c.comment_text || '').trim();
+    if (!HOURS_COMMENT_RE.test(text)) continue;
+    const m = text.match(HOURS_VALUE_RE);
+    if (!m) return null;
+    const val = Number(m[1].replace(',', '.'));
+    return Number.isNaN(val) ? null : val;
+  }
+  return null;
+}
+
+// "YYYY-MM" dos últimos N meses (mês atual primeiro) — calculado em UTC de
+// propósito (só decide EM QUAL mês calendário estamos rodando "agora", não
+// precisa da mesma precisão de fuso do bucketing por due_date acima).
+function lastNMonthKeys(n) {
+  const keys = [];
+  const now = new Date();
+  for (let i = 0; i < n; i++) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    keys.push(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`);
+  }
+  return keys;
+}
+
+// Uma entrada por (cliente, serviço) — CRO e CRM contam como contratos
+// separados mesmo pro mesmo cliente. Semeado só pelas tasks-mãe com status
+// "clientes" nas listas CRO/CRM: uma task cujo resolveClient caia fora
+// desse conjunto (árvore órfã, cadeia quebrada) é ignorada, não vira card
+// espúrio no painel.
+async function buildRecurringHours(allTasks, resolveClient, token) {
+  const markers = allTasks.filter(t =>
+    (t._listName === 'CRO' || t._listName === 'CRM') && statusOf(t) === IGNORED_STATUS,
+  );
+
+  const monthKeys = lastNMonthKeys(MONTHS_HISTORY);
+  const entries = new Map();
+  for (const marker of markers) {
+    entries.set(`${marker.name} ${marker._listName}`, {
+      client: marker.name,
+      service: marker._listName,
+      contractedHours: await fetchContractedHours(marker.id, token),
+      months: monthKeys.map(k => ({ key: k, usedHours: 0 })),
+    });
+  }
+
+  for (const t of allTasks) {
+    if (t._listName !== 'CRO' && t._listName !== 'CRM') continue;
+    if (statusOf(t) === IGNORED_STATUS) continue;
+    if (!t.due_date) continue;
+    const client = resolveClient(t.id);
+    const entry = entries.get(`${client} ${t._listName}`);
+    if (!entry) continue;
+    const bucket = entry.months.find(m => m.key === ymSaoPaulo(Number(t.due_date)));
+    if (!bucket) continue;
+    bucket.usedHours += t.time_estimate ? Number(t.time_estimate) / 3600000 : 0;
+  }
+
+  const result = [...entries.values()];
+  for (const e of result) {
+    for (const m of e.months) m.usedHours = Math.round(m.usedHours * 100) / 100;
+  }
+  result.sort((a, b) => a.client.localeCompare(b.client) || a.service.localeCompare(b.service));
+  return result;
+}
+
 // --- serialização pro HTML ---
 
 function taskLiteral(t, extraFields) {
@@ -277,7 +384,8 @@ function personLiteral(p) {
   return `    {
       id: ${JSON.stringify(p.id)},
       name: '${escapeJs(p.name)}',
-      weeklyDone: ${JSON.stringify(p.weeklyDone)},
+      weeklyDoneRecurring: ${JSON.stringify(p.weeklyDoneRecurring)},
+      weeklyDoneProjetos: ${JSON.stringify(p.weeklyDoneProjetos)},
       today: ${taskListLiteral(p.today)},
       overdue: ${taskListLiteral(p.overdue)},
       upcoming: ${taskListLiteral(p.upcoming)},
@@ -287,9 +395,22 @@ function personLiteral(p) {
     },`;
 }
 
+function recurringHoursEntryLiteral(e) {
+  const monthsJs = e.months
+    .map(m => `        { key: '${m.key}', usedHours: ${m.usedHours} },`)
+    .join('\n');
+  return `    {
+      client: '${escapeJs(e.client)}',
+      service: '${e.service}',
+      contractedHours: ${e.contractedHours == null ? 'null' : e.contractedHours},
+      months: [\n${monthsJs}\n      ],
+    },`;
+}
+
 function teamDataToJs(teamData) {
   const peopleJs = teamData.people.map(personLiteral).join('\n');
-  return `const teamData = {\n  generatedAt: ${teamData.generatedAt},\n  people: [\n${peopleJs}\n  ],\n};`;
+  const recurringHoursJs = teamData.recurringHours.map(recurringHoursEntryLiteral).join('\n');
+  return `const teamData = {\n  generatedAt: ${teamData.generatedAt},\n  people: [\n${peopleJs}\n  ],\n  recurringHours: [\n${recurringHoursJs}\n  ],\n};`;
 }
 
 function replaceTeamData(html, teamData) {
