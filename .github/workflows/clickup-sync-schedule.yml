@@ -44,7 +44,7 @@ jobs:
             "Orgânico Natural"
             "Adah Beauty Tech"
             "Sellévia"
-            "Booma"
+            "Booma Organic"
             "Beleza Brasileira"
             "Yasmin Beauty"
             "Beeva"
@@ -55,7 +55,7 @@ jobs:
             "Mye Mye"
             "Piny"
             "AIB Beauty"
-            "Bako"
+            "Bako Cosmetics"
           )
           FAILED=0
           for CLIENT in "${CLIENTS[@]}"; do
