@@ -26,8 +26,8 @@ const CLIENTS = [
   { name: 'Humara', taskId: 'wdpu2ybtwm', filePath: 'humara/index.html' },
   { name: 'Uplift Fitness', taskId: '86aewgr7t', filePath: 'uplift-fitness/index.html' },
   { name: 'InfinitAge', taskId: '86aeu720q', filePath: 'infinitage/index.html' },
-    { name: 'A Confiteria', services: [{ key: 'crm', label: 'CRM', taskId: 'wdpu2ydp1t' }, { key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezry' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75f' }], filePath: 'a-confiteria/index.html' },,
-    { name: 'Orgânico Natural', services: [{ key: 'crm', label: 'CRM', taskId: 'wdpu2ydp1u' }, { key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrr' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75c' }], filePath: 'organico-natural/index.html' },,
+    { name: 'A Confiteria', services: [{ key: 'crm', label: 'CRM', taskId: 'wdpu2ydp1t' }, { key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezry' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75f' }], filePath: 'a-confiteria/index.html' },
+    { name: 'Orgânico Natural', services: [{ key: 'crm', label: 'CRM', taskId: 'wdpu2ydp1u' }, { key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrr' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75c' }], filePath: 'organico-natural/index.html' },
   {
     name: 'Adah Beauty Tech',
     filePath: 'adah-beauty-tech/index.html',
@@ -36,19 +36,19 @@ const CLIENTS = [
       { key: 'crm', label: 'CRM', taskId: 'wdpu2ydp1p' },
     ],
   },
-    { name: 'Sellévia', projectTaskId: 'wdpu2yadde', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztr' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75r' }], filePath: 'sellevia/index.html' },,
-    { name: 'Booma Organic', projectTaskId: 'wdpu2ybtcm', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrt' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75d' }], filePath: 'booma/index.html' },,
+    { name: 'Sellévia', projectTaskId: 'wdpu2yadde', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztr' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75r' }], filePath: 'sellevia/index.html' },
+    { name: 'Booma Organic', projectTaskId: 'wdpu2ybtcm', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrt' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75d' }], filePath: 'booma/index.html' },
   { name: 'Beleza Brasileira', projectTaskId: 'wdpu2y7wq1', filePath: 'beleza-brasileira/index.html' },
   { name: 'Yasmin Beauty', projectTaskId: '86ahgcemc', filePath: 'yasmin-beauty/index.html' },
-    { name: 'Beeva', projectTaskId: 'wdpu2ydyzj', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztp' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75p' }], filePath: 'beeva/index.html' },,
+    { name: 'Beeva', projectTaskId: 'wdpu2ydyzj', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztp' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75p' }], filePath: 'beeva/index.html' },
   { name: 'PROTS', projectTaskId: 'wdpu2ybucf', filePath: 'prots/index.html' },
   { name: 'TAG Grading Brazil', projectTaskId: 'wdpu2yejnj', filePath: 'tag-grading/index.html' },
-    { name: 'Cookie Dreams', projectTaskId: '86ahp88m4', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrz' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75g' }], filePath: 'cookie-dreams/index.html' },,
+    { name: 'Cookie Dreams', projectTaskId: '86ahp88m4', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrz' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75g' }], filePath: 'cookie-dreams/index.html' },
   { name: 'MUUPI', projectTaskId: '86agvb320', filePath: 'muupi/index.html' },
   { name: 'Mye Mye', projectTaskId: 'wdpu2ye60e', filePath: 'mye-mye/index.html' },
   { name: 'Piny', projectTaskId: 'wdpu2ye60b', filePath: 'piny/index.html' },
   { name: 'AIB Beauty', projectTaskId: 'wdpu2ye60a', filePath: 'aib-beauty/index.html' },
-    { name: 'Bako Cosmetics', projectTaskId: 'wdpu2ye3hg', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztn' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75n' }], filePath: 'bako/index.html' },,
+    { name: 'Bako Cosmetics', projectTaskId: 'wdpu2ye3hg', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztn' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75n' }], filePath: 'bako/index.html' },
   { name: 'Kunha P', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztq' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75q' }], filePath: 'kunha-p/index.html' },
   { name: 'SenseBe', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztk' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75m' }], filePath: 'sensebe/index.html' },
   { name: 'Bash Beauty', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezt3' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75k' }], filePath: 'bash-beauty/index.html' },
@@ -624,23 +624,26 @@ function findClientEntryInfo(source, name) {
   };
 }
 
+// Objeto "nu", sem vírgula/indentação — extractClientEntryText também
+// devolve o entry existente nesse mesmo formato, então upsertClientEntry
+// pode trocar um pelo outro sem duplicar a vírgula que já está no source.
 function buildClientEntryLiteral(name, projectTaskId, services, filePath) {
   const parts = [`name: '${escapeJs(name)}'`];
   if (projectTaskId) parts.push(`projectTaskId: '${projectTaskId}'`);
   const servicesLiteral = services.map(s => `{ key: '${s.key}', label: '${escapeJs(s.label)}', taskId: '${s.taskId}' }`).join(', ');
   parts.push(`services: [${servicesLiteral}]`);
   parts.push(`filePath: '${filePath}'`);
-  return `  { ${parts.join(', ')} },`;
+  return `{ ${parts.join(', ')} }`;
 }
 
 // Substitui a entrada existente no lugar exato onde ela já estava (preserva
-// posição/vizinhos no array) ou, se o cliente é novo, insere no fim — mesmo
-// padrão do insertClientEntry.
+// posição/vizinhos/vírgula no array) ou, se o cliente é novo, insere no fim
+// com sua própria indentação e vírgula — mesmo padrão do insertClientEntry.
 function upsertClientEntry(source, existingEntryText, entryLiteral) {
   if (existingEntryText) return source.replace(existingEntryText, entryLiteral);
   const regex = /(const\s+CLIENTS\s*=\s*\[[\s\S]*?)\n(\];)/;
   if (!regex.test(source)) throw new Error('CLIENTS array não encontrado em functions/clickup-webhook.js');
-  return source.replace(regex, `$1\n${entryLiteral}\n$2`);
+  return source.replace(regex, `$1\n  ${entryLiteral},\n$2`);
 }
 
 // `foundServices` já é o estado ATUAL e completo (acabou de escanear as 4
