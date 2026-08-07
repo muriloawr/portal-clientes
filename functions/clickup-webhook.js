@@ -126,9 +126,11 @@ export async function onRequestPost(context) {
   }
 
   let clientFilter = null;
+  let forceRegen = false;
   try {
     const parsed = JSON.parse(rawBody);
     if (parsed && parsed.client) clientFilter = parsed.client;
+    if (parsed && parsed.forceRegen) forceRegen = true;
   } catch (err) {
     // corpo sem JSON válido: trata como "sincronizar todos"
   }
@@ -137,11 +139,17 @@ export async function onRequestPost(context) {
   if (clientFilter && targets.length === 0) {
     return new Response(`Unknown client: ${clientFilter}`, { status: 400 });
   }
+  // forceRegen só faz sentido pedido explicitamente pra 1 cliente por vez —
+  // nunca dispara sozinho a partir do cron normal (que nunca manda esse
+  // campo), e não vale a pena suportar em lote na mesma chamada.
+  if (forceRegen && !clientFilter) {
+    return new Response('forceRegen exige "client" específico no corpo', { status: 400 });
+  }
 
   const results = [...discoveryResults];
   for (const client of targets) {
     try {
-      results.push(`${client.name}: ${await syncClient(client, env)}`);
+      results.push(`${client.name}: ${await syncClient(client, env, forceRegen)}`);
     } catch (err) {
       results.push(`${client.name}: FAILED - ${err.message}`);
     }
@@ -155,8 +163,50 @@ export async function onRequestGet() {
   return new Response('clickup-webhook: use POST', { status: 200 });
 }
 
-async function syncClient(client, env) {
+// Regenera a página inteira via buildClientHtml em vez do patch cirúrgico
+// normal — usado só pra migrar página já publicada pro layout novo
+// (sidebar/Financeiro/Dados Cadastrais), nunca pelo sync agendado comum.
+// Cliente "simples" (só `taskId`, sem services[]) vira um services[] de 1
+// item só — buildClientHtml não tem um layout "sem sidebar" separado pra
+// isso, e não temos o label exato (CRM/CRO/...) guardado em CLIENTS pra
+// esse formato antigo, daí o rótulo genérico "Relatório".
+async function forceRegenClient(client, content, sha, env) {
+  const stages = client.projectTaskId
+    ? await buildProjectStages(client.projectTaskId, env.CLICKUP_API_TOKEN)
+    : null;
+
+  let services = null;
+  if (client.services) {
+    services = [];
+    for (const service of client.services) {
+      const months = await buildMonths(service.taskId, env.CLICKUP_API_TOKEN);
+      services.push({ key: service.key, label: service.label, months });
+    }
+  } else if (!client.projectTaskId) {
+    const months = await buildMonths(client.taskId, env.CLICKUP_API_TOKEN);
+    services = [{ key: 'principal', label: 'Relatório', months }];
+  }
+
+  const slug = client.filePath.replace(/\/index\.html$/, '');
+  const taskIdForPage = client.projectTaskId || client.taskId || (client.services && client.services[0].taskId) || null;
+  let html = buildClientHtml(client.name, taskIdForPage, stages, services, slug, env.CLERK_PUBLISHABLE_KEY);
+
+  // Dado não mudou, só a apresentação — preserva o generatedAt original em
+  // vez de fingir que sincronizou agora.
+  const generatedAtMatch = content.match(/(?:const|var)\s+generatedAt\s*=\s*(\d+)/);
+  if (generatedAtMatch) {
+    html = html.replace(/(?:const|var)\s+generatedAt\s*=\s*[^;]+;/, `const generatedAt = ${generatedAtMatch[1]};`);
+  }
+
+  if (html === content) return 'no changes (forceRegen)';
+  await commitGithubFile(client.filePath, html, sha, `regen: reformata página de ${client.name} (sidebar/Financeiro/Cadastro)`, env.GITHUB_TOKEN);
+  return 'regenerated';
+}
+
+async function syncClient(client, env, forceRegen) {
   const { content, sha } = await getGithubFile(client.filePath, env.GITHUB_TOKEN);
+
+  if (forceRegen) return forceRegenClient(client, content, sha, env);
 
   // Projeto e serviços são independentes — um cliente pode ter os dois na
   // mesma página (sidebar) e cada bloco só mexe no seu próprio
