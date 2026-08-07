@@ -830,8 +830,8 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
 
   const authCss = `
   .auth-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:22px 0 24px;}
-  body.hide-chrome .auth-gate{min-height:calc(100vh - 90px);}
-  @media (max-width:860px){ body.hide-chrome .auth-gate{min-height:calc(100vh - 130px);} }
+  body.hide-chrome .app-section.active .auth-gate{position:fixed;top:50%;left:calc(115px + 50vw);transform:translate(-50%,-50%);min-height:0;padding:0;width:min(92vw,420px);z-index:5;}
+  @media (max-width:860px){ body.hide-chrome .app-section.active .auth-gate{left:50%;} }
   .auth-gate-text{font-size:13.5px;color:var(--ink-soft);margin:0 0 16px;}
   .auth-gate-loading{font-size:13.5px;color:var(--ink-soft);}
   .auth-loading{padding:22px 0 24px;color:var(--ink-soft);font-size:13.5px;}
