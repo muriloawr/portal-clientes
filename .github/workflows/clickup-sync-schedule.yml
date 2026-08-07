@@ -109,3 +109,26 @@ jobs:
             echo "::error::Team dashboard sync failed"
             exit 1
           fi
+
+      - name: Trigger financeiro sync
+        env:
+          SYNC_SECRET: ${{ secrets.CLICKUP_WEBHOOK_SECRET }}
+        run: |
+          # Uma chamada só (não uma por cliente) — o que força "um por vez" nos
+          # outros syncs é o commit no GitHub; aqui é escrita em D1, bem mais
+          # barata. functions/financeiro-sync.js já se protege sozinha contra o
+          # limite de subrequests, parando no meio se precisar.
+          BODY='{"event":"scheduledSync"}'
+          SIG=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$SYNC_SECRET" | sed 's/^.* //')
+          HTTP_STATUS=$(curl -sS -o response.txt -w '%{http_code}' -X POST \
+            https://clientes.vanzaklabs.com/financeiro-sync \
+            -H 'Content-Type: application/json' \
+            -H "X-Signature: $SIG" \
+            -d "$BODY")
+          echo "=== financeiro-sync: HTTP $HTTP_STATUS ==="
+          cat response.txt
+          echo
+          if [ "$HTTP_STATUS" -ge 400 ]; then
+            echo "::error::Financeiro sync failed"
+            exit 1
+          fi
