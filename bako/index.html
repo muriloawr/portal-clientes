@@ -468,10 +468,25 @@
 
   const services = [
     { key: 'planejamento', label: 'Planejamento', months: [
-
+    {
+      key: '2026-08',
+      label: 'Agosto 2026',
+      demands: [
+        { title: 'Calendário Social Media (Agosto)', deadline: '10/08', status: 'a-fazer', owner: 'Murilo', hours: null },
+      ],
+    },
   ] },
     { key: 'social-media', label: 'Social Media', months: [
-
+    {
+      key: '2026-08',
+      label: 'Agosto 2026',
+      demands: [
+        { title: 'Post 1', deadline: '10/08', status: 'a-fazer', owner: 'Murilo', hours: null },
+        { title: 'Post 2', deadline: '17/08', status: 'a-fazer', owner: 'Murilo', hours: null },
+        { title: 'Post 3', deadline: '24/08', status: 'a-fazer', owner: 'Murilo', hours: null },
+        { title: 'Post 4', deadline: '31/08', status: 'a-fazer', owner: 'Murilo', hours: null },
+      ],
+    },
   ] },
   ];
   var SERVICE_STATUS_LABEL = { 'a-fazer': 'A fazer', 'em-andamento': 'Em andamento', 'feito': 'Feito', 'em-analise': 'Em análise' };

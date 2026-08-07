@@ -68,6 +68,7 @@ const CLIENT_DISCOVERY_LIST_ID = '901324765433';
 
 const STATUS_MAP = {
   'a fazer': 'a-fazer',
+  'pendentes': 'a-fazer',
   'em análise': 'em-analise',
   'em andamento': 'em-andamento',
   'concluído': 'feito',
