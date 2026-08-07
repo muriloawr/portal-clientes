@@ -826,6 +826,7 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
   const authCss = `
   .auth-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:22px 0 24px;}
   .auth-gate-text{font-size:13.5px;color:var(--ink-soft);margin:0 0 16px;}
+  .auth-gate-loading{font-size:13.5px;color:var(--ink-soft);}
   .auth-loading{padding:22px 0 24px;color:var(--ink-soft);font-size:13.5px;}
   .auth-denied{padding:22px 0 24px;text-align:center;color:var(--ink-soft);font-size:13.5px;}
   .auth-denied b{display:block;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--ink);margin-bottom:6px;}
@@ -1011,7 +1012,8 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
   const financeiroSection = `
   <div class="app-section" data-section="financeiro">
     <div class="auth-gate" id="financeiroGate">
-      <div id="financeiroSignIn">Carregando...</div>
+      <div class="auth-gate-loading" id="financeiroGateLoading">Carregando...</div>
+      <div id="financeiroSignIn"></div>
     </div>
     <div class="auth-loading" id="financeiroLoading" style="display:none;">Carregando...</div>
     <div class="auth-denied" id="financeiroDenied" style="display:none;">
@@ -1024,7 +1026,8 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
   const cadastroSection = `
   <div class="app-section" data-section="cadastro">
     <div class="auth-gate" id="cadastroGate">
-      <div id="cadastroSignIn">Carregando...</div>
+      <div class="auth-gate-loading" id="cadastroGateLoading">Carregando...</div>
+      <div id="cadastroSignIn"></div>
     </div>
     <div class="auth-loading" id="cadastroLoading" style="display:none;">Carregando...</div>
     <div class="auth-denied" id="cadastroDenied" style="display:none;">
@@ -1427,9 +1430,15 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
         },
       };
       var financeiroSignIn = document.getElementById('financeiroSignIn');
-      if (financeiroSignIn && !financeiroSignIn.hasChildNodes()) window.Clerk.mountSignIn(financeiroSignIn, signInOpts);
+      if (financeiroSignIn && !financeiroSignIn.hasChildNodes()) {
+        setDisplay('financeiroGateLoading', 'none');
+        window.Clerk.mountSignIn(financeiroSignIn, signInOpts);
+      }
       var cadastroSignIn = document.getElementById('cadastroSignIn');
-      if (cadastroSignIn && !cadastroSignIn.hasChildNodes()) window.Clerk.mountSignIn(cadastroSignIn, signInOpts);
+      if (cadastroSignIn && !cadastroSignIn.hasChildNodes()) {
+        setDisplay('cadastroGateLoading', 'none');
+        window.Clerk.mountSignIn(cadastroSignIn, signInOpts);
+      }
     }
   }
 
