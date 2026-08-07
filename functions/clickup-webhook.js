@@ -477,7 +477,7 @@ async function provisionNewClient(task, ownSource, ownSha, env) {
   // na hora do provisionamento, a página já nasce preenchida em vez de
   // esperar o próximo ciclo de sync normal pra ela aparecer.
   const stages = await buildProjectStages(task.id, env.CLICKUP_API_TOKEN);
-  const html = buildClientHtml(task.name, task.id, stages, null);
+  const html = buildClientHtml(task.name, task.id, stages, null, slug, env.CLERK_PUBLISHABLE_KEY);
 
   // 1) cria (ou atualiza, se uma tentativa anterior já criou mas falhou
   // depois) a página do cliente — sha omitido só quando o arquivo ainda
@@ -673,7 +673,8 @@ async function syncRecurringServicesForClient(name, foundServices, ownSource, ow
     const months = await buildMonths(s.taskId, env.CLICKUP_API_TOKEN);
     services.push({ key: s.key, label: s.label, months });
   }
-  const html = buildClientHtml(name, projectTaskId || foundServices[0].taskId, stages, services);
+  const slug = filePath.replace(/\/index\.html$/, '');
+  const html = buildClientHtml(name, projectTaskId || foundServices[0].taskId, stages, services, slug, env.CLERK_PUBLISHABLE_KEY);
 
   let pageSha;
   try {
@@ -716,12 +717,19 @@ async function syncRecurringServicesForClient(name, foundServices, ownSource, ow
 // não ter crase aninhada dentro do template literal desta função —
 // stagesArrayLiteral/servicesArrayLiteral são seguros de interpolar porque
 // escapeJs também escapa crase.
-function buildClientHtml(clientName, taskId, stages, services) {
+function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublishableKey) {
   const safeName = escapeHtml(clientName);
   const hasProject = Array.isArray(stages);
   const hasServices = Array.isArray(services) && services.length > 0;
   const isCombo = hasProject && hasServices;
   const defaultSection = hasProject ? 'projeto' : 'servicos';
+  // Sidebar (e as abas Financeiro/Dados Cadastrais) existem em TODA página
+  // agora, não só quando o cliente tem projeto+serviços — decisão tomada
+  // pra não precisar re-gerar a página de cada cliente no momento exato em
+  // que ele ganha acesso ao Financeiro. `isCombo` continua existindo só
+  // pro TEXTO (eyebrow/footnote), que ainda diferencia "tem os dois" de
+  // "tem só um".
+  const hasSidebar = true;
 
   const hoursEnabledJs = hasServices ? services.map(s => `'${s.key}': false`).join(', ') : '';
 
@@ -732,8 +740,10 @@ function buildClientHtml(clientName, taskId, stages, services) {
 
   const navIconProjeto = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>';
   const navIconServicos = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg>';
+  const navIconFinanceiro = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17l-3-2-3 2-3-2-3 2V2z"/><path d="M9 8h6M9 12h6"/></svg>';
+  const navIconCadastro = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h4M15 12h4M6 16h12"/></svg>';
 
-  const sidebarCss = !isCombo ? '' : `
+  const sidebarCss = `
   .app-sidebar{width:230px;flex-shrink:0;background:#FFFFFF;border-right:1px solid var(--line);position:fixed;top:0;left:0;bottom:0;padding:26px 16px;display:flex;flex-direction:column;z-index:6;overflow-y:auto;}
   .app-sidebar nav{display:flex;flex-direction:column;gap:4px;}
   .app-nav-btn{display:flex;align-items:center;gap:10px;width:100%;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);background:none;border:none;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .15s ease;}
@@ -762,6 +772,25 @@ function buildClientHtml(clientName, taskId, stages, services) {
     .app-drawer-overlay{position:fixed;inset:0;background:rgba(11,28,51,.4);z-index:20;}
     .app-drawer-overlay.open{display:block;}
   }`;
+
+  const authCss = `
+  .auth-gate{padding:8px 0 24px;}
+  .auth-gate-text{font-size:13.5px;color:var(--ink-soft);margin:0 0 16px;}
+  .auth-loading{padding:24px 0;color:var(--ink-soft);font-size:13.5px;}
+  .auth-denied{padding:24px 0;text-align:center;color:var(--ink-soft);font-size:13.5px;}
+  .auth-denied b{display:block;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--ink);margin-bottom:6px;}
+  .cadastro-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .cadastro-field{display:flex;justify-content:space-between;gap:14px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .cadastro-field:first-child{border-top:none;}
+  .cadastro-label{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--ink-soft);}
+  .cadastro-value{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);text-align:right;}
+  .invoices-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .invoice-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .invoice-row:first-child{border-top:none;}
+  .invoice-label{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);flex:1;min-width:110px;}
+  .invoice-links a{font-family:'Inter',sans-serif;font-size:13px;color:var(--brand);text-decoration:none;font-weight:500;margin-left:14px;}
+  .invoice-links a:hover{text-decoration:underline;}
+  `;
 
   const projectCss = !hasProject ? '' : `
   .bar-wrap{margin-top:22px;margin-bottom:34px;}
@@ -868,25 +897,27 @@ function buildClientHtml(clientName, taskId, stages, services) {
     .summary-label{font-size:10px;}
   }`;
 
-  const headerMarkup = !isCombo ? '' : `
+  const headerMarkup = `
 <div class="app-hamburger" id="appHamburger">
   <button id="appHamburgerBtn" type="button" aria-label="Menu">&#9776;</button>
   ${logoMark('app-hamburger-logo')}
 </div>
 <div class="app-drawer-overlay" id="appDrawerOverlay"></div>`;
 
-  const sidebarMarkup = !isCombo ? '' : `
-  <div class="app-sidebar">
-    <nav>
+  const navButtonsHtml = `
       ${hasProject ? `<button class="app-nav-btn" data-section="projeto">${navIconProjeto}<span>Projeto</span></button>` : ''}
       ${hasServices ? `<button class="app-nav-btn" data-section="servicos">${navIconServicos}<span>Serviços</span></button>` : ''}
+      <button class="app-nav-btn" data-section="financeiro">${navIconFinanceiro}<span>Financeiro</span></button>
+      <button class="app-nav-btn" data-section="cadastro">${navIconCadastro}<span>Dados Cadastrais</span></button>`;
+
+  const sidebarMarkup = `
+  <div class="app-sidebar">
+    <nav>${navButtonsHtml}
     </nav>
   </div>
   <div class="app-drawer" id="appDrawer">
     <button class="app-drawer-close" id="appDrawerClose" type="button" aria-label="Fechar menu">&times;</button>
-    <nav>
-      ${hasProject ? `<button class="app-nav-btn" data-section="projeto">${navIconProjeto}<span>Projeto</span></button>` : ''}
-      ${hasServices ? `<button class="app-nav-btn" data-section="servicos">${navIconServicos}<span>Serviços</span></button>` : ''}
+    <nav>${navButtonsHtml}
     </nav>
   </div>`;
 
@@ -924,12 +955,36 @@ function buildClientHtml(clientName, taskId, stages, services) {
   <div class="tabs" id="tabs"></div>
   <div id="monthPanels"></div>`;
 
-  const projectSection = !hasProject ? '' : (isCombo
-    ? `<div class="app-section" data-section="projeto">${projectInner}</div>`
-    : projectInner);
-  const servicesSection = !hasServices ? '' : (isCombo
-    ? `<div class="app-section" data-section="servicos">${servicesInner}</div>`
-    : servicesInner);
+  const projectSection = !hasProject ? '' : `<div class="app-section" data-section="projeto">${projectInner}</div>`;
+  const servicesSection = !hasServices ? '' : `<div class="app-section" data-section="servicos">${servicesInner}</div>`;
+
+  const financeiroSection = `
+  <div class="app-section" data-section="financeiro">
+    <div class="auth-gate" id="financeiroGate">
+      <p class="auth-gate-text">Faça login pra ver suas faturas.</p>
+      <div id="financeiroSignIn"></div>
+    </div>
+    <div class="auth-loading" id="financeiroLoading" style="display:none;">Carregando...</div>
+    <div class="auth-denied" id="financeiroDenied" style="display:none;">
+      <b>Acesso ainda não liberado</b>
+      Fale com a Vanzak Labs pra liberar o acesso financeiro dessa conta.
+    </div>
+    <div class="invoices-card" id="financeiroContent" style="display:none;"></div>
+  </div>`;
+
+  const cadastroSection = `
+  <div class="app-section" data-section="cadastro">
+    <div class="auth-gate" id="cadastroGate">
+      <p class="auth-gate-text">Faça login pra ver os dados cadastrais.</p>
+      <div id="cadastroSignIn"></div>
+    </div>
+    <div class="auth-loading" id="cadastroLoading" style="display:none;">Carregando...</div>
+    <div class="auth-denied" id="cadastroDenied" style="display:none;">
+      <b>Acesso ainda não liberado</b>
+      Fale com a Vanzak Labs pra liberar o acesso a essa conta.
+    </div>
+    <div class="cadastro-card" id="cadastroContent" style="display:none;"></div>
+  </div>`;
 
   const footnoteText = isCombo
     ? 'Atualizado sempre que houver uma mudança de status'
@@ -1174,7 +1229,7 @@ function buildClientHtml(clientName, taskId, stages, services) {
   }
 `;
 
-  const sidebarScript = !isCombo ? '' : `
+  const sidebarScript = `
   function showAppSection(key) {
     document.querySelectorAll('.app-section').forEach(function (s) { s.classList.toggle('active', s.dataset.section === key); });
     document.querySelectorAll('.app-nav-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.section === key); });
@@ -1203,10 +1258,143 @@ function buildClientHtml(clientName, taskId, stages, services) {
   });
 `;
 
+  // Financeiro/Dados Cadastrais: dado nenhum vem no HTML gerado, só a
+  // estrutura vazia — depois do login (Clerk), busca em /api/cliente/{slug}
+  // com o token no header Authorization. Concatenação de string em vez de
+  // template literal, mesmo motivo do resto dos scripts gerados.
+  const authScript = `
+  var CLIENT_SLUG = '${escapeJs(slug || '')}';
+  var clienteDataLoaded = false;
+
+  function initAuthSections() {
+    if (!window.Clerk) { setTimeout(initAuthSections, 100); return; }
+    window.Clerk.load().then(function () {
+      hideClerkBadge();
+      window.Clerk.addListener(function () { renderAuthState(); });
+      renderAuthState();
+    }).catch(function (err) {
+      document.getElementById('financeiroGate').innerHTML = '<p class="auth-gate-text">Erro carregando login: ' + err.message + '</p>';
+    });
+  }
+
+  function setDisplay(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = value;
+  }
+
+  function renderAuthState() {
+    if (window.Clerk.user) {
+      setDisplay('financeiroGate', 'none');
+      setDisplay('cadastroGate', 'none');
+      if (!clienteDataLoaded) loadClienteData();
+    } else {
+      clienteDataLoaded = false;
+      setDisplay('financeiroGate', 'block');
+      setDisplay('cadastroGate', 'block');
+      setDisplay('financeiroLoading', 'none');
+      setDisplay('cadastroLoading', 'none');
+      setDisplay('financeiroContent', 'none');
+      setDisplay('cadastroContent', 'none');
+      setDisplay('financeiroDenied', 'none');
+      setDisplay('cadastroDenied', 'none');
+      var signInOpts = { forceRedirectUrl: location.pathname, signUpForceRedirectUrl: location.pathname };
+      var financeiroSignIn = document.getElementById('financeiroSignIn');
+      if (financeiroSignIn && !financeiroSignIn.hasChildNodes()) window.Clerk.mountSignIn(financeiroSignIn, signInOpts);
+      var cadastroSignIn = document.getElementById('cadastroSignIn');
+      if (cadastroSignIn && !cadastroSignIn.hasChildNodes()) window.Clerk.mountSignIn(cadastroSignIn, signInOpts);
+    }
+  }
+
+  function loadClienteData() {
+    setDisplay('financeiroLoading', 'block');
+    setDisplay('cadastroLoading', 'block');
+    window.Clerk.session.getToken().then(function (token) {
+      return fetch('/api/cliente/' + CLIENT_SLUG, { headers: { Authorization: 'Bearer ' + token } });
+    }).then(function (res) {
+      setDisplay('financeiroLoading', 'none');
+      setDisplay('cadastroLoading', 'none');
+      if (res.status === 404) {
+        setDisplay('financeiroDenied', 'block');
+        setDisplay('cadastroDenied', 'block');
+        return null;
+      }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      clienteDataLoaded = true;
+      return res.json();
+    }).then(function (data) {
+      if (!data) return;
+      renderCadastro(data.cadastro);
+      renderInvoices(data.invoices);
+    }).catch(function (err) {
+      setDisplay('financeiroLoading', 'none');
+      setDisplay('cadastroLoading', 'none');
+      document.getElementById('financeiroContent').innerHTML = '<div class="empty-state">Erro carregando dados: ' + err.message + '</div>';
+      document.getElementById('financeiroContent').style.display = 'block';
+    });
+  }
+
+  function fieldRow(label, value) {
+    return '<div class="cadastro-field"><span class="cadastro-label">' + label + '</span><span class="cadastro-value">' + (value || '-') + '</span></div>';
+  }
+
+  function renderCadastro(c) {
+    var el = document.getElementById('cadastroContent');
+    el.innerHTML =
+      fieldRow('Razão Social', c.razaoSocial) +
+      fieldRow('CNPJ', c.cnpj) +
+      fieldRow('Endereço', c.endereco) +
+      fieldRow('Contato', c.contatoNome) +
+      fieldRow('E-mail', c.contatoEmail) +
+      fieldRow('Telefone', c.contatoTelefone);
+    el.style.display = 'block';
+  }
+
+  function renderInvoices(invoices) {
+    var el = document.getElementById('financeiroContent');
+    if (!invoices || invoices.length === 0) {
+      el.innerHTML = '<div class="empty-state"><b>Nenhuma fatura ainda</b>As faturas aparecem aqui assim que forem lançadas.</div>';
+      el.style.display = 'block';
+      return;
+    }
+    el.innerHTML = invoices.map(function (inv) {
+      var statusHtml = inv.paid
+        ? '<span class="status feito">Pago</span>'
+        : '<span class="status a-fazer">Pendente</span>';
+      var links = '';
+      if (inv.links && inv.links.nf) links += '<a href="' + inv.links.nf + '" target="_blank" rel="noopener">NF</a>';
+      if (inv.links && inv.links.boleto) links += '<a href="' + inv.links.boleto + '" target="_blank" rel="noopener">Boleto</a>';
+      return '<div class="invoice-row"><span class="invoice-label">' + inv.label + '</span>' + statusHtml + '<span class="invoice-links">' + links + '</span></div>';
+    }).join('');
+    el.style.display = 'block';
+  }
+
+  // Esconde o rodapé "Secured by Clerk" — combinado explicitamente com o
+  // usuário, ciente de que não é feature suportada no plano free do Clerk
+  // e pode quebrar em qualquer atualização deles. Busca por texto em vez
+  // de nome de classe porque o Clerk usa hash aleatório a cada carregamento.
+  function hideClerkBadge() {
+    function findAndHide() {
+      document.querySelectorAll('body *').forEach(function (el) {
+        if (el.children.length === 0 && el.textContent && el.textContent.trim() === 'Secured by') {
+          var node = el;
+          for (var i = 0; i < 5 && node.parentElement; i++) {
+            if (node.parentElement.textContent.trim().length > (node.textContent.trim().length + 20)) break;
+            node = node.parentElement;
+          }
+          if (node.style.display !== 'none') node.style.display = 'none';
+        }
+      });
+    }
+    findAndHide();
+    new MutationObserver(findAndHide).observe(document.body, { childList: true, subtree: true });
+  }
+`;
+
   const initCalls = [
     hasProject ? 'renderTimeline(); renderStages(); renderMeetings();' : '',
     hasServices ? 'showService(activeServiceKey);' : '',
-    isCombo ? `showAppSection('${defaultSection}');` : '',
+    `showAppSection('${defaultSection}');`,
+    'initAuthSections();',
   ].filter(Boolean).join('\n  ');
 
   return `<!DOCTYPE html>
@@ -1264,14 +1452,16 @@ function buildClientHtml(clientName, taskId, stages, services) {
   .empty-state b{display:block;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--ink);margin-bottom:6px;}
   .footnote{margin-top:26px;font-size:12px;color:var(--ink-soft);text-align:center;}
   ${sidebarCss}
+  ${authCss}
   ${projectCss}
   ${servicesCss}
 </style>
 </head>
 <body>
+<script defer crossorigin="anonymous" src="https://clerk.vanzaklabs.com/npm/@clerk/clerk-js@5/dist/clerk.browser.js" data-clerk-publishable-key="${escapeHtml(clerkPublishableKey || '')}"></script>
 <div class="topbar"></div>${headerMarkup}
-<div class="${isCombo ? 'app-shell' : ''}">${sidebarMarkup}
-  <div class="${isCombo ? 'app-main' : ''}">
+<div class="app-shell">${sidebarMarkup}
+  <div class="app-main">
     <div class="wrap">
 
       <div class="head">
@@ -1286,6 +1476,8 @@ function buildClientHtml(clientName, taskId, stages, services) {
 
       ${projectSection}
       ${servicesSection}
+      ${financeiroSection}
+      ${cadastroSection}
 
       <div class="footnote">${footnoteText}</div>
 
@@ -1295,7 +1487,7 @@ function buildClientHtml(clientName, taskId, stages, services) {
 
 <script>
   var generatedAt = null;
-${projectScript}${servicesScript}${sidebarScript}
+${projectScript}${servicesScript}${sidebarScript}${authScript}
   document.getElementById('generatedAt').textContent = generatedAt
     ? 'Atualizado em ' + new Date(generatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : 'Ainda não sincronizado';
