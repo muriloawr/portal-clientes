@@ -43,7 +43,7 @@ const CLIENTS = [
     { name: 'Beeva', projectTaskId: 'wdpu2ydyzj', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztp' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75p' }], filePath: 'beeva/index.html' },,
   { name: 'PROTS', projectTaskId: 'wdpu2ybucf', filePath: 'prots/index.html' },
   { name: 'TAG Grading Brazil', projectTaskId: 'wdpu2yejnj', filePath: 'tag-grading/index.html' },
-  { name: 'Cookie Dreams', projectTaskId: '86ahp88m4', filePath: 'cookie-dreams/index.html' },
+    { name: 'Cookie Dreams', projectTaskId: '86ahp88m4', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrz' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75g' }], filePath: 'cookie-dreams/index.html' },,
   { name: 'MUUPI', projectTaskId: '86agvb320', filePath: 'muupi/index.html' },
   { name: 'Mye Mye', projectTaskId: 'wdpu2ye60e', filePath: 'mye-mye/index.html' },
   { name: 'Piny', projectTaskId: 'wdpu2ye60b', filePath: 'piny/index.html' },
