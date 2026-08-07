@@ -730,9 +730,10 @@ function buildClientHtml(clientName, taskId, stages, services) {
   .app-sidebar .app-logo{width:44px;height:24px;align-self:flex-start;margin:2px 0 30px;}
   .app-sidebar nav{display:flex;flex-direction:column;gap:4px;}
   .app-nav-btn{display:flex;align-items:center;gap:10px;width:100%;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);background:none;border:none;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .15s ease;}
-  .app-nav-btn svg{flex-shrink:0;}
+  .app-nav-btn svg{flex-shrink:0;color:var(--brand);}
   .app-nav-btn:hover{background:var(--bg);color:var(--ink);}
   .app-nav-btn.active{background:var(--brand);color:#fff;}
+  .app-nav-btn.active svg{color:#fff;}
   .app-main{margin-left:230px;min-width:0;}
   .app-section{display:none;}
   .app-section.active{display:block;}
@@ -745,6 +746,8 @@ function buildClientHtml(clientName, taskId, stages, services) {
     .app-hamburger{display:flex;align-items:center;padding:12px 20px;position:sticky;top:0;background:#FFFFFF;z-index:10;border-bottom:1px solid var(--line);}
     .app-hamburger-logo{width:62px;height:34px;flex-shrink:0;margin:0 auto;}
     .app-hamburger button{background:var(--bg);border:1px solid var(--line);border-radius:8px;width:36px;height:34px;font-size:16px;line-height:1;cursor:pointer;color:var(--ink);flex-shrink:0;}
+    .head .logo{display:none;}
+    .app-main .wrap{padding-top:24px;}
     .app-drawer{position:fixed;top:0;left:0;bottom:0;width:78%;max-width:280px;background:#FFFFFF;z-index:30;padding:24px 18px;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease;box-shadow:2px 0 20px rgba(11,28,51,.18);}
     .app-drawer.open{transform:translateX(0);}
     .app-drawer-close{position:absolute;top:16px;right:16px;background:var(--bg);border:1px solid var(--line);border-radius:8px;width:32px;height:32px;font-size:18px;line-height:1;cursor:pointer;color:var(--ink-soft);}
