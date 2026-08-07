@@ -756,7 +756,7 @@ function buildClientHtml(clientName, taskId, stages, services) {
   }`;
 
   const projectCss = !hasProject ? '' : `
-  .bar-wrap{margin-bottom:34px;}
+  .bar-wrap{margin-top:22px;margin-bottom:34px;}
   .bar-edges{display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
   .bar-caption{display:flex;justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:14px;}
   .status-side{display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
