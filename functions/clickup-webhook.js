@@ -727,7 +727,6 @@ function buildClientHtml(clientName, taskId, stages, services) {
 
   const sidebarCss = !isCombo ? '' : `
   .app-sidebar{width:230px;flex-shrink:0;background:#FFFFFF;border-right:1px solid var(--line);position:fixed;top:0;left:0;bottom:0;padding:26px 16px;display:flex;flex-direction:column;z-index:6;overflow-y:auto;}
-  .app-sidebar .app-logo{width:44px;height:24px;align-self:flex-start;margin:2px 0 30px;}
   .app-sidebar nav{display:flex;flex-direction:column;gap:4px;}
   .app-nav-btn{display:flex;align-items:center;gap:10px;width:100%;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);background:none;border:none;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .15s ease;}
   .app-nav-btn svg{flex-shrink:0;color:var(--brand);}
@@ -870,7 +869,6 @@ function buildClientHtml(clientName, taskId, stages, services) {
 
   const sidebarMarkup = !isCombo ? '' : `
   <div class="app-sidebar">
-    ${logoMark('app-logo')}
     <nav>
       ${hasProject ? `<button class="app-nav-btn" data-section="projeto">${navIconProjeto}<span>Projeto</span></button>` : ''}
       ${hasServices ? `<button class="app-nav-btn" data-section="servicos">${navIconServicos}<span>Serviços</span></button>` : ''}
