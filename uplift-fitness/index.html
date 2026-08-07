@@ -82,17 +82,17 @@
     .app-drawer-overlay.open{display:block;}
   }
   
-  .auth-gate{padding:8px 0 24px;}
+  .auth-gate{padding:22px 0 24px;}
   .auth-gate-text{font-size:13.5px;color:var(--ink-soft);margin:0 0 16px;}
-  .auth-loading{padding:24px 0;color:var(--ink-soft);font-size:13.5px;}
-  .auth-denied{padding:24px 0;text-align:center;color:var(--ink-soft);font-size:13.5px;}
+  .auth-loading{padding:22px 0 24px;color:var(--ink-soft);font-size:13.5px;}
+  .auth-denied{padding:22px 0 24px;text-align:center;color:var(--ink-soft);font-size:13.5px;}
   .auth-denied b{display:block;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--ink);margin-bottom:6px;}
-  .cadastro-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .cadastro-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;margin-top:22px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
   .cadastro-field{display:flex;justify-content:space-between;gap:14px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap;}
   .cadastro-field:first-child{border-top:none;}
   .cadastro-label{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--ink-soft);}
   .cadastro-value{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);text-align:right;}
-  .invoices-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .invoices-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;margin-top:22px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
   .invoice-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap;}
   .invoice-row:first-child{border-top:none;}
   .invoice-label{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);flex:1;min-width:110px;}
@@ -450,6 +450,59 @@
             colorInputText: '#0B1C33',
             fontFamily: "'Inter', sans-serif",
             borderRadius: '10px',
+          },
+        },
+        // Tradução manual (sem depender de @clerk/localizations, que não
+        // tem build pra carregar via <script> sem bundler) — cobre as
+        // telas que o cliente realmente vê: login, cadastro, esqueci a
+        // senha. Tela rara/erro específico pode ficar em inglês.
+        localization: {
+          locale: 'pt-BR',
+          formButtonPrimary: 'Continuar',
+          dividerText: 'ou',
+          formFieldLabel__emailAddress: 'E-mail',
+          formFieldLabel__password: 'Senha',
+          formFieldLabel__confirmPassword: 'Confirmar senha',
+          formFieldLabel__newPassword: 'Nova senha',
+          formFieldAction__forgotPassword: 'Esqueceu a senha?',
+          formFieldInputPlaceholder__emailAddress: 'Digite seu e-mail',
+          signIn: {
+            start: {
+              title: 'Entrar',
+              subtitle: 'Acesse sua conta pra continuar',
+              actionText: 'Não tem conta?',
+              actionLink: 'Cadastre-se',
+            },
+            password: { title: 'Digite sua senha' },
+            forgotPassword: {
+              title: 'Redefinir senha',
+              subtitle: 'pra redefinir sua senha',
+              subtitle_email: 'Primeiro, digite o código enviado pro seu e-mail',
+              formTitle: 'Código de redefinição',
+              resendButton: 'Não recebeu o código? Reenviar',
+            },
+            resetPassword: {
+              title: 'Definir nova senha',
+              formButtonPrimary: 'Redefinir senha',
+              successMessage: 'Senha alterada com sucesso. Entrando, aguarde um instante.',
+            },
+            forgotPasswordAlternativeMethods: {
+              title: 'Esqueceu a senha?',
+              blockButton__resetPassword: 'Redefinir sua senha',
+            },
+            noAvailableMethods: {
+              title: 'Não foi possível entrar',
+              message: 'Não foi possível continuar o login.',
+              subtitle: 'Ocorreu um erro',
+            },
+          },
+          signUp: {
+            start: {
+              title: 'Criar conta',
+              subtitle: 'Preencha os dados pra começar',
+              actionText: 'Já tem conta?',
+              actionLink: 'Entrar',
+            },
           },
         },
       };
