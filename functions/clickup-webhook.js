@@ -370,7 +370,7 @@ function stagesToJs(stages) {
 }
 
 function replaceStagesArray(html, stages) {
-  const regex = /const\s+stages\s*=\s*\[[\s\S]*?\];/;
+  const regex = /(?:const|var)\s+stages\s*=\s*\[[\s\S]*?\];/;
   if (!regex.test(html)) throw new Error('stages array not found in HTML');
   return html.replace(regex, stagesToJs(stages));
 }
@@ -401,19 +401,19 @@ function servicesToJs(services) {
 }
 
 function replaceMonthsArray(html, months) {
-  const regex = /const\s+months\s*=\s*\[[\s\S]*?\];/;
+  const regex = /(?:const|var)\s+months\s*=\s*\[[\s\S]*?\];/;
   if (!regex.test(html)) throw new Error('months array not found in HTML');
   return html.replace(regex, monthsToJs(months));
 }
 
 function replaceServicesArray(html, services) {
-  const regex = /const\s+services\s*=\s*\[[\s\S]*?\];/;
+  const regex = /(?:const|var)\s+services\s*=\s*\[[\s\S]*?\];/;
   if (!regex.test(html)) throw new Error('services array not found in HTML');
   return html.replace(regex, servicesToJs(services));
 }
 
 function replaceGeneratedAt(html, ms) {
-  const regex = /const\s+generatedAt\s*=\s*[^;]+;/;
+  const regex = /(?:const|var)\s+generatedAt\s*=\s*[^;]+;/;
   if (!regex.test(html)) throw new Error('generatedAt not found in HTML');
   return html.replace(regex, `const generatedAt = ${ms};`);
 }
