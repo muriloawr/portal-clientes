@@ -1,0 +1,49 @@
+name: Manual client sync
+
+# Dispara /clickup-webhook pra UM cliente específico, com a opção de
+# forçar regeneração completa da página (forceRegen) em vez do patch
+# cirúrgico normal. Uso: testes pontuais e a migração em lotes das páginas
+# publicadas pro layout novo (sidebar/Financeiro/Dados Cadastrais) — nunca
+# roda sozinho, só via "Run workflow" manual.
+
+on:
+  workflow_dispatch:
+    inputs:
+      client:
+        description: 'Nome exato do cliente (igual em CLIENTS, ex: "Uplift Fitness")'
+        required: true
+        type: string
+      force_regen:
+        description: 'Forçar regeneração completa da página (sidebar/Financeiro/Cadastrais)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger sync for one client
+        env:
+          SYNC_SECRET: ${{ secrets.CLICKUP_WEBHOOK_SECRET }}
+          CLIENT: ${{ inputs.client }}
+          FORCE_REGEN: ${{ inputs.force_regen }}
+        run: |
+          if [ "$FORCE_REGEN" = "true" ]; then
+            BODY=$(printf '{"event":"manualSync","client":"%s","forceRegen":true}' "$CLIENT")
+          else
+            BODY=$(printf '{"event":"manualSync","client":"%s"}' "$CLIENT")
+          fi
+          SIG=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$SYNC_SECRET" | sed 's/^.* //')
+          HTTP_STATUS=$(curl -sS -o response.txt -w '%{http_code}' -X POST \
+            https://clientes.vanzaklabs.com/clickup-webhook \
+            -H 'Content-Type: application/json' \
+            -H "X-Signature: $SIG" \
+            -d "$BODY")
+          echo "=== $CLIENT (forceRegen=$FORCE_REGEN): HTTP $HTTP_STATUS ==="
+          cat response.txt
+          echo
+          if [ "$HTTP_STATUS" -ge 400 ]; then
+            echo "::error::Sync failed"
+            exit 1
+          fi
