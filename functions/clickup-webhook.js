@@ -36,7 +36,7 @@ const CLIENTS = [
       { key: 'crm', label: 'CRM', taskId: 'wdpu2ydp1p' },
     ],
   },
-  { name: 'Sellévia', projectTaskId: 'wdpu2yadde', filePath: 'sellevia/index.html' },
+    { name: 'Sellévia', projectTaskId: 'wdpu2yadde', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztr' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75r' }], filePath: 'sellevia/index.html' },,
   { name: 'Booma Organic', projectTaskId: 'wdpu2ybtcm', filePath: 'booma/index.html' },
   { name: 'Beleza Brasileira', projectTaskId: 'wdpu2y7wq1', filePath: 'beleza-brasileira/index.html' },
   { name: 'Yasmin Beauty', projectTaskId: '86ahgcemc', filePath: 'yasmin-beauty/index.html' },
