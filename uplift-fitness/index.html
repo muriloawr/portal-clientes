@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Acompanhamento - Uplift Fitness</title>
+<title>Cronograma - Uplift Fitness</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-grotesk@600&display=swap">
@@ -17,6 +17,7 @@
     --brand:#015EC5;
     --tint-1:#EAF1FC;
     --tint-2:#C7DCF5;
+    --grey-bg:#EDEFF2;
   }
   *{box-sizing:border-box;}
   html{overflow-x:hidden;}
@@ -40,47 +41,91 @@
   .wrap{max-width:1080px;margin:0 auto;padding:40px 24px 0;position:relative;z-index:1;}
   .topbar{height:5px;width:100%;background:linear-gradient(90deg, var(--tint-1), var(--brand) 50%, var(--ink));background-size:200% 100%;animation:flow 7s ease-in-out infinite alternate;position:relative;z-index:1;}
   @keyframes flow{0%{background-position:0% 0;}100%{background-position:100% 0;}}
-
-  .head{margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
+  .head{padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
   .logo{height:34px;}
-  .head-meta{font-size:12px;color:var(--ink-soft);margin-top:8px;}
+  .head-meta{font-size:12px;color:var(--ink-soft);margin-top:0;}
   .eyebrow{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
   .live-dot{width:7px;height:7px;border-radius:50%;background:#2FBE6C;flex-shrink:0;box-shadow:0 0 0 0 rgba(47,190,108,0.6);animation:pulse 1.8s infinite;}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,190,108,0.55);}70%{box-shadow:0 0 0 7px rgba(47,190,108,0);}100%{box-shadow:0 0 0 0 rgba(47,190,108,0);}}
   h1{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:32px;margin:0;line-height:1.1;color:var(--ink);}
-  .subtitle{font-family:'Inter',sans-serif;font-size:14px;color:var(--ink-soft);margin-top:4px;}
-
-  /* month tabs */
-  .tabs{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;}
-  .tab-btn{
-    font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:13.5px;
-    background:var(--panel);color:var(--ink-soft);border:1px solid var(--line);
-    padding:9px 18px;border-radius:20px;cursor:pointer;transition:all .15s ease;
+  .owner-avatar{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:10.5px;font-weight:500;flex-shrink:0;}
+  .empty-state{padding:24px 0;text-align:center;color:var(--ink-soft);font-size:13.5px;}
+  .empty-state b{display:block;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--ink);margin-bottom:6px;}
+  .footnote{margin-top:26px;font-size:12px;color:var(--ink-soft);text-align:center;}
+  
+  .app-sidebar{width:230px;flex-shrink:0;background:#FFFFFF;border-right:1px solid var(--line);position:fixed;top:0;left:0;bottom:0;padding:26px 16px;display:flex;flex-direction:column;z-index:6;overflow-y:auto;}
+  .app-sidebar nav{display:flex;flex-direction:column;gap:4px;}
+  .app-nav-btn{display:flex;align-items:center;gap:10px;width:100%;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);background:none;border:none;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .15s ease;}
+  .app-nav-btn svg{flex-shrink:0;color:var(--brand);}
+  .app-nav-btn:hover{background:var(--bg);color:var(--ink);}
+  .app-nav-btn.active{background:var(--brand);color:#fff;}
+  .app-nav-btn.active svg{color:#fff;}
+  .app-main{margin-left:230px;min-width:0;}
+  .app-section{display:none;}
+  .app-section.active{display:block;}
+  .app-hamburger{display:none;}
+  .app-drawer{display:none;}
+  .app-drawer-overlay{display:none;}
+  @media (max-width:860px){
+    .app-sidebar{display:none;}
+    .app-main{margin-left:0;}
+    .app-hamburger{display:flex;align-items:center;padding:12px 20px;position:sticky;top:0;background:#FFFFFF;z-index:10;border-bottom:1px solid var(--line);}
+    .app-hamburger-logo{width:62px;height:34px;flex-shrink:0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);}
+    .app-hamburger button{background:var(--bg);border:1px solid var(--line);border-radius:8px;width:36px;height:34px;font-size:16px;line-height:1;cursor:pointer;color:var(--ink);flex-shrink:0;}
+    .head .logo{display:none;}
+    .app-main .wrap{padding-top:24px;}
+    .app-drawer{position:fixed;top:0;left:0;bottom:0;width:78%;max-width:280px;background:#FFFFFF;z-index:30;padding:24px 18px;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease;box-shadow:2px 0 20px rgba(11,28,51,.18);}
+    .app-drawer.open{transform:translateX(0);}
+    .app-drawer-close{position:absolute;top:16px;right:16px;background:var(--bg);border:1px solid var(--line);border-radius:8px;width:32px;height:32px;font-size:18px;line-height:1;cursor:pointer;color:var(--ink-soft);}
+    .app-drawer nav{margin-top:44px;}
+    .app-drawer-overlay{position:fixed;inset:0;background:rgba(11,28,51,.4);z-index:20;}
+    .app-drawer-overlay.open{display:block;}
   }
+  
+  .auth-gate{padding:8px 0 24px;}
+  .auth-gate-text{font-size:13.5px;color:var(--ink-soft);margin:0 0 16px;}
+  .auth-loading{padding:24px 0;color:var(--ink-soft);font-size:13.5px;}
+  .auth-denied{padding:24px 0;text-align:center;color:var(--ink-soft);font-size:13.5px;}
+  .auth-denied b{display:block;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--ink);margin-bottom:6px;}
+  .cadastro-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .cadastro-field{display:flex;justify-content:space-between;gap:14px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .cadastro-field:first-child{border-top:none;}
+  .cadastro-label{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--ink-soft);}
+  .cadastro-value{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);text-align:right;}
+  .invoices-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .invoice-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .invoice-row:first-child{border-top:none;}
+  .invoice-label{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);flex:1;min-width:110px;}
+  .invoice-links a{font-family:'Inter',sans-serif;font-size:13px;color:var(--brand);text-decoration:none;font-weight:500;margin-left:14px;}
+  .invoice-links a:hover{text-decoration:underline;}
+  
+  
+  
+  .service-tabs{display:flex;gap:22px;margin-top:22px;margin-bottom:22px;flex-wrap:wrap;}
+  .service-tab-btn{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;background:none;color:var(--ink-soft);border:none;border-bottom:2px solid transparent;padding:6px 2px 10px;cursor:pointer;transition:all .15s ease;}
+  .service-tab-btn:hover{color:var(--ink);}
+  .service-tab-btn.active{color:var(--ink);border-bottom-color:var(--brand);}
+  .tabs{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;}
+  .tab-btn{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:13.5px;background:var(--panel);color:var(--ink-soft);border:1px solid var(--line);padding:9px 18px;border-radius:20px;cursor:pointer;transition:all .15s ease;}
   .tab-btn:hover{border-color:var(--brand);color:var(--brand);}
   .tab-btn.active{background:var(--brand);color:#fff;border-color:var(--brand);}
   .tab-btn .current-mark{display:inline-block;width:6px;height:6px;border-radius:50%;background:#2FBE6C;margin-left:7px;vertical-align:middle;}
-
   .month-panel{display:none;}
   .month-panel.active{display:block;animation:fadeIn .3s ease;}
   @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-
-  /* summary strip */
   .summary{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:24px;}
   .summary-item{display:flex;flex-direction:column;gap:2px;}
   .summary-label{font-family:'Inter',sans-serif;font-size:11px;color:var(--ink-soft);white-space:nowrap;}
   .summary-value{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:20px;color:var(--brand);}
   .summary-value.ink{color:var(--ink);}
-
-  /* demands list */
   .demands{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
   .demand-row{display:grid;grid-template-columns:1fr 130px 90px 80px 130px;gap:14px;align-items:center;padding:16px 0;border-top:1px solid var(--line);}
+  .demand-row.no-hours{grid-template-columns:1fr 130px 90px 130px;}
   .demand-row:first-of-type{border-top:none;}
   .demand-head{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--ink-soft);padding:12px 0 6px;}
   .d-title{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);}
   .d-desc{font-size:12px;color:var(--ink-soft);margin-top:2px;}
   .d-owner{font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:7px;}
-  .owner-avatar{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:10.5px;font-weight:500;flex-shrink:0;}
   .d-deadline{font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);text-align:center;}
   .d-hours{font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);text-align:center;}
   .status{font-size:11px;padding:4px 10px;border-radius:20px;text-align:center;white-space:nowrap;}
@@ -88,19 +133,8 @@
   .status.em-andamento{background:var(--tint-2);color:var(--brand);}
   .status.feito{background:var(--brand);color:#fff;}
   .status.em-analise{background:var(--panel);color:var(--ink-soft);border:1px dashed var(--line);}
-
-  .empty-state{padding:40px 0;text-align:center;color:var(--ink-soft);font-size:13.5px;}
-  .empty-state b{display:block;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--ink);margin-bottom:6px;}
-
-  .footnote{margin-top:26px;font-size:12px;color:var(--ink-soft);text-align:center;}
-
   @media (max-width:720px){
-    .demand-row{
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr;
-      grid-template-areas:"main main main" "owner deadline hours" "status status status";
-      gap:8px;padding:16px 0;
-    }
+    .demand-row{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-areas:"main main main" "owner deadline hours" "status status status";gap:8px;padding:16px 0;}
     .demand-head{display:none;}
     .demand-head + .demand-row{border-top:none;}
     .d-main{grid-area:main;}
@@ -110,42 +144,94 @@
     .d-hours{grid-area:hours;text-align:left;}
     .d-hours::before{content:"Horas";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
     .status{grid-area:status;justify-self:start;width:fit-content;}
+    .demand-row.no-hours{grid-template-columns:1fr 1fr;grid-template-areas:"main main" "owner deadline" "status status";}
     .summary{gap:14px;flex-wrap:nowrap;}
     .summary-label{font-size:10px;}
   }
 </style>
 </head>
 <body>
+<script defer crossorigin="anonymous" src="https://clerk.vanzaklabs.com/npm/@clerk/clerk-js@5/dist/clerk.browser.js" data-clerk-publishable-key="pk_live_Y2xlcmsudmFuemFrbGFicy5jb20k"></script>
 <div class="topbar"></div>
-<div class="wrap">
+<div class="app-hamburger" id="appHamburger">
+  <button id="appHamburgerBtn" type="button" aria-label="Menu">&#9776;</button>
+  <svg class="app-hamburger-logo" viewBox="0 0 334 183" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/><path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/></svg>
+</div>
+<div class="app-drawer-overlay" id="appDrawerOverlay"></div>
+<div class="app-shell">
+  <div class="app-sidebar">
+    <nav>
+      
+      <button class="app-nav-btn" data-section="servicos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg><span>Serviços</span></button>
+      <button class="app-nav-btn" data-section="financeiro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17l-3-2-3 2-3-2-3 2V2z"/><path d="M9 8h6M9 12h6"/></svg><span>Financeiro</span></button>
+      <button class="app-nav-btn" data-section="cadastro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h4M15 12h4M6 16h12"/></svg><span>Dados Cadastrais</span></button>
+    </nav>
+  </div>
+  <div class="app-drawer" id="appDrawer">
+    <button class="app-drawer-close" id="appDrawerClose" type="button" aria-label="Fechar menu">&times;</button>
+    <nav>
+      
+      <button class="app-nav-btn" data-section="servicos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg><span>Serviços</span></button>
+      <button class="app-nav-btn" data-section="financeiro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17l-3-2-3 2-3-2-3 2V2z"/><path d="M9 8h6M9 12h6"/></svg><span>Financeiro</span></button>
+      <button class="app-nav-btn" data-section="cadastro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h4M15 12h4M6 16h12"/></svg><span>Dados Cadastrais</span></button>
+    </nav>
+  </div>
+  <div class="app-main">
+    <div class="wrap">
 
-  <div class="head">
-    <svg class="logo" viewBox="0 0 334 183" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM69.0009 32.5515H75.3891L77.2882 10.0425L69.0009 32.5515ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/>
-      <path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/>
-    </svg>
-    <div class="eyebrow"><span class="live-dot"></span>Relatório de Acompanhamento - CRO</div>
-    <h1 contenteditable="true">Uplift Fitness</h1>
-    <div class="head-meta" id="generatedAt">Atualizado em -</div>
+      <div class="head">
+        <svg class="logo" viewBox="0 0 334 183" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM69.0009 32.5515H75.3891L77.2882 10.0425L69.0009 32.5515ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/>
+          <path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/>
+        </svg>
+        <div class="eyebrow"><span class="live-dot"></span>Relatório de Acompanhamento</div>
+        <h1>Uplift Fitness</h1>
+        <div class="head-meta" id="generatedAt">Atualizado em -</div>
+      </div>
+
+      
+      <div class="app-section" data-section="servicos">
+  <div class="service-tabs" id="serviceTabs"></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="monthPanels"></div></div>
+      
+  <div class="app-section" data-section="financeiro">
+    <div class="auth-gate" id="financeiroGate">
+      <p class="auth-gate-text">Faça login pra ver suas faturas.</p>
+      <div id="financeiroSignIn"></div>
+    </div>
+    <div class="auth-loading" id="financeiroLoading" style="display:none;">Carregando...</div>
+    <div class="auth-denied" id="financeiroDenied" style="display:none;">
+      <b>Acesso ainda não liberado</b>
+      Fale com a Vanzak Labs pra liberar o acesso financeiro dessa conta.
+    </div>
+    <div class="invoices-card" id="financeiroContent" style="display:none;"></div>
+  </div>
+      
+  <div class="app-section" data-section="cadastro">
+    <div class="auth-gate" id="cadastroGate">
+      <p class="auth-gate-text">Faça login pra ver os dados cadastrais.</p>
+      <div id="cadastroSignIn"></div>
+    </div>
+    <div class="auth-loading" id="cadastroLoading" style="display:none;">Carregando...</div>
+    <div class="auth-denied" id="cadastroDenied" style="display:none;">
+      <b>Acesso ainda não liberado</b>
+      Fale com a Vanzak Labs pra liberar o acesso a essa conta.
+    </div>
+    <div class="cadastro-card" id="cadastroContent" style="display:none;"></div>
   </div>
 
-  <div class="tabs" id="tabs"></div>
+      <div class="footnote">Atualizado sempre que uma solicitação muda de status</div>
 
-  <div id="monthPanels"></div>
-
-  <div class="footnote">Atualizado sempre que uma solicitação muda de status</div>
-
+    </div>
+  </div>
 </div>
 
 <script>
-  // --- dados: um objeto por mês. Sincronizado automaticamente a partir do ClickUp. ---
   const generatedAt = 1785966940000;
 
-  document.getElementById('generatedAt').textContent = generatedAt
-    ? 'Atualizado em ' + new Date(generatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-    : 'Ainda não sincronizado';
-
-  const months = [
+  var services = [
+    { key: 'principal', label: 'Relatório', months: [
     {
       key: '2026-07',
       label: 'Julho 2026',
@@ -173,88 +259,273 @@
         { title: 'Monte sua Academia', deadline: '', status: 'a-fazer', owner: 'Murilo', hours: 5 },
       ],
     },
+  ] },
   ];
-
-  const statusLabel = { 'a-fazer': 'A fazer', 'em-andamento': 'Em andamento', 'feito': 'Feito', 'em-analise': 'Em análise' };
-
+  var SERVICE_STATUS_LABEL = { 'a-fazer': 'A fazer', 'em-andamento': 'Em andamento', 'feito': 'Feito', 'em-analise': 'Em análise' };
   function formatHours(n) {
     if (n == null) return '-';
-    const totalMinutes = Math.round(n * 60);
-    const h = Math.floor(totalMinutes / 60);
-    const m = totalMinutes % 60;
-    if (h === 0) return `${m}m`;
-    if (m === 0) return `${h}h`;
-    return `${h}h ${String(m).padStart(2, '0')}m`;
+    var totalMinutes = Math.round(n * 60);
+    var h = Math.floor(totalMinutes / 60);
+    var m = totalMinutes % 60;
+    if (h === 0) return m + 'm';
+    if (m === 0) return h + 'h';
+    return h + 'h ' + String(m).padStart(2, '0') + 'm';
+  }
+  // Sem horas por padrão pra serviço recém-descoberto — ajuste manual aqui
+  // se algum serviço específico deve mostrar a coluna.
+  var HOURS_ENABLED = { 'principal': false };
+  var activeServiceKey = services[0].key;
+  function currentService() { return services.find(function (s) { return s.key === activeServiceKey; }) || services[0]; }
+
+  function renderServiceTabs() {
+    document.getElementById('serviceTabs').innerHTML = services.map(function (s) {
+      return '<button class="service-tab-btn' + (s.key === activeServiceKey ? ' active' : '') + '" data-service="' + s.key + '">' + s.label + '</button>';
+    }).join('');
+    document.querySelectorAll('.service-tab-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () { showService(btn.dataset.service); });
+    });
   }
 
   function renderTabs(currentKey) {
-    document.getElementById('tabs').innerHTML = months.map(m => `
-      <button class="tab-btn${m.key === currentKey ? ' active' : ''}" data-key="${m.key}">
-        ${m.label}${isRealCurrentMonth(m.key) ? '<span class="current-mark"></span>' : ''}
-      </button>
-    `).join('');
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => showMonth(btn.dataset.key));
+    var months = currentService().months;
+    document.getElementById('tabs').innerHTML = months.map(function (m) {
+      return '<button class="tab-btn' + (m.key === currentKey ? ' active' : '') + '" data-key="' + m.key + '">' +
+        m.label + (isRealCurrentMonth(m.key) ? '<span class="current-mark"></span>' : '') + '</button>';
+    }).join('');
+    document.querySelectorAll('.tab-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () { showMonth(btn.dataset.key); });
     });
   }
 
   function isRealCurrentMonth(key) {
-    const now = new Date();
-    const nowKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var now = new Date();
+    var nowKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     return key === nowKey;
   }
 
   function renderPanels() {
-    document.getElementById('monthPanels').innerHTML = months.map(m => {
-      const total = m.demands.length;
-      const done = m.demands.filter(d => d.status === 'feito').length;
-      const doing = m.demands.filter(d => d.status === 'em-andamento').length;
-      const hasHours = m.demands.some(d => d.hours != null);
-      const totalHours = m.demands.reduce((sum, d) => sum + (d.hours || 0), 0);
-
-      const rowsHtml = total === 0
-        ? `<div class="empty-state"><b>Nenhuma solicitação registrada ainda</b>Assim que houverem solicitações ou pontos da reunião mensal, eles aparecem aqui.</div>`
-        : `
-          <div class="demand-row demand-head">
-            <div>Demanda</div><div>Responsável</div><div style="text-align:center;">Prazo</div><div style="text-align:center;">Horas</div><div>Status</div>
-          </div>
-        ` + m.demands.map(d => `
-          <div class="demand-row">
-            <div class="d-main"><div class="d-title">${d.title}</div><div class="d-desc">${d.desc || ''}</div></div>
-            <div class="d-owner">${d.owner ? `<span class="owner-avatar">${d.owner.charAt(0)}</span>${d.owner}` : '-'}</div>
-            <div class="d-deadline">${d.deadline || '-'}</div>
-            <div class="d-hours">${formatHours(d.hours)}</div>
-            <div class="status ${d.status}">${statusLabel[d.status] || '-'}</div>
-          </div>
-        `).join('');
-
-      return `
-        <div class="month-panel" id="panel-${m.key}">
-          <div class="summary">
-            <div class="summary-item"><span class="summary-value">${total}</span><span class="summary-label">solicitações</span></div>
-            <div class="summary-item"><span class="summary-value ink">${doing}</span><span class="summary-label">em andamento</span></div>
-            <div class="summary-item"><span class="summary-value ink">${done}</span><span class="summary-label">feitas</span></div>
-            ${hasHours ? `<div class="summary-item"><span class="summary-value ink">${formatHours(totalHours)}</span><span class="summary-label">horas utilizadas</span></div>` : ''}
-          </div>
-          <div class="demands">${rowsHtml}</div>
-        </div>
-      `;
+    var months = currentService().months;
+    var showHours = HOURS_ENABLED[activeServiceKey] !== false;
+    document.getElementById('monthPanels').innerHTML = months.map(function (m) {
+      var total = m.demands.length;
+      var done = m.demands.filter(function (d) { return d.status === 'feito'; }).length;
+      var doing = m.demands.filter(function (d) { return d.status === 'em-andamento'; }).length;
+      var hasHours = showHours && m.demands.some(function (d) { return d.hours != null; });
+      var totalHours = m.demands.reduce(function (sum, d) { return sum + (d.hours || 0); }, 0);
+      var rowsHtml;
+      if (total === 0) {
+        rowsHtml = '<div class="empty-state"><b>Nenhuma solicitação registrada ainda</b>Assim que houverem solicitações ou pontos da reunião mensal, eles aparecem aqui.</div>';
+      } else {
+        var head = '<div class="demand-row demand-head' + (showHours ? '' : ' no-hours') + '">' +
+          '<div>Demanda</div><div>Responsável</div><div style="text-align:center;">Prazo</div>' +
+          (showHours ? '<div style="text-align:center;">Horas</div>' : '') + '<div>Status</div></div>';
+        var body = m.demands.map(function (d) {
+          var ownerHtml = d.owner ? ('<span class="owner-avatar">' + d.owner.charAt(0) + '</span>' + d.owner) : '-';
+          return '<div class="demand-row' + (showHours ? '' : ' no-hours') + '">' +
+            '<div class="d-main"><div class="d-title">' + d.title + '</div><div class="d-desc">' + (d.desc || '') + '</div></div>' +
+            '<div class="d-owner">' + ownerHtml + '</div>' +
+            '<div class="d-deadline">' + (d.deadline || '-') + '</div>' +
+            (showHours ? ('<div class="d-hours">' + formatHours(d.hours) + '</div>') : '') +
+            '<div class="status ' + d.status + '">' + (SERVICE_STATUS_LABEL[d.status] || '-') + '</div>' +
+          '</div>';
+        }).join('');
+        rowsHtml = head + body;
+      }
+      var hoursSummary = hasHours ? ('<div class="summary-item"><span class="summary-value ink">' + formatHours(totalHours) + '</span><span class="summary-label">horas utilizadas</span></div>') : '';
+      return '<div class="month-panel" id="panel-' + m.key + '">' +
+        '<div class="summary">' +
+          '<div class="summary-item"><span class="summary-value">' + total + '</span><span class="summary-label">solicitações</span></div>' +
+          '<div class="summary-item"><span class="summary-value ink">' + doing + '</span><span class="summary-label">em andamento</span></div>' +
+          '<div class="summary-item"><span class="summary-value ink">' + done + '</span><span class="summary-label">feitas</span></div>' +
+          hoursSummary +
+        '</div>' +
+        '<div class="demands">' + rowsHtml + '</div>' +
+      '</div>';
     }).join('');
   }
 
   function showMonth(key) {
-    document.querySelectorAll('.month-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + key));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.key === key));
+    document.querySelectorAll('.month-panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + key); });
+    document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.key === key); });
   }
 
-  // escolhe a aba do mês atual real, se existir; senão, a última cadastrada
-  const now = new Date();
-  const nowKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  const defaultKey = months.some(m => m.key === nowKey) ? nowKey : months[months.length - 1].key;
+  function defaultMonthKey(months) {
+    if (!months.length) return null;
+    var now = new Date();
+    var nowKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var found = months.some(function (m) { return m.key === nowKey; });
+    return found ? nowKey : months[months.length - 1].key;
+  }
 
-  renderTabs(defaultKey);
-  renderPanels();
-  showMonth(defaultKey);
+  function showService(key) {
+    activeServiceKey = key;
+    renderServiceTabs();
+    renderPanels();
+    var monthKey = defaultMonthKey(currentService().months);
+    renderTabs(monthKey);
+    if (monthKey) showMonth(monthKey);
+  }
+
+  function showAppSection(key) {
+    document.querySelectorAll('.app-section').forEach(function (s) { s.classList.toggle('active', s.dataset.section === key); });
+    document.querySelectorAll('.app-nav-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.section === key); });
+    var drawer = document.getElementById('appDrawer');
+    var overlay = document.getElementById('appDrawerOverlay');
+    if (drawer) drawer.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+  }
+  document.querySelectorAll('.app-nav-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { showAppSection(btn.dataset.section); });
+  });
+  var appHamburgerBtn = document.getElementById('appHamburgerBtn');
+  if (appHamburgerBtn) appHamburgerBtn.addEventListener('click', function () {
+    document.getElementById('appDrawer').classList.add('open');
+    document.getElementById('appDrawerOverlay').classList.add('open');
+  });
+  var appOverlayEl = document.getElementById('appDrawerOverlay');
+  if (appOverlayEl) appOverlayEl.addEventListener('click', function () {
+    document.getElementById('appDrawer').classList.remove('open');
+    appOverlayEl.classList.remove('open');
+  });
+  var appDrawerCloseBtn = document.getElementById('appDrawerClose');
+  if (appDrawerCloseBtn) appDrawerCloseBtn.addEventListener('click', function () {
+    document.getElementById('appDrawer').classList.remove('open');
+    document.getElementById('appDrawerOverlay').classList.remove('open');
+  });
+
+  var CLIENT_SLUG = 'uplift-fitness';
+  var clienteDataLoaded = false;
+
+  function initAuthSections() {
+    if (!window.Clerk) { setTimeout(initAuthSections, 100); return; }
+    window.Clerk.load().then(function () {
+      hideClerkBadge();
+      window.Clerk.addListener(function () { renderAuthState(); });
+      renderAuthState();
+    }).catch(function (err) {
+      document.getElementById('financeiroGate').innerHTML = '<p class="auth-gate-text">Erro carregando login: ' + err.message + '</p>';
+    });
+  }
+
+  function setDisplay(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = value;
+  }
+
+  function renderAuthState() {
+    if (window.Clerk.user) {
+      setDisplay('financeiroGate', 'none');
+      setDisplay('cadastroGate', 'none');
+      if (!clienteDataLoaded) loadClienteData();
+    } else {
+      clienteDataLoaded = false;
+      setDisplay('financeiroGate', 'block');
+      setDisplay('cadastroGate', 'block');
+      setDisplay('financeiroLoading', 'none');
+      setDisplay('cadastroLoading', 'none');
+      setDisplay('financeiroContent', 'none');
+      setDisplay('cadastroContent', 'none');
+      setDisplay('financeiroDenied', 'none');
+      setDisplay('cadastroDenied', 'none');
+      var signInOpts = { forceRedirectUrl: location.pathname, signUpForceRedirectUrl: location.pathname };
+      var financeiroSignIn = document.getElementById('financeiroSignIn');
+      if (financeiroSignIn && !financeiroSignIn.hasChildNodes()) window.Clerk.mountSignIn(financeiroSignIn, signInOpts);
+      var cadastroSignIn = document.getElementById('cadastroSignIn');
+      if (cadastroSignIn && !cadastroSignIn.hasChildNodes()) window.Clerk.mountSignIn(cadastroSignIn, signInOpts);
+    }
+  }
+
+  function loadClienteData() {
+    setDisplay('financeiroLoading', 'block');
+    setDisplay('cadastroLoading', 'block');
+    window.Clerk.session.getToken().then(function (token) {
+      return fetch('/api/cliente/' + CLIENT_SLUG, { headers: { Authorization: 'Bearer ' + token } });
+    }).then(function (res) {
+      setDisplay('financeiroLoading', 'none');
+      setDisplay('cadastroLoading', 'none');
+      if (res.status === 404) {
+        setDisplay('financeiroDenied', 'block');
+        setDisplay('cadastroDenied', 'block');
+        return null;
+      }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      clienteDataLoaded = true;
+      return res.json();
+    }).then(function (data) {
+      if (!data) return;
+      renderCadastro(data.cadastro);
+      renderInvoices(data.invoices);
+    }).catch(function (err) {
+      setDisplay('financeiroLoading', 'none');
+      setDisplay('cadastroLoading', 'none');
+      document.getElementById('financeiroContent').innerHTML = '<div class="empty-state">Erro carregando dados: ' + err.message + '</div>';
+      document.getElementById('financeiroContent').style.display = 'block';
+    });
+  }
+
+  function fieldRow(label, value) {
+    return '<div class="cadastro-field"><span class="cadastro-label">' + label + '</span><span class="cadastro-value">' + (value || '-') + '</span></div>';
+  }
+
+  function renderCadastro(c) {
+    var el = document.getElementById('cadastroContent');
+    el.innerHTML =
+      fieldRow('Razão Social', c.razaoSocial) +
+      fieldRow('CNPJ', c.cnpj) +
+      fieldRow('Endereço', c.endereco) +
+      fieldRow('Contato', c.contatoNome) +
+      fieldRow('E-mail', c.contatoEmail) +
+      fieldRow('Telefone', c.contatoTelefone);
+    el.style.display = 'block';
+  }
+
+  function renderInvoices(invoices) {
+    var el = document.getElementById('financeiroContent');
+    if (!invoices || invoices.length === 0) {
+      el.innerHTML = '<div class="empty-state"><b>Nenhuma fatura ainda</b>As faturas aparecem aqui assim que forem lançadas.</div>';
+      el.style.display = 'block';
+      return;
+    }
+    el.innerHTML = invoices.map(function (inv) {
+      var statusHtml = inv.paid
+        ? '<span class="status feito">Pago</span>'
+        : '<span class="status a-fazer">Pendente</span>';
+      var links = '';
+      if (inv.links && inv.links.nf) links += '<a href="' + inv.links.nf + '" target="_blank" rel="noopener">NF</a>';
+      if (inv.links && inv.links.boleto) links += '<a href="' + inv.links.boleto + '" target="_blank" rel="noopener">Boleto</a>';
+      return '<div class="invoice-row"><span class="invoice-label">' + inv.label + '</span>' + statusHtml + '<span class="invoice-links">' + links + '</span></div>';
+    }).join('');
+    el.style.display = 'block';
+  }
+
+  // Esconde o rodapé "Secured by Clerk" — combinado explicitamente com o
+  // usuário, ciente de que não é feature suportada no plano free do Clerk
+  // e pode quebrar em qualquer atualização deles. Busca por texto em vez
+  // de nome de classe porque o Clerk usa hash aleatório a cada carregamento.
+  function hideClerkBadge() {
+    function findAndHide() {
+      document.querySelectorAll('body *').forEach(function (el) {
+        if (el.children.length === 0 && el.textContent && el.textContent.trim() === 'Secured by') {
+          var node = el;
+          for (var i = 0; i < 5 && node.parentElement; i++) {
+            if (node.parentElement.textContent.trim().length > (node.textContent.trim().length + 20)) break;
+            node = node.parentElement;
+          }
+          if (node.style.display !== 'none') node.style.display = 'none';
+        }
+      });
+    }
+    findAndHide();
+    new MutationObserver(findAndHide).observe(document.body, { childList: true, subtree: true });
+  }
+
+  document.getElementById('generatedAt').textContent = generatedAt
+    ? 'Atualizado em ' + new Date(generatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : 'Ainda não sincronizado';
+
+  showService(activeServiceKey);
+  showAppSection('servicos');
+  initAuthSections();
 </script>
 </body>
 </html>
