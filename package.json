@@ -1,0 +1,8 @@
+{
+  "name": "portal-clientes",
+  "private": true,
+  "description": "Cloudflare Pages Functions do portal-clientes. Sem build step — dependências aqui existem só pra ficarem disponíveis via npm install automático da Cloudflare antes do deploy.",
+  "dependencies": {
+    "@clerk/backend": "^3.16.0"
+  }
+}
