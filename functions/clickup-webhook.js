@@ -824,7 +824,7 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
   }`;
 
   const authCss = `
-  .auth-gate{padding:22px 0 24px;}
+  .auth-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:420px;padding:22px 0 24px;}
   .auth-gate-text{font-size:13.5px;color:var(--ink-soft);margin:0 0 16px;}
   .auth-loading{padding:22px 0 24px;color:var(--ink-soft);font-size:13.5px;}
   .auth-denied{padding:22px 0 24px;text-align:center;color:var(--ink-soft);font-size:13.5px;}
@@ -1011,7 +1011,6 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
   const financeiroSection = `
   <div class="app-section" data-section="financeiro">
     <div class="auth-gate" id="financeiroGate">
-      <p class="auth-gate-text">Faça login pra ver suas faturas.</p>
       <div id="financeiroSignIn"></div>
     </div>
     <div class="auth-loading" id="financeiroLoading" style="display:none;">Carregando...</div>
@@ -1025,7 +1024,6 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
   const cadastroSection = `
   <div class="app-section" data-section="cadastro">
     <div class="auth-gate" id="cadastroGate">
-      <p class="auth-gate-text">Faça login pra ver os dados cadastrais.</p>
       <div id="cadastroSignIn"></div>
     </div>
     <div class="auth-loading" id="cadastroLoading" style="display:none;">Carregando...</div>
