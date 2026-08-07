@@ -1280,16 +1280,26 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
 `;
 
   const sidebarScript = `
-  function showAppSection(key) {
+  // Troca de aba via hash (#financeiro, #cadastro, ...) — dá link direto
+  // pra uma aba específica sem precisar de rota de verdade por seção
+  // (esse projeto é arquivo estático por cliente, não tem servidor de
+  // rotas). replaceState em vez de mudar location.hash direto pra não
+  // empilhar uma entrada de histórico a cada clique de aba.
+  function showAppSection(key, skipHash) {
     document.querySelectorAll('.app-section').forEach(function (s) { s.classList.toggle('active', s.dataset.section === key); });
     document.querySelectorAll('.app-nav-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.section === key); });
     var drawer = document.getElementById('appDrawer');
     var overlay = document.getElementById('appDrawerOverlay');
     if (drawer) drawer.classList.remove('open');
     if (overlay) overlay.classList.remove('open');
+    if (!skipHash) history.replaceState(null, '', '#' + key);
   }
   document.querySelectorAll('.app-nav-btn').forEach(function (btn) {
     btn.addEventListener('click', function () { showAppSection(btn.dataset.section); });
+  });
+  window.addEventListener('hashchange', function () {
+    var key = location.hash.replace('#', '');
+    if (key && document.querySelector('.app-nav-btn[data-section="' + key + '"]')) showAppSection(key);
   });
   var appHamburgerBtn = document.getElementById('appHamburgerBtn');
   if (appHamburgerBtn) appHamburgerBtn.addEventListener('click', function () {
@@ -1458,7 +1468,13 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
   const initCalls = [
     hasProject ? 'renderTimeline(); renderStages(); renderMeetings();' : '',
     hasServices ? 'showService(activeServiceKey);' : '',
-    `showAppSection('${defaultSection}');`,
+    // Hash da URL (#financeiro, #cadastro, ...) escolhe a aba inicial, se
+    // for uma aba que essa página realmente tem — senão cai no padrão.
+    `(function () {
+      var hashKey = location.hash.replace('#', '');
+      var initial = (hashKey && document.querySelector('.app-nav-btn[data-section="' + hashKey + '"]')) ? hashKey : '${defaultSection}';
+      showAppSection(initial);
+    })();`,
     'initAuthSections();',
   ].filter(Boolean).join('\n  ');
 
