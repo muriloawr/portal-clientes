@@ -1326,9 +1326,64 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
   var CLIENT_SLUG = '${escapeJs(slug || '')}';
   var clienteDataLoaded = false;
 
+  // Tradução manual (sem @clerk/localizations, que não tem build pra CDN
+  // sem bundler) — cobre as telas que o cliente realmente vê: login,
+  // cadastro, esqueci a senha. Tela rara/erro específico pode ficar em
+  // inglês. É config de INSTÂNCIA (Clerk.load), não de componente — passar
+  // isso pro mountSignIn não tem efeito nenhum.
+  var CLERK_LOCALIZATION = {
+    locale: 'pt-BR',
+    formButtonPrimary: 'Continuar',
+    dividerText: 'ou',
+    formFieldLabel__emailAddress: 'E-mail',
+    formFieldLabel__password: 'Senha',
+    formFieldLabel__confirmPassword: 'Confirmar senha',
+    formFieldLabel__newPassword: 'Nova senha',
+    formFieldAction__forgotPassword: 'Esqueceu a senha?',
+    formFieldInputPlaceholder__emailAddress: 'Digite seu e-mail',
+    signIn: {
+      start: {
+        title: 'Entrar',
+        subtitle: 'Acesse sua conta pra continuar',
+        actionText: 'Não tem conta?',
+        actionLink: 'Cadastre-se',
+      },
+      password: { title: 'Digite sua senha' },
+      forgotPassword: {
+        title: 'Redefinir senha',
+        subtitle: 'pra redefinir sua senha',
+        subtitle_email: 'Primeiro, digite o código enviado pro seu e-mail',
+        formTitle: 'Código de redefinição',
+        resendButton: 'Não recebeu o código? Reenviar',
+      },
+      resetPassword: {
+        title: 'Definir nova senha',
+        formButtonPrimary: 'Redefinir senha',
+        successMessage: 'Senha alterada com sucesso. Entrando, aguarde um instante.',
+      },
+      forgotPasswordAlternativeMethods: {
+        title: 'Esqueceu a senha?',
+        blockButton__resetPassword: 'Redefinir sua senha',
+      },
+      noAvailableMethods: {
+        title: 'Não foi possível entrar',
+        message: 'Não foi possível continuar o login.',
+        subtitle: 'Ocorreu um erro',
+      },
+    },
+    signUp: {
+      start: {
+        title: 'Criar conta',
+        subtitle: 'Preencha os dados pra começar',
+        actionText: 'Já tem conta?',
+        actionLink: 'Entrar',
+      },
+    },
+  };
+
   function initAuthSections() {
     if (!window.Clerk) { setTimeout(initAuthSections, 100); return; }
-    window.Clerk.load().then(function () {
+    window.Clerk.load({ localization: CLERK_LOCALIZATION }).then(function () {
       hideClerkBadge();
       window.Clerk.addListener(function () { renderAuthState(); });
       renderAuthState();
@@ -1370,59 +1425,6 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
             colorInputText: '#0B1C33',
             fontFamily: "'Inter', sans-serif",
             borderRadius: '10px',
-          },
-        },
-        // Tradução manual (sem depender de @clerk/localizations, que não
-        // tem build pra carregar via <script> sem bundler) — cobre as
-        // telas que o cliente realmente vê: login, cadastro, esqueci a
-        // senha. Tela rara/erro específico pode ficar em inglês.
-        localization: {
-          locale: 'pt-BR',
-          formButtonPrimary: 'Continuar',
-          dividerText: 'ou',
-          formFieldLabel__emailAddress: 'E-mail',
-          formFieldLabel__password: 'Senha',
-          formFieldLabel__confirmPassword: 'Confirmar senha',
-          formFieldLabel__newPassword: 'Nova senha',
-          formFieldAction__forgotPassword: 'Esqueceu a senha?',
-          formFieldInputPlaceholder__emailAddress: 'Digite seu e-mail',
-          signIn: {
-            start: {
-              title: 'Entrar',
-              subtitle: 'Acesse sua conta pra continuar',
-              actionText: 'Não tem conta?',
-              actionLink: 'Cadastre-se',
-            },
-            password: { title: 'Digite sua senha' },
-            forgotPassword: {
-              title: 'Redefinir senha',
-              subtitle: 'pra redefinir sua senha',
-              subtitle_email: 'Primeiro, digite o código enviado pro seu e-mail',
-              formTitle: 'Código de redefinição',
-              resendButton: 'Não recebeu o código? Reenviar',
-            },
-            resetPassword: {
-              title: 'Definir nova senha',
-              formButtonPrimary: 'Redefinir senha',
-              successMessage: 'Senha alterada com sucesso. Entrando, aguarde um instante.',
-            },
-            forgotPasswordAlternativeMethods: {
-              title: 'Esqueceu a senha?',
-              blockButton__resetPassword: 'Redefinir sua senha',
-            },
-            noAvailableMethods: {
-              title: 'Não foi possível entrar',
-              message: 'Não foi possível continuar o login.',
-              subtitle: 'Ocorreu um erro',
-            },
-          },
-          signUp: {
-            start: {
-              title: 'Criar conta',
-              subtitle: 'Preencha os dados pra começar',
-              actionText: 'Já tem conta?',
-              actionLink: 'Entrar',
-            },
           },
         },
       };
