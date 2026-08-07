@@ -37,7 +37,7 @@ const CLIENTS = [
     ],
   },
     { name: 'Sellévia', projectTaskId: 'wdpu2yadde', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztr' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75r' }], filePath: 'sellevia/index.html' },,
-  { name: 'Booma Organic', projectTaskId: 'wdpu2ybtcm', filePath: 'booma/index.html' },
+    { name: 'Booma Organic', projectTaskId: 'wdpu2ybtcm', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrt' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75d' }], filePath: 'booma/index.html' },,
   { name: 'Beleza Brasileira', projectTaskId: 'wdpu2y7wq1', filePath: 'beleza-brasileira/index.html' },
   { name: 'Yasmin Beauty', projectTaskId: '86ahgcemc', filePath: 'yasmin-beauty/index.html' },
     { name: 'Beeva', projectTaskId: 'wdpu2ydyzj', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztp' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75p' }], filePath: 'beeva/index.html' },,
