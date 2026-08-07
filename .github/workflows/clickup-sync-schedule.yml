@@ -60,6 +60,7 @@ jobs:
             "SenseBe"
             "Bash Beauty"
             "Nutrado"
+            "Pure Shower"
           )
           FAILED=0
           for CLIENT in "${CLIENTS[@]}"; do
