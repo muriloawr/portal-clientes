@@ -792,6 +792,7 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
   const navIconServicos = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg>';
   const navIconFinanceiro = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17l-3-2-3 2-3-2-3 2V2z"/><path d="M9 8h6M9 12h6"/></svg>';
   const navIconCadastro = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h4M15 12h4M6 16h12"/></svg>';
+  const navIconLogout = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>';
 
   const sidebarCss = `
   .app-sidebar{width:230px;flex-shrink:0;background:#FFFFFF;border-right:1px solid var(--line);position:fixed;top:0;left:0;bottom:0;padding:26px 16px;display:flex;flex-direction:column;z-index:6;overflow-y:auto;}
@@ -801,7 +802,11 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
   .app-nav-btn:hover{background:var(--bg);color:var(--ink);}
   .app-nav-btn.active{background:var(--brand);color:#fff;}
   .app-nav-btn.active svg{color:#fff;}
+  .app-logout-btn{display:none;align-items:center;gap:10px;width:100%;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);background:none;border:none;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .15s ease;margin-top:auto;flex-shrink:0;}
+  .app-logout-btn svg{flex-shrink:0;}
+  .app-logout-btn:hover{background:var(--bg);color:#D64545;}
   .app-main{margin-left:230px;min-width:0;}
+  body.hide-chrome .head,body.hide-chrome .footnote{display:none;}
   .app-section{display:none;}
   .app-section.active{display:block;}
   .app-hamburger{display:none;}
@@ -825,6 +830,8 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
 
   const authCss = `
   .auth-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:22px 0 24px;}
+  body.hide-chrome .auth-gate{min-height:calc(100vh - 90px);}
+  @media (max-width:860px){ body.hide-chrome .auth-gate{min-height:calc(100vh - 130px);} }
   .auth-gate-text{font-size:13.5px;color:var(--ink-soft);margin:0 0 16px;}
   .auth-gate-loading{font-size:13.5px;color:var(--ink-soft);}
   .auth-loading{padding:22px 0 24px;color:var(--ink-soft);font-size:13.5px;}
@@ -961,15 +968,19 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
       <button class="app-nav-btn" data-section="financeiro">${navIconFinanceiro}<span>Financeiro</span></button>
       <button class="app-nav-btn" data-section="cadastro">${navIconCadastro}<span>Dados Cadastrais</span></button>`;
 
+  const logoutButtonHtml = `<button class="app-logout-btn" type="button">${navIconLogout}<span>Sair</span></button>`;
+
   const sidebarMarkup = `
   <div class="app-sidebar">
     <nav>${navButtonsHtml}
     </nav>
+    ${logoutButtonHtml}
   </div>
   <div class="app-drawer" id="appDrawer">
     <button class="app-drawer-close" id="appDrawerClose" type="button" aria-label="Fechar menu">&times;</button>
     <nav>${navButtonsHtml}
     </nav>
+    ${logoutButtonHtml}
   </div>`;
 
   const projectInner = !hasProject ? '' : `
@@ -1294,7 +1305,11 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
     if (drawer) drawer.classList.remove('open');
     if (overlay) overlay.classList.remove('open');
     if (!skipHash) history.replaceState(null, '', '#' + key);
+    updateChromeVisibility();
   }
+  document.querySelectorAll('.app-logout-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { if (window.Clerk) window.Clerk.signOut(); });
+  });
   document.querySelectorAll('.app-nav-btn').forEach(function (btn) {
     btn.addEventListener('click', function () { showAppSection(btn.dataset.section); });
   });
@@ -1398,7 +1413,21 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
     if (el) el.style.display = value;
   }
 
+  // Financeiro/Cadastro exigem login: enquanto não autenticado, some com o
+  // cabeçalho (logo/título/data) e o rodapé, deixando só o menu lateral e a
+  // caixa de login centralizada. Nas outras abas (Projeto/Serviços, que são
+  // públicas) o cabeçalho sempre aparece.
+  function updateChromeVisibility() {
+    var activeSection = document.querySelector('.app-section.active');
+    var key = activeSection ? activeSection.dataset.section : '';
+    var gated = key === 'financeiro' || key === 'cadastro';
+    var signedIn = !!(window.Clerk && window.Clerk.user);
+    document.body.classList.toggle('hide-chrome', gated && !signedIn);
+  }
+
   function renderAuthState() {
+    document.querySelectorAll('.app-logout-btn').forEach(function (btn) { btn.style.display = window.Clerk.user ? 'flex' : 'none'; });
+    updateChromeVisibility();
     if (window.Clerk.user) {
       setDisplay('financeiroGate', 'none');
       setDisplay('cadastroGate', 'none');
