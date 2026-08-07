@@ -738,11 +738,10 @@ function buildClientHtml(clientName, taskId, stages, services) {
   @media (max-width:860px){
     .app-sidebar{display:none;}
     .app-main{margin-left:0;}
-    .app-hamburger{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;position:sticky;top:0;background:#FFFFFF;z-index:10;border-bottom:1px solid var(--line);}
-    .app-hamburger-left{display:flex;align-items:center;gap:10px;min-width:0;}
-    .app-hamburger-logo{width:37px;height:20px;flex-shrink:0;}
-    .app-hamburger-title{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .app-hamburger{display:flex;align-items:center;padding:12px 20px;position:sticky;top:0;background:#FFFFFF;z-index:10;border-bottom:1px solid var(--line);}
+    .app-hamburger-logo{width:62px;height:34px;flex-shrink:0;margin:0 auto;}
     .app-hamburger button{background:var(--bg);border:1px solid var(--line);border-radius:8px;width:36px;height:34px;font-size:16px;line-height:1;cursor:pointer;color:var(--ink);flex-shrink:0;}
+    .head .logo{display:none;}
     .app-drawer{position:fixed;top:0;left:0;bottom:0;width:78%;max-width:280px;background:#FFFFFF;z-index:30;padding:24px 18px;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease;box-shadow:2px 0 20px rgba(11,28,51,.18);}
     .app-drawer.open{transform:translateX(0);}
     .app-drawer .app-logo{width:40px;height:22px;align-self:flex-start;margin:2px 0 26px;}
@@ -857,11 +856,8 @@ function buildClientHtml(clientName, taskId, stages, services) {
 
   const headerMarkup = !isCombo ? '' : `
 <div class="app-hamburger" id="appHamburger">
-  <div class="app-hamburger-left">
-    ${logoMark('app-hamburger-logo')}
-    <span class="app-hamburger-title">${safeName}</span>
-  </div>
   <button id="appHamburgerBtn" type="button" aria-label="Menu">&#9776;</button>
+  ${logoMark('app-hamburger-logo')}
 </div>
 <div class="app-drawer-overlay" id="appDrawerOverlay"></div>`;
 
