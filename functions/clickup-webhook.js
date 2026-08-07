@@ -60,6 +60,13 @@ const CLIENTS = [
   { name: 'White Align', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrn' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75b' }], filePath: 'white-align/index.html' },
 ];
 
+// Nome do cliente (exatamente como está em CLIENTS[].name) → slug da URL,
+// derivado de filePath. Reaproveitado por functions/financeiro-sync.js pra
+// não duplicar essa lista e correr o risco de ficar dessincronizada.
+export const CLIENT_SLUGS = Object.fromEntries(
+  CLIENTS.map(c => [c.name, c.filePath.replace(/\/index\.html$/, '')]),
+);
+
 // Lista "Projetos" no ClickUp — mesma lista de onde vem a task-mãe de cada
 // cliente tipo "projeto" e onde a sync do Figma já procura a task-mãe pelo
 // taskId. Task-mãe nova com status "CLIENTES" nessa lista = cliente novo
@@ -185,7 +192,7 @@ async function syncClient(client, env) {
   return 'synced';
 }
 
-async function fetchSubtasks(taskId, token) {
+export async function fetchSubtasks(taskId, token) {
   const res = await clickUpFetch(`https://api.clickup.com/api/v2/task/${taskId}?include_subtasks=true`, {
     headers: { Authorization: token },
   });
@@ -265,7 +272,7 @@ function formatDateRange(startMs, dueMs) {
   return '';
 }
 
-function statusKeyOf(t) {
+export function statusKeyOf(t) {
   const raw = (t.status && t.status.status ? t.status.status : '').toLowerCase();
   return raw.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '-');
 }
@@ -426,7 +433,7 @@ function replaceGeneratedAt(html, ms) {
 // está em CLIENTS, provisiona sozinho: cria a página (template padrão tipo
 // "projeto", em branco até a task-mãe ganhar subtasks/etapas), cadastra em
 // CLIENTS (esse mesmo arquivo) e adiciona o nome no workflow agendado.
-async function fetchListTasks(listId, token) {
+export async function fetchListTasks(listId, token) {
   const res = await clickUpFetch(`https://api.clickup.com/api/v2/list/${listId}/task?include_closed=true`, {
     headers: { Authorization: token },
   });
