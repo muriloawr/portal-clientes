@@ -3,7 +3,7 @@ import { verifyClerkAuth } from '../_lib/clerk.js';
 // Rota descartável só pra confirmar que a verificação de token do Clerk
 // funciona de ponta a ponta antes de construir a API real em cima. Apagar
 // depois que a Fase 2 do plano estiver validada (junto com
-// functions/_test-clerk.js).
+// functions/test-clerk.js).
 export async function onRequestGet(context) {
   const { request, env } = context;
   const auth = await verifyClerkAuth(request, env);

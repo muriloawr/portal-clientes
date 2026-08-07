@@ -1,6 +1,6 @@
 // Página descartável só pra testar o login do Clerk + verificação de token
-// na Function real, de ponta a ponta. Acessar em /_test-clerk. Apagar esse
-// arquivo e functions/api/_test-auth.js depois que a Fase 2 do plano
+// na Function real, de ponta a ponta. Acessar em /test-clerk. Apagar esse
+// arquivo e functions/api/test-auth.js depois que a Fase 2 do plano
 // estiver validada.
 export async function onRequestGet(context) {
   const { env } = context;
@@ -19,7 +19,7 @@ export async function onRequestGet(context) {
 <body>
 <h1>Teste Clerk</h1>
 <div id="sign-in"></div>
-<button id="test-btn" style="display:none;">Testar API (/api/_test-auth)</button>
+<button id="test-btn" style="display:none;">Testar API (/api/test-auth)</button>
 <pre id="result"></pre>
 
 <script defer crossorigin="anonymous" src="https://clerk.vanzaklabs.com/npm/@clerk/clerk-js@5/dist/clerk.browser.js" data-clerk-publishable-key="${pubKey}"></script>
@@ -48,7 +48,7 @@ function showTestButton() {
   btn.style.display = 'inline-block';
   btn.addEventListener('click', function () {
     window.Clerk.session.getToken().then(function (token) {
-      return fetch('/api/_test-auth', { headers: { Authorization: 'Bearer ' + token } });
+      return fetch('/api/test-auth', { headers: { Authorization: 'Bearer ' + token } });
     }).then(function (res) {
       return res.text().then(function (body) {
         document.getElementById('result').textContent = 'HTTP ' + res.status + '\\n' + body;
