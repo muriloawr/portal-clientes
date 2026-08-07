@@ -1347,7 +1347,22 @@ function buildClientHtml(clientName, taskId, stages, services, slug, clerkPublis
       setDisplay('cadastroContent', 'none');
       setDisplay('financeiroDenied', 'none');
       setDisplay('cadastroDenied', 'none');
-      var signInOpts = { forceRedirectUrl: location.pathname, signUpForceRedirectUrl: location.pathname };
+      var signInOpts = {
+        forceRedirectUrl: location.pathname,
+        signUpForceRedirectUrl: location.pathname,
+        appearance: {
+          variables: {
+            colorPrimary: '#015EC5',
+            colorText: '#0B1C33',
+            colorTextSecondary: '#5A6B85',
+            colorBackground: '#FFFFFF',
+            colorInputBackground: '#F2F6FC',
+            colorInputText: '#0B1C33',
+            fontFamily: "'Inter', sans-serif",
+            borderRadius: '10px',
+          },
+        },
+      };
       var financeiroSignIn = document.getElementById('financeiroSignIn');
       if (financeiroSignIn && !financeiroSignIn.hasChildNodes()) window.Clerk.mountSignIn(financeiroSignIn, signInOpts);
       var cadastroSignIn = document.getElementById('cadastroSignIn');
