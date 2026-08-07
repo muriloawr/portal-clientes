@@ -717,27 +717,36 @@ function buildClientHtml(clientName, taskId, stages, services) {
 
   const hoursEnabledJs = hasServices ? services.map(s => `'${s.key}': false`).join(', ') : '';
 
+  const logoMarkPaths = '<path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/><path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/>';
+  function logoMark(cls) {
+    return `<svg class="${cls}" viewBox="0 0 334 183" fill="none" xmlns="http://www.w3.org/2000/svg">${logoMarkPaths}</svg>`;
+  }
+
   const sidebarCss = !isCombo ? '' : `
-  .app-shell{display:flex;align-items:flex-start;}
-  .app-sidebar{width:180px;flex-shrink:0;padding-top:40px;}
-  .app-sidebar nav{display:flex;flex-direction:column;gap:4px;position:sticky;top:24px;}
-  .app-nav-btn{display:block;width:100%;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);background:none;border:none;border-radius:10px;padding:10px 14px;cursor:pointer;text-align:left;transition:all .15s ease;}
-  .app-nav-btn:hover{background:var(--tint-1);color:var(--ink);}
+  .app-sidebar{width:230px;flex-shrink:0;background:#FFFFFF;border-right:1px solid var(--line);position:fixed;top:0;left:0;bottom:0;padding:26px 16px;display:flex;flex-direction:column;z-index:6;overflow-y:auto;}
+  .app-sidebar .app-logo{width:44px;height:24px;align-self:flex-start;margin:2px 0 30px;}
+  .app-sidebar nav{display:flex;flex-direction:column;gap:4px;}
+  .app-nav-btn{display:block;width:100%;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);background:none;border:none;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .15s ease;}
+  .app-nav-btn:hover{background:var(--bg);color:var(--ink);}
   .app-nav-btn.active{background:var(--brand);color:#fff;}
-  .app-main{flex:1;min-width:0;}
+  .app-main{margin-left:230px;min-width:0;}
   .app-section{display:none;}
   .app-section.active{display:block;}
   .app-hamburger{display:none;}
+  .app-drawer{display:none;}
   .app-drawer-overlay{display:none;}
   @media (max-width:860px){
-    .app-shell{display:block;}
     .app-sidebar{display:none;}
-    .app-hamburger{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--line);margin:0 -24px 12px;}
-    .app-hamburger-title{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;}
-    .app-hamburger button{background:var(--panel);border:1px solid var(--line);border-radius:8px;width:38px;height:34px;font-size:16px;cursor:pointer;}
-    .app-drawer{position:fixed;top:0;left:0;bottom:0;width:70%;max-width:260px;background:var(--panel);z-index:30;padding:24px 18px;transform:translateX(-100%);transition:transform .2s ease;box-shadow:2px 0 16px rgba(11,28,51,.15);}
+    .app-main{margin-left:0;}
+    .app-hamburger{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;position:sticky;top:0;background:#FFFFFF;z-index:10;border-bottom:1px solid var(--line);}
+    .app-hamburger-left{display:flex;align-items:center;gap:10px;min-width:0;}
+    .app-hamburger-logo{width:37px;height:20px;flex-shrink:0;}
+    .app-hamburger-title{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .app-hamburger button{background:var(--bg);border:1px solid var(--line);border-radius:8px;width:36px;height:34px;font-size:16px;line-height:1;cursor:pointer;color:var(--ink);flex-shrink:0;}
+    .app-drawer{position:fixed;top:0;left:0;bottom:0;width:78%;max-width:280px;background:#FFFFFF;z-index:30;padding:24px 18px;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease;box-shadow:2px 0 20px rgba(11,28,51,.18);}
     .app-drawer.open{transform:translateX(0);}
-    .app-drawer-overlay{position:fixed;inset:0;background:rgba(11,28,51,.35);z-index:20;}
+    .app-drawer .app-logo{width:40px;height:22px;align-self:flex-start;margin:2px 0 26px;}
+    .app-drawer-overlay{position:fixed;inset:0;background:rgba(11,28,51,.4);z-index:20;}
     .app-drawer-overlay.open{display:block;}
   }`;
 
@@ -848,19 +857,24 @@ function buildClientHtml(clientName, taskId, stages, services) {
 
   const headerMarkup = !isCombo ? '' : `
 <div class="app-hamburger" id="appHamburger">
-  <span class="app-hamburger-title">${safeName}</span>
+  <div class="app-hamburger-left">
+    ${logoMark('app-hamburger-logo')}
+    <span class="app-hamburger-title">${safeName}</span>
+  </div>
   <button id="appHamburgerBtn" type="button" aria-label="Menu">&#9776;</button>
 </div>
 <div class="app-drawer-overlay" id="appDrawerOverlay"></div>`;
 
   const sidebarMarkup = !isCombo ? '' : `
   <div class="app-sidebar">
+    ${logoMark('app-logo')}
     <nav>
       ${hasProject ? '<button class="app-nav-btn" data-section="projeto">Projeto</button>' : ''}
       ${hasServices ? '<button class="app-nav-btn" data-section="servicos">Serviços</button>' : ''}
     </nav>
   </div>
   <div class="app-drawer" id="appDrawer">
+    ${logoMark('app-logo')}
     <nav>
       ${hasProject ? '<button class="app-nav-btn" data-section="projeto">Projeto</button>' : ''}
       ${hasServices ? '<button class="app-nav-btn" data-section="servicos">Serviços</button>' : ''}
