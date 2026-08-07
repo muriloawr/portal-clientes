@@ -812,7 +812,7 @@ function buildClientHtml(clientName, taskId, stages, services) {
   }`;
 
   const servicesCss = !hasServices ? '' : `
-  .service-tabs{display:flex;gap:22px;margin-bottom:22px;flex-wrap:wrap;}
+  .service-tabs{display:flex;gap:22px;margin-top:22px;margin-bottom:22px;flex-wrap:wrap;}
   .service-tab-btn{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;background:none;color:var(--ink-soft);border:none;border-bottom:2px solid transparent;padding:6px 2px 10px;cursor:pointer;transition:all .15s ease;}
   .service-tab-btn:hover{color:var(--ink);}
   .service-tab-btn.active{color:var(--ink);border-bottom-color:var(--brand);}
