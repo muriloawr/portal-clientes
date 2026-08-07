@@ -744,7 +744,7 @@ function buildClientHtml(clientName, taskId, stages, services) {
     .app-sidebar{display:none;}
     .app-main{margin-left:0;}
     .app-hamburger{display:flex;align-items:center;padding:12px 20px;position:sticky;top:0;background:#FFFFFF;z-index:10;border-bottom:1px solid var(--line);}
-    .app-hamburger-logo{width:62px;height:34px;flex-shrink:0;margin:0 auto;}
+    .app-hamburger-logo{width:62px;height:34px;flex-shrink:0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);}
     .app-hamburger button{background:var(--bg);border:1px solid var(--line);border-radius:8px;width:36px;height:34px;font-size:16px;line-height:1;cursor:pointer;color:var(--ink);flex-shrink:0;}
     .head .logo{display:none;}
     .app-main .wrap{padding-top:24px;}
