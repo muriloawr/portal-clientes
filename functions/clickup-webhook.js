@@ -50,6 +50,7 @@ const CLIENTS = [
   { name: 'AIB Beauty', projectTaskId: 'wdpu2ye60a', filePath: 'aib-beauty/index.html' },
     { name: 'Bako Cosmetics', projectTaskId: 'wdpu2ye3hg', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztn' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75n' }], filePath: 'bako/index.html' },,
   { name: 'Kunha P', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztq' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75q' }], filePath: 'kunha-p/index.html' },
+  { name: 'SenseBe', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztk' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75m' }], filePath: 'sensebe/index.html' },
 ];
 
 // Lista "Projetos" no ClickUp — mesma lista de onde vem a task-mãe de cada
