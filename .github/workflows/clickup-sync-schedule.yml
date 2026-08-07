@@ -58,6 +58,7 @@ jobs:
             "Bako Cosmetics"
             "Kunha P"
             "SenseBe"
+            "Bash Beauty"
           )
           FAILED=0
           for CLIENT in "${CLIENTS[@]}"; do
