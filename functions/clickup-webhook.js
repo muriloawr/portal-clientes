@@ -722,11 +722,15 @@ function buildClientHtml(clientName, taskId, stages, services) {
     return `<svg class="${cls}" viewBox="0 0 334 183" fill="none" xmlns="http://www.w3.org/2000/svg">${logoMarkPaths}</svg>`;
   }
 
+  const navIconProjeto = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>';
+  const navIconServicos = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg>';
+
   const sidebarCss = !isCombo ? '' : `
   .app-sidebar{width:230px;flex-shrink:0;background:#FFFFFF;border-right:1px solid var(--line);position:fixed;top:0;left:0;bottom:0;padding:26px 16px;display:flex;flex-direction:column;z-index:6;overflow-y:auto;}
   .app-sidebar .app-logo{width:44px;height:24px;align-self:flex-start;margin:2px 0 30px;}
   .app-sidebar nav{display:flex;flex-direction:column;gap:4px;}
-  .app-nav-btn{display:block;width:100%;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);background:none;border:none;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .15s ease;}
+  .app-nav-btn{display:flex;align-items:center;gap:10px;width:100%;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);background:none;border:none;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .15s ease;}
+  .app-nav-btn svg{flex-shrink:0;}
   .app-nav-btn:hover{background:var(--bg);color:var(--ink);}
   .app-nav-btn.active{background:var(--brand);color:#fff;}
   .app-main{margin-left:230px;min-width:0;}
@@ -744,7 +748,8 @@ function buildClientHtml(clientName, taskId, stages, services) {
     .head .logo{display:none;}
     .app-drawer{position:fixed;top:0;left:0;bottom:0;width:78%;max-width:280px;background:#FFFFFF;z-index:30;padding:24px 18px;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease;box-shadow:2px 0 20px rgba(11,28,51,.18);}
     .app-drawer.open{transform:translateX(0);}
-    .app-drawer .app-logo{width:40px;height:22px;align-self:flex-start;margin:2px 0 26px;}
+    .app-drawer-close{position:absolute;top:16px;right:16px;background:var(--bg);border:1px solid var(--line);border-radius:8px;width:32px;height:32px;font-size:18px;line-height:1;cursor:pointer;color:var(--ink-soft);}
+    .app-drawer nav{margin-top:44px;}
     .app-drawer-overlay{position:fixed;inset:0;background:rgba(11,28,51,.4);z-index:20;}
     .app-drawer-overlay.open{display:block;}
   }`;
@@ -865,15 +870,15 @@ function buildClientHtml(clientName, taskId, stages, services) {
   <div class="app-sidebar">
     ${logoMark('app-logo')}
     <nav>
-      ${hasProject ? '<button class="app-nav-btn" data-section="projeto">Projeto</button>' : ''}
-      ${hasServices ? '<button class="app-nav-btn" data-section="servicos">Serviços</button>' : ''}
+      ${hasProject ? `<button class="app-nav-btn" data-section="projeto">${navIconProjeto}<span>Projeto</span></button>` : ''}
+      ${hasServices ? `<button class="app-nav-btn" data-section="servicos">${navIconServicos}<span>Serviços</span></button>` : ''}
     </nav>
   </div>
   <div class="app-drawer" id="appDrawer">
-    ${logoMark('app-logo')}
+    <button class="app-drawer-close" id="appDrawerClose" type="button" aria-label="Fechar menu">&times;</button>
     <nav>
-      ${hasProject ? '<button class="app-nav-btn" data-section="projeto">Projeto</button>' : ''}
-      ${hasServices ? '<button class="app-nav-btn" data-section="servicos">Serviços</button>' : ''}
+      ${hasProject ? `<button class="app-nav-btn" data-section="projeto">${navIconProjeto}<span>Projeto</span></button>` : ''}
+      ${hasServices ? `<button class="app-nav-btn" data-section="servicos">${navIconServicos}<span>Serviços</span></button>` : ''}
     </nav>
   </div>`;
 
@@ -1182,6 +1187,11 @@ function buildClientHtml(clientName, taskId, stages, services) {
   if (appOverlayEl) appOverlayEl.addEventListener('click', function () {
     document.getElementById('appDrawer').classList.remove('open');
     appOverlayEl.classList.remove('open');
+  });
+  var appDrawerCloseBtn = document.getElementById('appDrawerClose');
+  if (appDrawerCloseBtn) appDrawerCloseBtn.addEventListener('click', function () {
+    document.getElementById('appDrawer').classList.remove('open');
+    document.getElementById('appDrawerOverlay').classList.remove('open');
   });
 `;
 
