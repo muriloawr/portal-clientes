@@ -53,6 +53,7 @@ const CLIENTS = [
   { name: 'SenseBe', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztk' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75m' }], filePath: 'sensebe/index.html' },
   { name: 'Bash Beauty', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezt3' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75k' }], filePath: 'bash-beauty/index.html' },
   { name: 'Nutrado', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezt2' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75j' }], filePath: 'nutrado/index.html' },
+  { name: 'Pure Shower', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezt1' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75h' }], filePath: 'pure-shower/index.html' },
 ];
 
 // Lista "Projetos" no ClickUp — mesma lista de onde vem a task-mãe de cada
