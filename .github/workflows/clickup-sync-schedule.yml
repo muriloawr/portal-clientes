@@ -64,6 +64,7 @@ jobs:
             "Luminati"
             "iHerb"
             "Lalume"
+            "White Align"
           )
           FAILED=0
           for CLIENT in "${CLIENTS[@]}"; do
