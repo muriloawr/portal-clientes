@@ -58,6 +58,7 @@ const CLIENTS = [
   { name: 'iHerb', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrv' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf759' }], filePath: 'iherb/index.html' },
   { name: 'Lalume', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrp' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75a' }], filePath: 'lalume/index.html' },
   { name: 'White Align', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrn' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75b' }], filePath: 'white-align/index.html' },
+  { name: 'CONTREI', projectTaskId: 'wdpu2yft88', filePath: 'contrei/index.html' },
 ];
 
 // Nome do cliente (exatamente como está em CLIENTS[].name) → slug da URL,
