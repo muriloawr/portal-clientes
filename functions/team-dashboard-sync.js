@@ -72,6 +72,7 @@ export async function onRequestPost(context) {
     const resolveClient = buildClientResolver(allTasks);
     const people = buildPeople(allTasks, members, resolveClient);
     const recurringHours = await buildRecurringHours(allTasks, resolveClient, env.CLICKUP_API_TOKEN);
+    const clientProjects = buildClientProjectTimelines(allTasks);
 
     const { content, sha } = await getGithubFile(FILE_PATH, env.GITHUB_TOKEN);
 
@@ -80,10 +81,10 @@ export async function onRequestPost(context) {
     // commitar (e disparar um deploy no Cloudflare) toda vez que o cron
     // roda sem nenhuma mudança real vinda do ClickUp.
     const prevGeneratedAt = extractGeneratedAt(content);
-    const sameTimestamp = replaceTeamData(content, { generatedAt: prevGeneratedAt, people, recurringHours });
+    const sameTimestamp = replaceTeamData(content, { generatedAt: prevGeneratedAt, people, recurringHours, clientProjects });
     if (sameTimestamp === content) return new Response('no changes', { status: 200 });
 
-    const updated = replaceTeamData(content, { generatedAt: Date.now(), people, recurringHours });
+    const updated = replaceTeamData(content, { generatedAt: Date.now(), people, recurringHours, clientProjects });
     await commitGithubFile(FILE_PATH, updated, sha, 'sync: atualiza painel de gestão a partir do ClickUp', env.GITHUB_TOKEN);
     return new Response('synced', { status: 200 });
   } catch (err) {
@@ -218,7 +219,6 @@ function buildPeople(tasks, members, resolveClient) {
     const isClosed = CLOSED_STATUSES.has(status);
     const isInProgress = status === IN_PROGRESS_STATUS;
     const dueMs = t.due_date ? Number(t.due_date) : null;
-    const startMs = t.start_date ? Number(t.start_date) : null;
     const dueStr = dueMs ? ymdSaoPaulo(dueMs) : null;
 
     const base = {
@@ -229,7 +229,6 @@ function buildPeople(tasks, members, resolveClient) {
       client: resolveClient(t.id),
       status,
       dueMs,
-      startMs,
     };
 
     for (const assignee of assignees) {
@@ -280,6 +279,24 @@ function buildPeople(tasks, members, resolveClient) {
   }
   people.sort((a, b) => a.name.localeCompare(b.name));
   return people;
+}
+
+// --- prazos de projeto (lista "Projetos": task-mãe com status "clientes") ---
+
+// A task-mãe de cada cliente-projeto (mesma que vira `projectTaskId` em
+// functions/clickup-webhook.js) já carrega start_date/due_date do projeto
+// inteiro (Kick-off/Go-Live) — não precisa olhar as etapas (subtasks) pra
+// achar isso, é só ler os dois campos direto dela.
+function buildClientProjectTimelines(allTasks) {
+  return allTasks
+    .filter(t => t._listName === 'Projetos' && statusOf(t) === IGNORED_STATUS)
+    .map(t => ({
+      client: t.name,
+      url: t.url,
+      startMs: t.start_date ? Number(t.start_date) : null,
+      dueMs: t.due_date ? Number(t.due_date) : null,
+    }))
+    .sort((a, b) => (a.dueMs || Infinity) - (b.dueMs || Infinity));
 }
 
 // --- horas contratadas (clientes recorrentes: CRO + CRM) ---
@@ -373,7 +390,7 @@ async function buildRecurringHours(allTasks, resolveClient, token) {
 function taskLiteral(t, extraFields) {
   const extra = extraFields ? `, ${extraFields}` : '';
   const client = t.client ? `'${escapeJs(t.client)}'` : 'null';
-  return `{ id: '${escapeJs(t.id)}', title: '${escapeJs(t.title)}', url: '${escapeJs(t.url)}', list: '${escapeJs(t.list)}', client: ${client}, status: '${escapeJs(t.status)}', dueMs: ${t.dueMs == null ? 'null' : t.dueMs}, startMs: ${t.startMs == null ? 'null' : t.startMs}${extra} }`;
+  return `{ id: '${escapeJs(t.id)}', title: '${escapeJs(t.title)}', url: '${escapeJs(t.url)}', list: '${escapeJs(t.list)}', client: ${client}, status: '${escapeJs(t.status)}', dueMs: ${t.dueMs == null ? 'null' : t.dueMs}${extra} }`;
 }
 
 function taskListLiteral(items, extraFieldsFn) {
@@ -409,10 +426,15 @@ function recurringHoursEntryLiteral(e) {
     },`;
 }
 
+function clientProjectLiteral(p) {
+  return `    { client: '${escapeJs(p.client)}', url: '${escapeJs(p.url)}', startMs: ${p.startMs == null ? 'null' : p.startMs}, dueMs: ${p.dueMs == null ? 'null' : p.dueMs} },`;
+}
+
 function teamDataToJs(teamData) {
   const peopleJs = teamData.people.map(personLiteral).join('\n');
   const recurringHoursJs = teamData.recurringHours.map(recurringHoursEntryLiteral).join('\n');
-  return `const teamData = {\n  generatedAt: ${teamData.generatedAt},\n  people: [\n${peopleJs}\n  ],\n  recurringHours: [\n${recurringHoursJs}\n  ],\n};`;
+  const clientProjectsJs = teamData.clientProjects.map(clientProjectLiteral).join('\n');
+  return `const teamData = {\n  generatedAt: ${teamData.generatedAt},\n  people: [\n${peopleJs}\n  ],\n  recurringHours: [\n${recurringHoursJs}\n  ],\n  clientProjects: [\n${clientProjectsJs}\n  ],\n};`;
 }
 
 function replaceTeamData(html, teamData) {

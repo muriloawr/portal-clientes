@@ -1295,13 +1295,9 @@
 
       function taskRow(t, accent, opts) {
         opts = opts || {};
-        const dueLabel = t.dueMs
+        const dateLabel = t.dueMs
           ? fmtShort(new Date(t.dueMs))
           : opts.noDateLabel || "sem prazo";
-        const dateLabel = opts.showStart
-          ? (t.startMs ? "início " + fmtShort(new Date(t.startMs)) + " · " : "") +
-            (t.dueMs ? "prazo " + dueLabel : dueLabel)
-          : dueLabel;
         const statusLabel =
           opts.showStatus === false ? "" : " · " + escapeHtml(t.status);
         const assigneeLabel = opts.assignee
@@ -1905,26 +1901,58 @@
           '<div class="kanban-row">' + cols + "</div>";
       }
 
-      // Lista única, achatada e ordenada por prazo (sem prazo vai pro fim) —
-      // pensada pra "quais entregas de projeto vencem primeiro, em qualquer
-      // cliente", diferente da visão "Por cliente" (agrupada e ordenada por
-      // urgência dentro de cada cliente).
+      // Uma linha por cliente-projeto (task-mãe "CLIENTES" na lista Projetos
+      // — ver buildClientProjectTimelines em team-dashboard-sync.js), com o
+      // início e o prazo do projeto inteiro (Kick-off/Go-Live), ordenada por
+      // prazo (sem prazo vai pro fim). Diferente de "Por cliente" (demandas
+      // individuais agrupadas por cliente), aqui é o timeline macro.
+      function projectAccent(dueMs) {
+        if (dueMs == null) return "neutral";
+        if (dueMs < Date.now()) return "critical";
+        if (dueMs < Date.now() + 86400000) return "warning";
+        return "good";
+      }
+
+      function clientProjectRow(p) {
+        const accent = projectAccent(p.dueMs);
+        const startLabel = p.startMs
+          ? "início " + fmtShort(new Date(p.startMs)) + " · "
+          : "";
+        const dueLabel = p.dueMs
+          ? "prazo " + fmtShort(new Date(p.dueMs))
+          : "sem prazo";
+        return (
+          '<a class="task-row ' +
+          accent +
+          '" href="' +
+          escapeHtml(p.url) +
+          '" target="_blank" rel="noopener">' +
+          '<span class="task-title">' +
+          escapeHtml(p.client) +
+          "</span>" +
+          '<span class="task-meta">' +
+          startLabel +
+          dueLabel +
+          agingLabel({ dueMs: p.dueMs }, accent) +
+          "</span>" +
+          "</a>"
+        );
+      }
+
       function renderGeneralView(filterText) {
-        const items = flattenClientTasks(filterText).slice().sort(function (a, b) {
-          return (a.task.dueMs || Infinity) - (b.task.dueMs || Infinity);
-        });
+        const entries = (teamData.clientProjects || [])
+          .filter(function (p) {
+            return !filterText || p.client.toLowerCase().indexOf(filterText) !== -1;
+          })
+          .slice()
+          .sort(function (a, b) {
+            return (a.dueMs || Infinity) - (b.dueMs || Infinity);
+          });
 
         document.getElementById("noResults").style.display =
-          items.length === 0 ? "block" : "none";
+          entries.length === 0 ? "block" : "none";
 
-        const rowsHtml = items
-          .map(function (i) {
-            return taskRow(i.task, i.accent, {
-              assignee: i.assignee,
-              showStart: true,
-            });
-          })
-          .join("");
+        const rowsHtml = entries.map(clientProjectRow).join("");
 
         document.getElementById("peopleGrid").innerHTML =
           '<div class="person-card"><div class="section-list general-list">' +
