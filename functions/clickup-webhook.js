@@ -24,7 +24,7 @@ import {
 // upgradeToComboHtml.
 const CLIENTS = [
   { name: 'Humara', taskId: 'wdpu2ybtwm', filePath: 'humara/index.html' },
-  { name: 'Uplift Fitness', taskId: '86aewgr7t', filePath: 'uplift-fitness/index.html' },
+  { name: 'Uplift Fitness', services: [{ key: 'principal', label: 'Relatório', taskId: '86aewgr7t' }], filePath: 'uplift-fitness/index.html' },
   { name: 'InfinitAge', taskId: '86aeu720q', filePath: 'infinitage/index.html' },
     { name: 'A Confiteria', services: [{ key: 'crm', label: 'CRM', taskId: 'wdpu2ydp1t' }, { key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezry' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75f' }], filePath: 'a-confiteria/index.html' },
     { name: 'Orgânico Natural', services: [{ key: 'crm', label: 'CRM', taskId: 'wdpu2ydp1u' }, { key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezrr' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75c' }], filePath: 'organico-natural/index.html' },
