@@ -218,6 +218,7 @@ function buildPeople(tasks, members, resolveClient) {
     const isClosed = CLOSED_STATUSES.has(status);
     const isInProgress = status === IN_PROGRESS_STATUS;
     const dueMs = t.due_date ? Number(t.due_date) : null;
+    const startMs = t.start_date ? Number(t.start_date) : null;
     const dueStr = dueMs ? ymdSaoPaulo(dueMs) : null;
 
     const base = {
@@ -228,6 +229,7 @@ function buildPeople(tasks, members, resolveClient) {
       client: resolveClient(t.id),
       status,
       dueMs,
+      startMs,
     };
 
     for (const assignee of assignees) {
@@ -371,7 +373,7 @@ async function buildRecurringHours(allTasks, resolveClient, token) {
 function taskLiteral(t, extraFields) {
   const extra = extraFields ? `, ${extraFields}` : '';
   const client = t.client ? `'${escapeJs(t.client)}'` : 'null';
-  return `{ id: '${escapeJs(t.id)}', title: '${escapeJs(t.title)}', url: '${escapeJs(t.url)}', list: '${escapeJs(t.list)}', client: ${client}, status: '${escapeJs(t.status)}', dueMs: ${t.dueMs == null ? 'null' : t.dueMs}${extra} }`;
+  return `{ id: '${escapeJs(t.id)}', title: '${escapeJs(t.title)}', url: '${escapeJs(t.url)}', list: '${escapeJs(t.list)}', client: ${client}, status: '${escapeJs(t.status)}', dueMs: ${t.dueMs == null ? 'null' : t.dueMs}, startMs: ${t.startMs == null ? 'null' : t.startMs}${extra} }`;
 }
 
 function taskListLiteral(items, extraFieldsFn) {

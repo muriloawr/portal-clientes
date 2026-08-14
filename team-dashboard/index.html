@@ -484,6 +484,12 @@
         max-height: 280px;
         overflow-y: auto;
       }
+      /* "Geral": lista única e mais longa (todas as entregas de projeto) —
+         sem o teto de altura das colunas kanban, a página inteira rola. */
+      .section-list.general-list {
+        max-height: none;
+        overflow-y: visible;
+      }
       .task-row {
         display: block;
         padding: 7px 10px;
@@ -644,6 +650,7 @@
           </button>
           <button type="button" id="viewClientBtn">Por cliente</button>
           <button type="button" id="viewHoursBtn">Horas</button>
+          <button type="button" id="viewGeneralBtn" disabled>Geral</button>
         </div>
       </div>
 
@@ -1289,9 +1296,13 @@
 
       function taskRow(t, accent, opts) {
         opts = opts || {};
-        const dateLabel = t.dueMs
+        const dueLabel = t.dueMs
           ? fmtShort(new Date(t.dueMs))
           : opts.noDateLabel || "sem prazo";
+        const dateLabel = opts.showStart
+          ? (t.startMs ? "início " + fmtShort(new Date(t.startMs)) + " · " : "") +
+            (t.dueMs ? "prazo " + dueLabel : dueLabel)
+          : dueLabel;
         const statusLabel =
           opts.showStatus === false ? "" : " · " + escapeHtml(t.status);
         const assigneeLabel = opts.assignee
@@ -1895,9 +1906,37 @@
           '<div class="kanban-row">' + cols + "</div>";
       }
 
+      // Lista única, achatada e ordenada por prazo (sem prazo vai pro fim) —
+      // pensada pra "quais entregas de projeto vencem primeiro, em qualquer
+      // cliente", diferente da visão "Por cliente" (agrupada e ordenada por
+      // urgência dentro de cada cliente).
+      function renderGeneralView(filterText) {
+        const items = flattenClientTasks(filterText).slice().sort(function (a, b) {
+          return (a.task.dueMs || Infinity) - (b.task.dueMs || Infinity);
+        });
+
+        document.getElementById("noResults").style.display =
+          items.length === 0 ? "block" : "none";
+
+        const rowsHtml = items
+          .map(function (i) {
+            return taskRow(i.task, i.accent, {
+              assignee: i.assignee,
+              showStart: true,
+            });
+          })
+          .join("");
+
+        document.getElementById("peopleGrid").innerHTML =
+          '<div class="person-card"><div class="section-list general-list">' +
+          rowsHtml +
+          "</div></div>";
+      }
+
       function renderAll(filterText) {
         if (viewMode === "hours") renderHoursBoard(filterText);
         else if (viewMode === "client") renderClientBoard(filterText);
+        else if (viewMode === "general") renderGeneralView(filterText);
         else renderPersonKanban(filterText);
       }
 
@@ -1919,9 +1958,10 @@
         });
 
       function setViewMode(mode) {
-        // "Horas" só existe em escopo Recorrentes — nunca deixa ficar preso
-        // nela ao trocar de escopo (ver setScope).
+        // "Horas" só existe em escopo Recorrentes, "Geral" só em Projetos —
+        // nunca deixa ficar preso numa aba que saiu de escopo (ver setScope).
         if (mode === "hours" && scope !== "recorrentes") mode = "person";
+        if (mode === "general" && scope !== "projetos") mode = "person";
         viewMode = mode;
         document
           .getElementById("viewPersonBtn")
@@ -1932,6 +1972,9 @@
         document
           .getElementById("viewHoursBtn")
           .classList.toggle("active", mode === "hours");
+        document
+          .getElementById("viewGeneralBtn")
+          .classList.toggle("active", mode === "general");
         renderAll(currentFilterText());
       }
       document
@@ -1949,6 +1992,11 @@
         .addEventListener("click", function () {
           setViewMode("hours");
         });
+      document
+        .getElementById("viewGeneralBtn")
+        .addEventListener("click", function () {
+          setViewMode("general");
+        });
 
       function setScope(mode) {
         scope = mode;
@@ -1959,9 +2007,10 @@
           .getElementById("scopeProjetosBtn")
           .classList.toggle("active", mode === "projetos");
         document.getElementById("viewHoursBtn").disabled = mode !== "recorrentes";
-        // Sai da aba Horas automaticamente se ela deixou de fazer sentido —
-        // setViewMode já faz esse rebaixamento, só precisa ser chamado com o
-        // viewMode atual pra reavaliar.
+        document.getElementById("viewGeneralBtn").disabled = mode !== "projetos";
+        // Sai da aba Horas/Geral automaticamente se ela deixou de fazer
+        // sentido — setViewMode já faz esse rebaixamento, só precisa ser
+        // chamado com o viewMode atual pra reavaliar.
         setViewMode(viewMode);
         renderSummary();
       }
