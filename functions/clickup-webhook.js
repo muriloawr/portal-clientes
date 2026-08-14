@@ -218,8 +218,11 @@ async function syncClient(client, env, forceRegen) {
   let updated = content;
 
   if (client.projectTaskId) {
-    const stages = await buildProjectStages(client.projectTaskId, env.CLICKUP_API_TOKEN);
-    updated = replaceStagesArray(updated, stages);
+    const stages = await buildProjectStages(client.projectTaskId, env.CLICKUP_API_TOKEN, { skipIfFinal: true });
+    // null = projeto Concluído/Fechado (ver FINAL_PROJECT_STATUSES): deixa o
+    // cronograma já publicado como está, congelado, pro cliente ver como foi
+    // o prazo — só entra aqui se tiver etapas de verdade pra atualizar.
+    if (stages) updated = replaceStagesArray(updated, stages);
   }
 
   if (client.services) {
@@ -247,12 +250,20 @@ async function syncClient(client, env, forceRegen) {
 }
 
 export async function fetchSubtasks(taskId, token) {
+  const data = await fetchTaskWithSubtasks(taskId, token);
+  return data.subtasks || [];
+}
+
+// Mesma chamada que fetchSubtasks já fazia (include_subtasks=true), só que
+// devolve a task inteira em vez de só `.subtasks` — buildProjectStages
+// precisa também do status da própria task-mãe, sem gastar uma chamada
+// extra só pra isso.
+async function fetchTaskWithSubtasks(taskId, token) {
   const res = await clickUpFetch(`https://api.clickup.com/api/v2/task/${taskId}?include_subtasks=true`, {
     headers: { Authorization: token },
   });
   if (!res.ok) throw new Error(`ClickUp API error: ${res.status} ${await res.text()}`);
-  const data = await res.json();
-  return data.subtasks || [];
+  return res.json();
 }
 
 function monthKeyLabel(dateMs) {
@@ -331,8 +342,22 @@ export function statusKeyOf(t) {
   return raw.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '-');
 }
 
-async function buildProjectStages(taskId, token) {
-  const stageTasks = await fetchSubtasks(taskId, token);
+// Projeto já entregue (Concluído) ou arquivado (Fechado) na própria
+// task-mãe: nada mais vai mudar, então o sync de rotina (syncClient, que
+// roda pra sempre a cada ciclo do cron) nem vale gastar chamada da API com
+// etapas/comentários — `skipIfFinal` faz buildProjectStages devolver null
+// nesse caso, sinalizando "não mexe no que já está sincronizado". As
+// chamadas raras/manuais (forceRegen, provisionamento de cliente novo,
+// descoberta de serviço recorrente novo) NÃO passam essa opção — sempre
+// buscam tudo de verdade, pra nunca arriscar apagar o cronograma de um
+// cliente concluído ao reconstruir a página dele do zero.
+const FINAL_PROJECT_STATUSES = new Set(['concluido', 'fechado']);
+
+async function buildProjectStages(taskId, token, opts) {
+  const rootTask = await fetchTaskWithSubtasks(taskId, token);
+  if (opts && opts.skipIfFinal && FINAL_PROJECT_STATUSES.has(statusKeyOf(rootTask))) return null;
+
+  const stageTasks = rootTask.subtasks || [];
   const stages = [];
 
   for (const stageTask of stageTasks) {
