@@ -35,12 +35,16 @@ export function sleep(ms) {
 }
 
 // O limite do ClickUp é ~100 req/min por token, valendo pro token inteiro (não
-// só por function) — pausa e retry curtos, focando em espaçar as chamadas em
-// vez de esperar a janela de limite virar de verdade (tempo de execução do
-// Worker é curto).
-export const CLICKUP_REQUEST_DELAY_MS = 300;
-export const CLICKUP_MAX_RETRIES = 3;
-export const CLICKUP_RETRY_WAIT_MS = 3000;
+// só por function, e compartilhado até com scripts/figma-sync.js, que pode
+// rodar ao mesmo tempo). A janela parece ser fixa por minuto, não deslizante:
+// depois de um 429, as chamadas seguintes continuam falhando em cascata até a
+// janela virar — esperar só alguns segundos não resolve. Mesmos valores do
+// scripts/figma-sync.js (já validado em produção); Worker HTTP não tem limite
+// de wall-clock, só de CPU time, e esperar (sleep) não consome CPU, então
+// segurar aqui não estoura nada.
+export const CLICKUP_REQUEST_DELAY_MS = 650; // ~92 req/min, com margem abaixo do limite
+export const CLICKUP_MAX_RETRIES = 5;
+export const CLICKUP_RETRY_WAIT_MS = 65000; // um pouco mais que 1 min, pra garantir que a janela virou
 
 export async function clickUpFetch(url, options, attempt = 1) {
   const res = await fetch(url, options);
