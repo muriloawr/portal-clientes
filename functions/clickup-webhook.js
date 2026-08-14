@@ -80,7 +80,10 @@ const STATUS_MAP = {
   'em análise': 'em-analise',
   'em andamento': 'em-andamento',
   'concluído': 'feito',
-  // 'fechado' é omitido de propósito: arquivado do mês, não aparece no relatório
+  // 'fechado' conta igual 'concluído' no relatório (mesmo mês pelo due_date,
+  // mesmas horas) — serve só pra tirar a demanda da visão de trabalho ativa
+  // do time no ClickUp, não pra escondê-la do relatório do cliente.
+  'fechado': 'feito',
 };
 
 const MONTH_LABELS = [
