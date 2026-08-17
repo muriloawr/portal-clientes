@@ -1917,10 +1917,26 @@
       // início e o prazo do projeto inteiro (Kick-off/Go-Live), ordenada por
       // prazo (sem prazo vai pro fim). Diferente de "Por cliente" (demandas
       // individuais agrupadas por cliente), aqui é o timeline macro.
+      // Compara por dia no fuso de negócio (America/Sao_Paulo), não por
+      // milissegundo bruto — senão um due_date de "hoje" com hora antes do
+      // momento atual já contava como atrasado. Mesma convenção do
+      // ymdSaoPaulo em team-dashboard-sync.js.
+      const SP_DATE_FORMATTER = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+      function ymdSaoPaulo(ms) {
+        return SP_DATE_FORMATTER.format(new Date(ms));
+      }
+
       function projectAccent(dueMs) {
         if (dueMs == null) return "neutral";
-        if (dueMs < Date.now()) return "critical";
-        if (dueMs < Date.now() + 86400000) return "warning";
+        const dueStr = ymdSaoPaulo(dueMs);
+        const todayStr = ymdSaoPaulo(Date.now());
+        if (dueStr < todayStr) return "critical";
+        if (dueStr === todayStr) return "warning";
         return "good";
       }
 
