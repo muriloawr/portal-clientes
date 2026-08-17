@@ -150,16 +150,21 @@ export async function onRequestPost(context) {
     return new Response('forceRegen exige "client" específico no corpo', { status: 400 });
   }
 
-  const results = [...discoveryResults];
+  const clientResults = [];
   for (const client of targets) {
     try {
-      results.push(`${client.name}: ${await syncClient(client, env, forceRegen)}`);
+      clientResults.push(`${client.name}: ${await syncClient(client, env, forceRegen)}`);
     } catch (err) {
-      results.push(`${client.name}: FAILED - ${err.message}`);
+      clientResults.push(`${client.name}: FAILED - ${err.message}`);
     }
   }
 
-  const anyFailed = results.some(r => r.includes('FAILED'));
+  // Descoberta é best-effort por design (ver comentário acima do try/catch
+  // que a chama) — um 429 do ClickUp ou 504 do GitHub passageiro ali não
+  // afeta nenhum cliente já cadastrado, então não deve marcar o workflow
+  // inteiro como falho. Só falha de sync de cliente de verdade conta.
+  const results = [...discoveryResults, ...clientResults];
+  const anyFailed = clientResults.some(r => r.includes('FAILED'));
   return new Response(results.join('\n'), { status: anyFailed ? 500 : 200 });
 }
 
