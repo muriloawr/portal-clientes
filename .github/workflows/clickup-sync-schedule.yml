@@ -66,6 +66,7 @@ jobs:
             "Lalume"
             "White Align"
             "CONTREI"
+            "Abrakadabra"
           )
           FAILED=0
           for CLIENT in "${CLIENTS[@]}"; do
