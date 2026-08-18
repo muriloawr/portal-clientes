@@ -1,17 +1,22 @@
 name: ClickUp scheduled sync
 
 # Dispara a mesma function de sync (functions/clickup-webhook.js) via HTTP, de 45 em
-# 45 minutos, só em dias úteis e horário comercial (08:30–18:15, América/São_Paulo,
+# 45 minutos, só em dias úteis e horário comercial (~08:30–18:20, América/São_Paulo,
 # UTC-3 sem horário de verão). Os horários abaixo já estão convertidos pra UTC, que é
 # o fuso que o GitHub Actions usa pra cron. Substitui o webhook em tempo real do
 # ClickUp — não depende de eventos, só roda nesses horários fixos.
+#
+# Minutos propositalmente "quebrados" (:07/:22/:37/:52, não :00/:15/:30/:45) — o
+# GitHub avisa que o disparo de schedule pode atrasar (ou até ser descartado) em
+# picos de carga, e picos acontecem justo nos minutos redondos, que é onde todo
+# mundo agenda. Não elimina atraso, só evita cair bem no horário mais concorrido.
 
 on:
   schedule:
-    - cron: '30 11,14,17,20 * * 1-5'
-    - cron: '15 12,15,18,21 * * 1-5'
-    - cron: '0 13,16,19 * * 1-5'
-    - cron: '45 13,16,19 * * 1-5'
+    - cron: '37 11,14,17,20 * * 1-5'
+    - cron: '22 12,15,18,21 * * 1-5'
+    - cron: '7 13,16,19 * * 1-5'
+    - cron: '52 13,16,19 * * 1-5'
   workflow_dispatch: {}
 
 # Garante que só uma sincronização rode por vez. Sem isso, um disparo manual
