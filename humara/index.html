@@ -139,7 +139,7 @@
 
 <script>
   // --- dados: um objeto por mês. Novos meses entram aqui conforme as reuniões acontecem. ---
-  const generatedAt = 1787141715238;
+  const generatedAt = 1787143137793;
 
   document.getElementById('generatedAt').textContent = generatedAt
     ? 'Atualizado em ' + new Date(generatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -152,7 +152,7 @@
       demands: [
         { title: '(Desenvolvimento do App) Aprovação do cadastro de Prescritor, e envio para o CRM Webhook', deadline: '31/07', status: 'feito', owner: 'Erik', hours: 12 },
         { title: 'Problemas com cupons de desconto', deadline: '31/07', status: 'feito', owner: 'Tiago', hours: 2 },
-        { title: 'Cadastro de Prescritor chegando apenas primeiro nome no email', deadline: '31/07', status: 'feito', owner: 'Tiago', hours: 0.42 },
+        { title: 'Cadastro de Prescritor com todos os campos obrigatórios', deadline: '31/07', status: 'feito', owner: 'Tiago', hours: 1 },
       ],
     },
     {
@@ -161,6 +161,7 @@
       demands: [
         { title: 'Deixar os descontos mais dinâmicos', deadline: '07/08', status: 'feito', owner: 'Murilo', hours: 0.72 },
         { title: 'B2B para as Clínicas (API)', deadline: '17/08', status: 'feito', owner: 'Erik', hours: 14 },
+        { title: 'Edição dos campos no App de Prescritores', deadline: '17/08', status: 'em-andamento', owner: 'Erik', hours: 1 },
         { title: 'Clientes não recebem Código de Rastreio', deadline: '21/08', status: 'a-fazer', owner: 'Murilo', hours: 3 },
         { title: 'Correção dos números dos endereços de pedidos antigos', deadline: '24/08', status: 'a-fazer', owner: 'Murilo', hours: 2 },
       ],
