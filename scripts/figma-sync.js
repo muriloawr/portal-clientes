@@ -112,8 +112,8 @@ async function syncClient(client) {
       }
       const itemTaskId = await findOrCreateTask(unit.frame, parentForFrame, client.fileKey, log);
 
-      const isComponentesGroup = unit.group && unit.group.name.trim().toLowerCase() === 'componentes';
-      if (!isComponentesGroup) {
+      const skipDemandaSync = unit.group && NO_DEMANDA_GROUP_NAMES.includes(unit.group.name.trim().toLowerCase());
+      if (!skipDemandaSync) {
         // Só frame vira demanda — mesma regra do nível de item, pra elemento
         // solto tipo linha/vetor decorativo não virar task também aqui.
         const demandaNodes = childrenInPanelOrder(unit.frame).filter(n => isVisible(n) && n.type === 'FRAME');
@@ -147,11 +147,8 @@ async function getSyncUnits(client) {
   for (const node of childrenInPanelOrder(prototypePage)) {
     if (!isVisible(node)) continue;
     if (node.type === 'SECTION') {
-      // Regra fixa: as Sections "Responsividade", "Mobile" e "LPs Produtos"
-      // são sempre ignoradas por inteiro. "LPs Produtos" reúne variações de
-      // PDP por produto (quase idênticas entre si) — o frame solto "PDP
-      // Desktop" (fora dessa Section) já cobre esse trabalho como item
-      // próprio, então as tasks devem ser criadas lá, não por produto.
+      // Regra fixa: as Sections "Responsividade" e "Mobile" (onde entra a
+      // versão mobile das páginas) são sempre ignoradas por inteiro.
       if (isIgnoredSectionName(node.name)) continue;
 
       for (const child of childrenInPanelOrder(node)) {
@@ -171,17 +168,25 @@ async function getSyncUnits(client) {
   return sortUnitsByPriority(mergeDesktopMobileUnits(units));
 }
 
-const IGNORED_SECTION_NAMES = ['responsividade', 'mobile', 'lps produtos'];
+const IGNORED_SECTION_NAMES = ['responsividade', 'mobile'];
 
 function isIgnoredSectionName(name) {
   return IGNORED_SECTION_NAMES.includes(String(name || '').trim().toLowerCase());
 }
 
+// Grupos (Sections) cujos itens não sincronizam demanda (filhos do frame),
+// só o item em si — "Componentes" porque são peças reutilizáveis pequenas,
+// "LPs Produtos" porque cada frame lá dentro é só uma réplica de produto da
+// PDP padrão (que já tem a árvore completa de seções como demanda); o
+// objetivo aqui é só ter o nome de cada produto como item, sem duplicar
+// a mesma árvore de demandas por produto.
+const NO_DEMANDA_GROUP_NAMES = ['componentes', 'lps produtos'];
+
 // Ordem fixa de criação dos itens, sempre a mesma independente da ordem das
 // camadas no Figma: Home -> PDP -> outras páginas soltas -> Componentes ->
-// Páginas Adicionais -> outras Sections. Dentro de cada posição, mantém a
-// ordem original do painel (sort é estável). "LPs Produtos" nunca aparece
-// aqui — a Section inteira é ignorada (ver isIgnoredSectionName).
+// Páginas Adicionais -> outras Sections -> LPs Produtos (sempre por
+// último). Dentro de cada posição, mantém a ordem original do painel (sort
+// é estável).
 function unitSortRank(unit) {
   const name = unit.frame.name.trim().toLowerCase();
   const groupName = unit.group ? unit.group.name.trim().toLowerCase() : null;
@@ -193,6 +198,7 @@ function unitSortRank(unit) {
   }
   if (groupName === 'componentes') return 3;
   if (groupName === 'páginas adicionais') return 4;
+  if (groupName === 'lps produtos') return 6;
   return 5; // outra Section
 }
 

@@ -34,22 +34,22 @@ aparecem no cronograma que o cliente vê — são só pra organizar o trabalho d
 - **Sections do Figma** (o agrupamento visual, não confundir com Frame) viram elas mesmas
   uma task com o nome do agrupamento, e os frames que estão dentro ficam aninhados um nível
   abaixo dela. Hoje tem três Sections com tratamento especial:
-  - **"Responsividade"**, **"Mobile"** e **"LPs Produtos"**: regra fixa, essas três Sections
-    (nome exato, sem diferenciar maiúsculas/minúsculas) são sempre ignoradas por inteiro —
-    nenhum frame dentro delas vira task. "Responsividade"/"Mobile" é onde entra a versão
-    mobile das páginas. "LPs Produtos" reúne variações de PDP por produto (quase idênticas
-    entre si) — o frame solto **"PDP Desktop"** (fora dessa Section, junto de "Home Desktop")
-    já cobre esse trabalho como item próprio, então é lá que as tasks devem ser criadas, não
-    uma por produto.
-  - **"Componentes"**: os frames dentro (Cart, Menu, etc.) viram itens soltos, mas **sem**
-    sincronizar o conteúdo interno como demanda — são componentes reutilizáveis pequenos,
-    não páginas, não faz sentido quebrar em pedaços.
+  - **"Responsividade"** e **"Mobile"**: regra fixa, essas duas Sections (nome exato, sem
+    diferenciar maiúsculas/minúsculas) são sempre ignoradas por inteiro — é onde entra a
+    versão mobile das páginas, o conteúdo delas nunca vira task.
+  - **"Componentes"** e **"LPs Produtos"**: os frames dentro viram itens soltos, mas **sem**
+    sincronizar o conteúdo interno como demanda — só o item em si, vazio. Em "Componentes"
+    (Cart, Menu, etc.) porque são peças reutilizáveis pequenas, não páginas. Em "LPs
+    Produtos", cada frame é uma réplica de produto da mesma PDP — quem tem a árvore completa
+    de seções como demanda é o item **"PDP Desktop"** (fora dessa Section, junto de "Home
+    Desktop"); o objetivo aqui é só ter o nome de cada produto como item, sem duplicar a
+    mesma árvore de demandas por produto.
   - Qualquer outra Section (ex: "Páginas Adicionais") segue o padrão normal: Section → Frame
     → Demanda, três níveis.
 - **Ordem de criação dos itens**: fixa, sempre a mesma independente da ordem das camadas no
   Figma — **Home → PDP → outras páginas soltas → Componentes → Páginas Adicionais → outras
-  Sections**. Só afeta a ordem em que os itens são criados/visitados a cada sync, não muda
-  nada pra item já existente.
+  Sections → LPs Produtos** (sempre por último). Só afeta a ordem em que os itens são
+  criados/visitados a cada sync, não muda nada pra item já existente.
 - **"X Desktop" e "X Mobile"**: se dois frames de topo tiverem o mesmo nome base com esse
   sufixo, viram um item só ("X"), usando sempre o Desktop como fonte do conteúdo (cai pro
   Mobile se só ele existir). Frames sem esse sufixo ficam cada um com seu próprio item.
