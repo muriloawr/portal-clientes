@@ -62,6 +62,7 @@ const CLIENTS = [
   { name: 'Abrakadabra', projectTaskId: '86aeuct2a', filePath: 'abrakadabra/index.html' },
   { name: 'Detoni Beauty', projectTaskId: 'wdpu2ygr9z', filePath: 'detoni-beauty/index.html' },
   { name: 'Nanikinha Chips', projectTaskId: 'wdpu2ygehh', filePath: 'nanikinha-chips/index.html' },
+  { name: 'Kunha-P', projectTaskId: 'wdpu2ygehf', filePath: 'kunha-p-2/index.html' },
 ];
 
 // Nome do cliente (exatamente como está em CLIENTS[].name) → slug da URL,
