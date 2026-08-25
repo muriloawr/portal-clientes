@@ -115,6 +115,7 @@ async function syncClient(client) {
       const isComponentesGroup = unit.group && unit.group.name.trim().toLowerCase() === 'componentes';
       if (!isComponentesGroup) {
         const demandaNodes = childrenInPanelOrder(unit.frame).filter(isVisible);
+        log.push(`${demandaNodes.length} demanda(s) encontrada(s) no Figma`);
         if (demandaNodes.length > 0) {
           const failed = await syncChildrenOneLevel(demandaNodes, itemTaskId, client.fileKey, log, client.name);
           if (failed) anyFailed = true;
@@ -144,18 +145,68 @@ async function getSyncUnits(client) {
   for (const node of childrenInPanelOrder(prototypePage)) {
     if (!isVisible(node)) continue;
     if (node.type === 'SECTION') {
-      // Regra fixa: a section "Responsividade" (onde entra a versão mobile)
-      // é sempre ignorada por inteiro.
-      if (node.name.trim().toLowerCase() === 'responsividade') continue;
-      for (const child of childrenInPanelOrder(node)) {
+      // Regra fixa: as Sections "Responsividade" e "Mobile" (onde entra a
+      // versão mobile das páginas) são sempre ignoradas por inteiro.
+      if (isIgnoredSectionName(node.name)) continue;
+
+      // Regra fixa: dentro da Section "LPs Produtos", os frames de produto
+      // são quase idênticos entre si (mesma PDP, conteúdo só muda por
+      // produto) — em vez de virar um item por produto, só o frame "PDP
+      // Desktop" é sincronizado; os demais frames da Section são ignorados.
+      let sectionChildren = childrenInPanelOrder(node);
+      if (node.name.trim().toLowerCase() === 'lps produtos') {
+        sectionChildren = sectionChildren.filter(c => c.name.trim().toLowerCase() === 'pdp desktop');
+      }
+
+      for (const child of sectionChildren) {
         if (!isVisible(child)) continue;
+        // Só frame vira item — elementos soltos tipo linha/vetor decorativo
+        // dentro de uma Section não devem virar task.
+        if (child.type !== 'FRAME') continue;
         units.push({ frame: resolveEffectiveNode(child), group: { id: node.id, name: node.name } });
       }
     } else {
+      // Mesma regra pra frame de topo sozinho (fora de Section): só frame
+      // vira item, não linha/vetor/texto solto direto na página.
+      if (node.type !== 'FRAME') continue;
       units.push({ frame: resolveEffectiveNode(node), group: null });
     }
   }
-  return mergeDesktopMobileUnits(units);
+  return sortUnitsByPriority(mergeDesktopMobileUnits(units));
+}
+
+const IGNORED_SECTION_NAMES = ['responsividade', 'mobile'];
+
+function isIgnoredSectionName(name) {
+  return IGNORED_SECTION_NAMES.includes(String(name || '').trim().toLowerCase());
+}
+
+// Ordem fixa de criação dos itens, sempre a mesma independente da ordem das
+// camadas no Figma: Home -> PDP -> Componentes -> Páginas Adicionais -> LPs
+// Produtos (por último). Página solta que não seja Home/PDP entra logo
+// depois do PDP; Section que não esteja nessa lista entra antes de "LPs
+// Produtos". Dentro de cada posição, mantém a ordem original do painel
+// (sort é estável).
+function unitSortRank(unit) {
+  const name = unit.frame.name.trim().toLowerCase();
+  const groupName = unit.group ? unit.group.name.trim().toLowerCase() : null;
+
+  if (!unit.group) {
+    if (name === 'home') return 0;
+    if (name === 'pdp') return 1;
+    return 2; // outra página solta
+  }
+  if (groupName === 'componentes') return 3;
+  if (groupName === 'páginas adicionais') return 4;
+  if (groupName === 'lps produtos') return 6;
+  return 5; // outra Section
+}
+
+function sortUnitsByPriority(units) {
+  return units
+    .map((unit, index) => ({ unit, index }))
+    .sort((a, b) => unitSortRank(a.unit) - unitSortRank(b.unit) || a.index - b.index)
+    .map(({ unit }) => unit);
 }
 
 // Frame/seção com o "olho fechado" no Figma (visible: false) não vira task —
