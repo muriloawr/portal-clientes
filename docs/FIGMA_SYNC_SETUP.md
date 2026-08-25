@@ -28,8 +28,9 @@ aparecem no cronograma que o cliente vê — são só pra organizar o trabalho d
 - **Página**: sempre uma página chamada exatamente **"Prototype"** — é a única que a sync lê.
 - **Frames de topo** dessa página = os itens (páginas do site: Home, PDP, About...). Cada
   seção dentro de um frame (filho direto dele) = uma demanda. Só nó do tipo **Frame** vira
-  item — elemento solto tipo linha/vetor decorativo (usado às vezes só pra separar seções
-  visualmente no Figma), direto na página ou dentro de uma Section, é ignorado.
+  item ou demanda — elemento solto tipo linha/vetor decorativo (usado às vezes só pra separar
+  seções visualmente no Figma), direto na página, dentro de uma Section ou dentro de um item,
+  é ignorado em qualquer um desses níveis.
 - **Sections do Figma** (o agrupamento visual, não confundir com Frame) viram elas mesmas
   uma task com o nome do agrupamento, e os frames que estão dentro ficam aninhados um nível
   abaixo dela. Hoje tem três Sections com tratamento especial:

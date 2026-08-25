@@ -114,7 +114,9 @@ async function syncClient(client) {
 
       const isComponentesGroup = unit.group && unit.group.name.trim().toLowerCase() === 'componentes';
       if (!isComponentesGroup) {
-        const demandaNodes = childrenInPanelOrder(unit.frame).filter(isVisible);
+        // Só frame vira demanda — mesma regra do nível de item, pra elemento
+        // solto tipo linha/vetor decorativo não virar task também aqui.
+        const demandaNodes = childrenInPanelOrder(unit.frame).filter(n => isVisible(n) && n.type === 'FRAME');
         log.push(`${demandaNodes.length} demanda(s) encontrada(s) no Figma`);
         if (demandaNodes.length > 0) {
           const failed = await syncChildrenOneLevel(demandaNodes, itemTaskId, client.fileKey, log, client.name);
