@@ -37,6 +37,14 @@ const CLOSED_STATUSES = new Set(['concluído', 'fechado']);
 const IN_PROGRESS_STATUS = 'em andamento';
 const IGNORED_STATUS = 'clientes';
 
+// Cronograma "Geral" do painel: além de "clientes" (projeto ativo), também
+// entra "backlog" — cliente que ainda não começou de verdade, mas já
+// precisa aparecer aqui pra localização interna (ver buildClientProjectTimelines).
+// Só vale pra esse cronograma; em todo outro lugar (fila de tarefas por
+// pessoa, resolver de cliente, marcador de horas contratadas) continua
+// sendo só "clientes" (IGNORED_STATUS).
+const PROJECT_TIMELINE_STATUSES = new Set([IGNORED_STATUS, 'backlog']);
+
 // Só entra no "Feito recentemente" se a data (de fechamento ou aproximada)
 // cair dentro dessa janela — sem isso o histórico ia acumulando pra sempre.
 const HISTORY_LOOKBACK_DAYS = 14;
@@ -281,7 +289,7 @@ function buildPeople(tasks, members, resolveClient) {
   return people;
 }
 
-// --- prazos de projeto (lista "Projetos": task-mãe com status "clientes") ---
+// --- prazos de projeto (lista "Projetos": task-mãe com status "clientes" ou "backlog") ---
 
 // A task-mãe de cada cliente-projeto (mesma que vira `projectTaskId` em
 // functions/clickup-webhook.js) já carrega start_date/due_date do projeto
@@ -289,7 +297,7 @@ function buildPeople(tasks, members, resolveClient) {
 // achar isso, é só ler os dois campos direto dela.
 function buildClientProjectTimelines(allTasks) {
   return allTasks
-    .filter(t => t._listName === 'Projetos' && statusOf(t) === IGNORED_STATUS)
+    .filter(t => t._listName === 'Projetos' && PROJECT_TIMELINE_STATUSES.has(statusOf(t)))
     .map(t => ({
       client: t.name,
       url: t.url,
