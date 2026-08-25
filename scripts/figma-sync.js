@@ -147,20 +147,14 @@ async function getSyncUnits(client) {
   for (const node of childrenInPanelOrder(prototypePage)) {
     if (!isVisible(node)) continue;
     if (node.type === 'SECTION') {
-      // Regra fixa: as Sections "Responsividade" e "Mobile" (onde entra a
-      // versão mobile das páginas) são sempre ignoradas por inteiro.
+      // Regra fixa: as Sections "Responsividade", "Mobile" e "LPs Produtos"
+      // são sempre ignoradas por inteiro. "LPs Produtos" reúne variações de
+      // PDP por produto (quase idênticas entre si) — o frame solto "PDP
+      // Desktop" (fora dessa Section) já cobre esse trabalho como item
+      // próprio, então as tasks devem ser criadas lá, não por produto.
       if (isIgnoredSectionName(node.name)) continue;
 
-      // Regra fixa: dentro da Section "LPs Produtos", os frames de produto
-      // são quase idênticos entre si (mesma PDP, conteúdo só muda por
-      // produto) — em vez de virar um item por produto, só o frame "PDP
-      // Desktop" é sincronizado; os demais frames da Section são ignorados.
-      let sectionChildren = childrenInPanelOrder(node);
-      if (node.name.trim().toLowerCase() === 'lps produtos') {
-        sectionChildren = sectionChildren.filter(c => c.name.trim().toLowerCase() === 'pdp desktop');
-      }
-
-      for (const child of sectionChildren) {
+      for (const child of childrenInPanelOrder(node)) {
         if (!isVisible(child)) continue;
         // Só frame vira item — elementos soltos tipo linha/vetor decorativo
         // dentro de uma Section não devem virar task.
@@ -177,18 +171,17 @@ async function getSyncUnits(client) {
   return sortUnitsByPriority(mergeDesktopMobileUnits(units));
 }
 
-const IGNORED_SECTION_NAMES = ['responsividade', 'mobile'];
+const IGNORED_SECTION_NAMES = ['responsividade', 'mobile', 'lps produtos'];
 
 function isIgnoredSectionName(name) {
   return IGNORED_SECTION_NAMES.includes(String(name || '').trim().toLowerCase());
 }
 
 // Ordem fixa de criação dos itens, sempre a mesma independente da ordem das
-// camadas no Figma: Home -> PDP -> Componentes -> Páginas Adicionais -> LPs
-// Produtos (por último). Página solta que não seja Home/PDP entra logo
-// depois do PDP; Section que não esteja nessa lista entra antes de "LPs
-// Produtos". Dentro de cada posição, mantém a ordem original do painel
-// (sort é estável).
+// camadas no Figma: Home -> PDP -> outras páginas soltas -> Componentes ->
+// Páginas Adicionais -> outras Sections. Dentro de cada posição, mantém a
+// ordem original do painel (sort é estável). "LPs Produtos" nunca aparece
+// aqui — a Section inteira é ignorada (ver isIgnoredSectionName).
 function unitSortRank(unit) {
   const name = unit.frame.name.trim().toLowerCase();
   const groupName = unit.group ? unit.group.name.trim().toLowerCase() : null;
@@ -200,7 +193,6 @@ function unitSortRank(unit) {
   }
   if (groupName === 'componentes') return 3;
   if (groupName === 'páginas adicionais') return 4;
-  if (groupName === 'lps produtos') return 6;
   return 5; // outra Section
 }
 
