@@ -41,9 +41,9 @@
   .wrap{max-width:1080px;margin:0 auto;padding:40px 24px 0;position:relative;z-index:1;}
   .topbar{height:5px;width:100%;background:linear-gradient(90deg, var(--tint-1), var(--brand) 50%, var(--ink));background-size:200% 100%;animation:flow 7s ease-in-out infinite alternate;position:relative;z-index:1;}
   @keyframes flow{0%{background-position:0% 0;}100%{background-position:100% 0;}}
-  .head{margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
+  .head{padding-bottom:22px;border-bottom:1px solid rgba(11,28,51,0.14);}
   .logo{height:34px;}
-  .head-meta{font-size:12px;color:var(--ink-soft);margin-top:8px;}
+  .head-meta{font-size:12px;color:var(--ink-soft);margin-top:0;}
   .eyebrow{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
   .live-dot{width:7px;height:7px;border-radius:50%;background:#2FBE6C;flex-shrink:0;box-shadow:0 0 0 0 rgba(47,190,108,0.6);animation:pulse 1.8s infinite;}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,190,108,0.55);}70%{box-shadow:0 0 0 7px rgba(47,190,108,0);}100%{box-shadow:0 0 0 0 rgba(47,190,108,0);}}
@@ -53,9 +53,116 @@
   .empty-state b{display:block;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--ink);margin-bottom:6px;}
   .footnote{margin-top:26px;font-size:12px;color:var(--ink-soft);text-align:center;}
   
+  .app-sidebar{width:230px;flex-shrink:0;background:#FFFFFF;border-right:1px solid var(--line);position:fixed;top:0;left:0;bottom:0;padding:26px 16px;display:flex;flex-direction:column;z-index:6;overflow-y:auto;}
+  .app-sidebar nav{display:flex;flex-direction:column;gap:4px;}
+  .app-nav-btn{display:flex;align-items:center;gap:10px;width:100%;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);background:none;border:none;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .15s ease;}
+  .app-nav-btn svg{flex-shrink:0;color:var(--brand);}
+  .app-nav-btn:hover{background:var(--bg);color:var(--ink);}
+  .app-nav-btn.active{background:var(--brand);color:#fff;}
+  .app-nav-btn.active svg{color:#fff;}
+  .app-logout-btn{display:none;align-items:center;gap:10px;width:100%;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-soft);background:none;border:none;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .15s ease;margin-top:auto;flex-shrink:0;}
+  .app-logout-btn svg{flex-shrink:0;}
+  .app-logout-btn:hover{background:var(--bg);color:#D64545;}
+  .app-main{margin-left:230px;min-width:0;}
+  body.hide-chrome .head,body.hide-chrome .footnote{display:none;}
+  .app-section{display:none;}
+  .app-section.active{display:block;}
+  .app-hamburger{display:none;}
+  .app-drawer{display:none;}
+  .app-drawer-overlay{display:none;}
+  @media (max-width:860px){
+    .app-sidebar{display:none;}
+    .app-main{margin-left:0;}
+    .app-hamburger{display:flex;align-items:center;padding:12px 20px;position:sticky;top:0;background:#FFFFFF;z-index:10;border-bottom:1px solid var(--line);}
+    .app-hamburger-logo{width:62px;height:34px;flex-shrink:0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);}
+    .app-hamburger button{background:var(--bg);border:1px solid var(--line);border-radius:8px;width:36px;height:34px;font-size:16px;line-height:1;cursor:pointer;color:var(--ink);flex-shrink:0;}
+    .head .logo{display:none;}
+    .app-main .wrap{padding-top:24px;}
+    .app-drawer{position:fixed;top:0;left:0;bottom:0;width:78%;max-width:280px;background:#FFFFFF;z-index:30;padding:24px 18px;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease;box-shadow:2px 0 20px rgba(11,28,51,.18);}
+    .app-drawer.open{transform:translateX(0);}
+    .app-drawer-close{position:absolute;top:16px;right:16px;background:var(--bg);border:1px solid var(--line);border-radius:8px;width:32px;height:32px;font-size:18px;line-height:1;cursor:pointer;color:var(--ink-soft);}
+    .app-drawer nav{margin-top:44px;}
+    .app-drawer-overlay{position:fixed;inset:0;background:rgba(11,28,51,.4);z-index:20;}
+    .app-drawer-overlay.open{display:block;}
+  }
+  
+  .auth-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:22px 0 24px;}
+  body.hide-chrome .app-section.active .auth-gate{position:fixed;top:50%;left:calc(115px + 50vw);transform:translate(-50%,-50%);min-height:0;padding:0;width:min(92vw,480px);z-index:5;}
+  @media (max-width:860px){ body.hide-chrome .app-section.active .auth-gate{left:50%;} }
+  .auth-gate-text{font-size:13.5px;color:var(--ink-soft);margin:0 0 16px;}
+  .auth-gate-loading{font-size:13.5px;color:var(--ink-soft);}
+  .auth-loading{padding:22px 0 24px;color:var(--ink-soft);font-size:13.5px;}
+  .auth-denied{padding:22px 0 24px;text-align:center;color:var(--ink-soft);font-size:13.5px;}
+  .auth-denied b{display:block;font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;color:var(--ink);margin-bottom:6px;}
+  .cadastro-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;margin-top:22px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .cadastro-field{display:flex;justify-content:space-between;gap:14px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .cadastro-field:first-child{border-top:none;}
+  .cadastro-label{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--ink-soft);}
+  .cadastro-value{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);text-align:right;}
+  .invoices-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px;margin-top:22px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .invoice-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .invoice-row:first-child{border-top:none;}
+  .invoice-label{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--ink);flex:1;min-width:110px;}
+  .invoice-links a{font-family:'Inter',sans-serif;font-size:13px;color:var(--brand);text-decoration:none;font-weight:500;margin-left:14px;}
+  .invoice-links a:hover{text-decoration:underline;}
   
   
-  .service-tabs{display:flex;gap:22px;margin-bottom:22px;flex-wrap:wrap;}
+  .bar-wrap{margin-top:22px;margin-bottom:34px;}
+  .bar-edges{display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+  .bar-caption{display:flex;justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:14px;}
+  .status-side{display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
+  .status-side.right{align-items:flex-end;text-align:right;}
+  .cap-label{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--ink-soft);}
+  .cap-value{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:17px;color:var(--brand);line-height:1.2;}
+  .cap-value.muted{color:var(--ink);font-size:15px;}
+  .status-next{font-size:11.5px;color:var(--ink-soft);}
+  .overview-track-wrap{position:relative;height:8px;}
+  .overview-track{height:8px;border-radius:4px;background:var(--line);overflow:hidden;position:relative;}
+  .overview-fill{position:absolute;top:0;left:0;height:100%;width:0%;background:var(--brand);border-radius:4px;transition:width .7s ease;}
+  .tick{position:absolute;top:50%;width:9px;height:9px;border-radius:50%;background:var(--panel);border:2px solid var(--brand);transform:translate(-50%,-50%);z-index:2;}
+  .tick .tick-tip{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:'Inter',sans-serif;font-size:10.5px;padding:4px 9px;border-radius:7px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease;}
+  .tick:hover .tick-tip{opacity:1;}
+  .tick:hover{background:var(--brand);}
+  .now-marker{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--ink);border:2px solid var(--panel);transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(11,28,51,0.35);z-index:3;}
+  .stage-block{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-top:22px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .stage-block-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px 16px;margin-bottom:6px;}
+  .stage-block h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:17px;margin:0;}
+  .stage-tag{font-family:'Inter',sans-serif;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--bg);color:var(--ink-soft);white-space:nowrap;flex-shrink:0;}
+  .stage-block .sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;}
+  .phase-row{display:grid;grid-template-columns:1fr 100px 190px 90px;gap:26px;align-items:center;padding:13px 0;border-top:1px solid var(--line);}
+  .phase-row:first-of-type{border-top:none;}
+  .phase-head{font-family:'Inter',sans-serif;font-size:10.5px;color:var(--ink-soft);padding:12px 0 6px;border-top:none;}
+  .phase-name{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:14.5px;}
+  .phase-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .phase-owner{font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:7px;}
+  .phase-status{font-size:11px;padding:4px 10px;border-radius:20px;text-align:center;white-space:nowrap;background:var(--grey-bg);color:var(--ink-soft);}
+  .phase-status.active{background:var(--tint-2);color:var(--brand);}
+  .phase-status.solid{background:var(--brand);color:#fff;}
+  .phase-dates{font-family:'Inter',sans-serif;font-size:12px;color:var(--ink-soft);text-align:right;}
+  .meetings{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin-top:32px;box-shadow:0 1px 2px rgba(11,28,51,0.04);}
+  .meetings h2{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:18px;margin:0 0 4px;}
+  .meetings .sub{font-size:13px;color:var(--ink-soft);margin-bottom:14px;}
+  .meeting-row{display:grid;grid-template-columns:130px 1fr auto;gap:16px;align-items:center;padding:12px 0;border-top:1px solid var(--line);}
+  .meeting-row:first-of-type{border-top:none;}
+  .m-date{font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--brand);}
+  .m-title{font-size:14px;}
+  .m-tag{font-family:'Inter',sans-serif;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--tint-1);color:var(--brand);white-space:nowrap;}
+  .m-tag.final{background:var(--ink);color:#fff;}
+  @media (max-width:640px){
+    .phase-head{display:none;}
+    .phase-row{grid-template-columns:1fr 1fr;grid-template-areas:"main main" "owner dates" "status status";gap:8px;}
+    .phase-main{grid-area:main;}
+    .phase-owner{grid-area:owner;}
+    .phase-status{grid-area:status;justify-self:start;width:fit-content;}
+    .phase-dates{grid-area:dates;text-align:left;}
+    .phase-dates::before{content:"Prazo";display:block;font-size:9.5px;color:var(--ink-soft);margin-bottom:3px;}
+    .meeting-row{grid-template-columns:1fr;gap:4px;}
+    .meeting-row .m-date,.meeting-row .m-tag{justify-self:start;}
+    .bar-caption{flex-direction:column;gap:8px;}
+    .status-side.right{align-items:flex-start;text-align:left;margin-top:8px;}
+  }
+  
+  .service-tabs{display:flex;gap:22px;margin-top:22px;margin-bottom:22px;flex-wrap:wrap;}
   .service-tab-btn{font-family:'Clash Grotesk',sans-serif;font-weight:600;font-size:15px;background:none;color:var(--ink-soft);border:none;border-bottom:2px solid transparent;padding:6px 2px 10px;cursor:pointer;transition:all .15s ease;}
   .service-tab-btn:hover{color:var(--ink);}
   .service-tab-btn.active{color:var(--ink);border-bottom-color:var(--brand);}
@@ -105,9 +212,34 @@
 </style>
 </head>
 <body>
+<script defer crossorigin="anonymous" src="https://clerk.vanzaklabs.com/npm/@clerk/clerk-js@5/dist/clerk.browser.js" data-clerk-publishable-key="pk_live_Y2xlcmsudmFuemFrbGFicy5jb20k"></script>
 <div class="topbar"></div>
-<div class="">
-  <div class="">
+<div class="app-hamburger" id="appHamburger">
+  <button id="appHamburgerBtn" type="button" aria-label="Menu">&#9776;</button>
+  <svg class="app-hamburger-logo" viewBox="0 0 334 183" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/><path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/></svg>
+</div>
+<div class="app-drawer-overlay" id="appDrawerOverlay"></div>
+<div class="app-shell">
+  <div class="app-sidebar">
+    <nav>
+      <button class="app-nav-btn" data-section="projeto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><span>Projeto</span></button>
+      <button class="app-nav-btn" data-section="servicos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg><span>Serviços</span></button>
+      <button class="app-nav-btn" data-section="financeiro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17l-3-2-3 2-3-2-3 2V2z"/><path d="M9 8h6M9 12h6"/></svg><span>Financeiro</span></button>
+      <button class="app-nav-btn" data-section="cadastro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h4M15 12h4M6 16h12"/></svg><span>Dados Cadastrais</span></button>
+    </nav>
+    <button class="app-logout-btn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span>Sair</span></button>
+  </div>
+  <div class="app-drawer" id="appDrawer">
+    <button class="app-drawer-close" id="appDrawerClose" type="button" aria-label="Fechar menu">&times;</button>
+    <nav>
+      <button class="app-nav-btn" data-section="projeto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg><span>Projeto</span></button>
+      <button class="app-nav-btn" data-section="servicos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg><span>Serviços</span></button>
+      <button class="app-nav-btn" data-section="financeiro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17l-3-2-3 2-3-2-3 2V2z"/><path d="M9 8h6M9 12h6"/></svg><span>Financeiro</span></button>
+      <button class="app-nav-btn" data-section="cadastro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h4M15 12h4M6 16h12"/></svg><span>Dados Cadastrais</span></button>
+    </nav>
+    <button class="app-logout-btn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span>Sair</span></button>
+  </div>
+  <div class="app-main">
     <div class="wrap">
 
       <div class="head">
@@ -115,18 +247,71 @@
           <path d="M8.54633 62.1595H0L5.5249 0.346292H13.8123L10.9635 32.2052L22.4449 0.346292H30.7323L8.54633 62.1595ZM72.9719 62.1595L74.7848 40.776H66.0658L58.2964 62.1595H50.009L73.5762 0.259719H84.7123L81.2593 62.1595H72.9719ZM69.0009 32.5515H75.3891L77.2882 10.0425L69.0009 32.5515ZM137.915 47.9615L149.311 0H157.598L142.75 62.5058H129.887L134.031 14.1114L122.895 62.5058H114.607L128.937 0H142.318L137.915 47.9615ZM200.01 54.1082L198.025 62.1595H176.788L198.111 8.3976H189.306L191.119 0.346292H209.592L188.27 54.1082H200.01ZM254.595 62.1595L256.407 40.776H247.688L239.919 62.1595H231.632L255.199 0.259719H266.335L262.882 62.1595H254.595ZM250.624 32.5515H257.012L258.911 10.0425L250.624 32.5515ZM314.704 61.8132L313.495 27.7034L311.769 29.8677L304.345 62.073H296.316L310.474 0.346292H318.502L315.481 13.7651L323.854 0.346292H333.782L321.524 18.1804L323.077 61.8132H314.704Z" fill="#015EC5"/>
           <path d="M15.7461 168.916H34.6414L31.766 181.823H0L22.5922 83.2321H35.4629L15.7461 168.916ZM121.218 181.823L124.093 147.907H110.264L97.9407 181.823H84.7962L122.176 83.644H139.839L134.362 181.823H121.218ZM114.919 134.862H125.051L128.064 99.1604L114.919 134.862ZM232.577 123.602C234.904 126.623 235.863 130.743 234.904 135.274L227.921 165.346C225.867 174.408 216.831 181.823 207.794 181.823H187.529L209.848 84.0559H227.921C237.78 84.4679 241.477 94.0798 239.286 103.143L236 116.737C235.452 119.208 234.22 121.543 232.577 123.602ZM210.806 168.641C212.723 168.641 214.503 167.131 214.914 165.346L221.76 135.274C222.171 133.352 220.938 131.978 219.158 131.978H211.901L203.549 168.641H210.806ZM219.843 97.1007L214.777 118.796H220.254C221.349 118.796 222.718 117.835 222.992 116.599L226.278 103.005C226.963 100.259 226.278 97.238 224.361 97.1007H219.843ZM295.739 182.647C285.333 182.647 278.898 174.134 281.362 163.835L284.785 148.868H298.067L294.644 163.835C293.959 166.856 295.876 169.328 298.888 169.328C301.901 169.328 304.776 166.856 305.461 163.835L308.473 150.79L292.042 117.423L295.876 100.396C298.341 89.9604 308.61 81.447 319.016 81.447C329.285 81.447 335.72 89.9604 333.256 100.396L329.833 115.226H316.551L319.974 100.396C320.796 97.238 319.016 94.9037 316.004 94.9037C312.991 94.9037 309.979 97.238 309.157 100.396L306.282 112.892L322.713 146.259L318.742 163.835C316.277 174.134 306.008 182.647 295.739 182.647Z" fill="#015EC5"/>
         </svg>
-        <div class="eyebrow"><span class="live-dot"></span>Relatório de Acompanhamento</div>
+        <div class="eyebrow"><span class="live-dot"></span>Acompanhamento do Cliente</div>
         <h1>Kunha P</h1>
         <div class="head-meta" id="generatedAt">Atualizado em -</div>
       </div>
 
-      
-      
+      <div class="app-section" data-section="projeto">
+  <div class="bar-wrap" id="barWrap">
+    <div class="bar-edges">
+      <div><span class="cap-label">Kick-off</span><br><span class="cap-value muted" id="edgeStart">-</span></div>
+      <div style="text-align:right;"><span class="cap-label">Go Live</span><br><span class="cap-value muted" id="edgeEnd">-</span></div>
+    </div>
+    <div class="overview-track-wrap">
+      <div class="overview-track"><div class="overview-fill" id="overviewFill"></div></div>
+      <div id="overviewTicks"></div>
+    </div>
+    <div class="bar-caption">
+      <div class="status-side">
+        <span class="cap-label">Etapa atual</span>
+        <span class="cap-value" id="capCurrent">-</span>
+        <span class="status-next" id="capNext">-</span>
+      </div>
+      <div class="status-side right">
+        <span class="cap-label" id="kpiDaysLabel">Faltam para o Go Live</span>
+        <span class="cap-value muted" id="kpiDaysLeft">-</span>
+      </div>
+    </div>
+  </div>
+  <div id="stageSections"></div>
+  <div class="meetings" id="meetingsSection">
+    <h2 id="meetingsTitle">Reuniões previstas</h2>
+    <div class="sub" id="meetingsSub"></div>
+    <div id="meetingList"></div>
+  </div></div>
+      <div class="app-section" data-section="servicos">
   <div class="service-tabs" id="serviceTabs"></div>
   <div class="tabs" id="tabs"></div>
-  <div id="monthPanels"></div>
+  <div id="monthPanels"></div></div>
+      
+  <div class="app-section" data-section="financeiro">
+    <div class="auth-gate" id="financeiroGate">
+      <div class="auth-gate-loading" id="financeiroGateLoading">Carregando...</div>
+      <div id="financeiroSignIn"></div>
+    </div>
+    <div class="auth-loading" id="financeiroLoading" style="display:none;">Carregando...</div>
+    <div class="auth-denied" id="financeiroDenied" style="display:none;">
+      <b>Acesso ainda não liberado</b>
+      Fale com a Vanzak Labs pra liberar o acesso financeiro dessa conta.
+    </div>
+    <div class="invoices-card" id="financeiroContent" style="display:none;"></div>
+  </div>
+      
+  <div class="app-section" data-section="cadastro">
+    <div class="auth-gate" id="cadastroGate">
+      <div class="auth-gate-loading" id="cadastroGateLoading">Carregando...</div>
+      <div id="cadastroSignIn"></div>
+    </div>
+    <div class="auth-loading" id="cadastroLoading" style="display:none;">Carregando...</div>
+    <div class="auth-denied" id="cadastroDenied" style="display:none;">
+      <b>Acesso ainda não liberado</b>
+      Fale com a Vanzak Labs pra liberar o acesso a essa conta.
+    </div>
+    <div class="cadastro-card" id="cadastroContent" style="display:none;"></div>
+  </div>
 
-      <div class="footnote">Atualizado sempre que uma solicitação muda de status</div>
+      <div class="footnote">Atualizado sempre que houver uma mudança de status</div>
 
     </div>
   </div>
@@ -135,7 +320,192 @@
 <script>
   const generatedAt = 1786067867766;
 
-  const services = [
+  // Página criada/atualizada automaticamente pela rotina de descoberta na
+  // lista "Projetos" (status CLIENTES), a partir da task wdpu2ygehf. Qualquer
+  // nome de subtask vira etapa, sem lista fixa.
+  var stages = [
+    {
+      key: 'wdpu2ygxjp',
+      label: 'Protótipo',
+      subtitle: 'Layout e experiência do usuário',
+      dateRange: '23/09 - 05/10',
+      statusKey: 'pendentes',
+      startMs: 1790146800000,
+      dueMs: 1791183600000,
+      isMeetings: false,
+      items: [
+        { title: '1ª Entrega', subtitle: 'Identidade visual', statusKey: 'pendentes', owner: '', date: '29/09' },
+        { title: 'Entrega do Protótipo', subtitle: 'Figma completo', statusKey: 'pendentes', owner: '', date: '05/10' },
+      ],
+    },
+    {
+      key: 'wdpu2ygxjt',
+      label: 'Desenvolvimento',
+      subtitle: 'Implementação do layout aprovado no protótipo',
+      dateRange: '09/10 - 21/10',
+      statusKey: 'pendentes',
+      startMs: 1791529200000,
+      dueMs: 1792566000000,
+      isMeetings: false,
+      items: [
+
+      ],
+    },
+    {
+      key: 'wdpu2ygxju',
+      label: 'Integrações',
+      subtitle: 'Integrações necessárias com a Shopify',
+      dateRange: '16/10 - 21/10',
+      statusKey: 'pendentes',
+      startMs: 1792134000000,
+      dueMs: 1792566000000,
+      isMeetings: false,
+      items: [
+        { title: 'Pagamento', subtitle: 'Appmax', statusKey: 'pendentes', owner: '', date: '' },
+        { title: 'ERP', subtitle: 'Olist ou Bling', statusKey: 'pendentes', owner: '', date: '' },
+        { title: 'Hub de Frete', subtitle: 'Frenet', statusKey: 'pendentes', owner: '', date: '' },
+        { title: 'CRM', subtitle: 'Reportana', statusKey: 'pendentes', owner: '', date: '' },
+      ],
+    },
+    {
+      key: 'wdpu2ygxjz',
+      label: 'Reuniões',
+      subtitle: '',
+      dateRange: '',
+      statusKey: 'pendentes',
+      startMs: null,
+      dueMs: null,
+      isMeetings: true,
+      items: [
+        { title: 'Kick-off', subtitle: 'Briefing inicial do projeto', tag: 'Kick-off', date: '31/08', dueMs: 1788159600000 },
+        { title: '1ª Entrega', subtitle: 'Apresentação da identidade visual', tag: 'Revisão', date: '30/09', dueMs: 1790751600000 },
+        { title: 'Integrações', subtitle: 'Definir quais integrações serão feitas e apresentar', tag: 'Revisão', date: '16/10', dueMs: 1792134000000 },
+        { title: 'Apresentação final', subtitle: 'Apresentação do desenvolvimento e integrações', tag: 'Revisão', date: '22/10', dueMs: 1792652400000 },
+        { title: 'Go-Live', subtitle: 'Implementação do E-commerce', tag: 'Implementação', date: '23/10', dueMs: 1792738800000 },
+      ],
+    },
+  ];
+
+  var STATUS_LABELS = {
+    'pendentes': 'Pendente', 'planejamento': 'Planejamento', 'importante': 'Importante',
+    'em-andamento': 'Em andamento', 'concluido': 'Concluído', 'fechado': 'Fechado',
+  };
+  function statusLabel(key) { return STATUS_LABELS[key] || key || '-'; }
+  function fmtFull(date) { return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+  function fmtShort(date) { return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', ''); }
+
+  var flow = stages.filter(function (s) { return !s.isMeetings; });
+  var meetingsStage = stages.find(function (s) { return s.isMeetings; });
+  var meetings = meetingsStage ? meetingsStage.items : [];
+
+  var kickoffMs = (meetings.length && meetings[0].dueMs) ? meetings[0].dueMs
+    : (flow.length && flow[0].startMs) ? flow[0].startMs
+    : null;
+  var flowDueValues = flow.map(function (s) { return s.dueMs; }).filter(Boolean);
+  var flowFinalMs = flowDueValues.length ? Math.max.apply(null, flowDueValues) : null;
+  var meetingsFinalMs = meetings.length ? meetings[meetings.length - 1].dueMs : null;
+  var finalMs = Math.max(flowFinalMs || 0, meetingsFinalMs || 0) || null;
+
+  function renderTimeline() {
+    var wrap = document.getElementById('barWrap');
+    if (!kickoffMs || !finalMs || finalMs <= kickoffMs) { wrap.style.display = 'none'; return; }
+    var now = Date.now();
+    var pct = function (ms) { return Math.min(100, Math.max(0, ((ms - kickoffMs) / (finalMs - kickoffMs)) * 100)); };
+    document.getElementById('edgeStart').textContent = fmtFull(new Date(kickoffMs));
+    document.getElementById('edgeEnd').textContent = fmtFull(new Date(finalMs));
+    var midnight = function (ms) { var d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
+    var diffDays = Math.round((midnight(finalMs) - midnight(now)) / 86400000);
+    var daysEl = document.getElementById('kpiDaysLeft');
+    var daysLabelEl = document.getElementById('kpiDaysLabel');
+    if (diffDays > 1) { daysLabelEl.textContent = 'Faltam para o Go Live'; daysEl.textContent = diffDays + ' dias'; }
+    else if (diffDays === 1) { daysLabelEl.textContent = 'Faltam para o Go Live'; daysEl.textContent = '1 dia'; }
+    else if (diffDays === 0) { daysLabelEl.textContent = 'Go Live'; daysEl.textContent = 'Hoje'; }
+    else { daysLabelEl.textContent = 'Go Live'; daysEl.textContent = 'Prazo encerrado'; }
+    document.getElementById('overviewFill').style.width = pct(now).toFixed(1) + '%';
+    document.getElementById('overviewTicks').innerHTML = meetings.filter(function (m) { return m.dueMs; }).map(function (m) {
+      return '<div class="tick" style="left:' + pct(m.dueMs).toFixed(1) + '%;">' +
+        '<div class="tick-tip"><b>' + m.title + '</b> &middot; ' + fmtShort(new Date(m.dueMs)) + '</div></div>';
+    }).join('');
+    if (now >= kickoffMs && now <= finalMs) {
+      var marker = document.createElement('div');
+      marker.className = 'now-marker';
+      marker.style.left = pct(now).toFixed(1) + '%';
+      document.querySelector('.overview-track-wrap').appendChild(marker);
+    }
+    var currentIdx = flow.findIndex(function (s) { return s.statusKey !== 'concluido' && s.statusKey !== 'fechado'; });
+    var capCurrent = document.getElementById('capCurrent');
+    var capNext = document.getElementById('capNext');
+    if (currentIdx === -1) {
+      var finalMeeting = meetings.length ? meetings[meetings.length - 1] : null;
+      if (finalMeeting && finalMeeting.dueMs && now < finalMeeting.dueMs) {
+        capCurrent.textContent = finalMeeting.title + ' · ' + fmtShort(new Date(finalMeeting.dueMs));
+      } else {
+        capCurrent.textContent = 'Projeto entregue';
+      }
+      capNext.textContent = '';
+    } else {
+      var s = flow[currentIdx];
+      capCurrent.textContent = s.label + (s.dueMs ? ' · até ' + fmtShort(new Date(s.dueMs)) : '');
+      var nextS = flow[currentIdx + 1];
+      capNext.textContent = nextS
+        ? nextS.label + (nextS.startMs ? ' · inicia em ' + fmtShort(new Date(nextS.startMs)) : '')
+        : 'Go Live · ' + fmtShort(new Date(finalMs));
+    }
+  }
+
+  function renderStages() {
+    document.getElementById('stageSections').innerHTML = flow.map(function (s) {
+      var rows;
+      if (s.items.length === 0) {
+        rows = '<div class="empty-state">Nenhum item registrado ainda.</div>';
+      } else {
+        var head = '<div class="phase-row phase-head"><div></div><div>Responsável</div>' +
+          '<div style="text-align:center;">Status</div><div style="text-align:right;">Prazo</div></div>';
+        var body = s.items.map(function (it) {
+          var statusClass = (it.statusKey === 'concluido' || it.statusKey === 'fechado') ? ' solid'
+            : (it.statusKey === 'em-andamento') ? ' active' : '';
+          var ownerHtml = it.owner ? ('<span class="owner-avatar">' + it.owner.charAt(0) + '</span>' + it.owner) : '-';
+          return '<div class="phase-row">' +
+            '<div class="phase-main"><div class="phase-name">' + it.title + '</div><div class="phase-sub">' + (it.subtitle || '') + '</div></div>' +
+            '<div class="phase-owner">' + ownerHtml + '</div>' +
+            '<div class="phase-status' + statusClass + '">' + statusLabel(it.statusKey) + '</div>' +
+            '<div class="phase-dates">' + (it.date || '-') + '</div>' +
+          '</div>';
+        }).join('');
+        rows = head + body;
+      }
+      var tagHtml = s.dateRange ? ('<span class="stage-tag">' + s.dateRange + '</span>') : '';
+      var subHtml = s.subtitle ? ('<div class="sub">' + s.subtitle + '</div>') : '';
+      return '<div class="stage-block">' +
+        '<div class="stage-block-head"><h2>' + s.label + '</h2>' + tagHtml + '</div>' +
+        subHtml + rows +
+      '</div>';
+    }).join('');
+  }
+
+  function renderMeetings() {
+    var section = document.getElementById('meetingsSection');
+    if (!meetingsStage) { section.style.display = 'none'; return; }
+    document.getElementById('meetingsTitle').textContent = meetingsStage.label || 'Reuniões previstas';
+    document.getElementById('meetingsSub').textContent = meetingsStage.subtitle || '';
+    var listEl = document.getElementById('meetingList');
+    if (meetings.length === 0) {
+      listEl.innerHTML = '<div class="empty-state">Nenhuma reunião registrada ainda.</div>';
+    } else {
+      listEl.innerHTML = meetings.map(function (m, i) {
+        var tagHtml = m.tag
+          ? ('<div class="m-tag' + (m.tag === 'Entrega Final' ? ' final' : '') + '">' + m.tag + '</div>')
+          : '<div></div>';
+        return '<div class="meeting-row">' +
+          '<div class="m-date">' + (m.date || '-') + '</div>' +
+          '<div class="m-title">' + m.title + '<div class="phase-sub">' + (m.subtitle || '') + '</div></div>' +
+          tagHtml +
+        '</div>';
+      }).join('');
+    }
+  }
+
+  var services = [
     { key: 'planejamento', label: 'Planejamento', months: [
 
   ] },
@@ -248,11 +618,279 @@
     if (monthKey) showMonth(monthKey);
   }
 
+  // Troca de aba via hash (#financeiro, #cadastro, ...) — dá link direto
+  // pra uma aba específica sem precisar de rota de verdade por seção
+  // (esse projeto é arquivo estático por cliente, não tem servidor de
+  // rotas). replaceState em vez de mudar location.hash direto pra não
+  // empilhar uma entrada de histórico a cada clique de aba.
+  function showAppSection(key, skipHash) {
+    document.querySelectorAll('.app-section').forEach(function (s) { s.classList.toggle('active', s.dataset.section === key); });
+    document.querySelectorAll('.app-nav-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.section === key); });
+    var drawer = document.getElementById('appDrawer');
+    var overlay = document.getElementById('appDrawerOverlay');
+    if (drawer) drawer.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+    if (!skipHash) history.replaceState(null, '', '#' + key);
+    updateChromeVisibility();
+  }
+  document.querySelectorAll('.app-logout-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { if (window.Clerk) window.Clerk.signOut(); });
+  });
+  document.querySelectorAll('.app-nav-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { showAppSection(btn.dataset.section); });
+  });
+  window.addEventListener('hashchange', function () {
+    var key = location.hash.replace('#', '');
+    if (key && document.querySelector('.app-nav-btn[data-section="' + key + '"]')) showAppSection(key);
+  });
+  var appHamburgerBtn = document.getElementById('appHamburgerBtn');
+  if (appHamburgerBtn) appHamburgerBtn.addEventListener('click', function () {
+    document.getElementById('appDrawer').classList.add('open');
+    document.getElementById('appDrawerOverlay').classList.add('open');
+  });
+  var appOverlayEl = document.getElementById('appDrawerOverlay');
+  if (appOverlayEl) appOverlayEl.addEventListener('click', function () {
+    document.getElementById('appDrawer').classList.remove('open');
+    appOverlayEl.classList.remove('open');
+  });
+  var appDrawerCloseBtn = document.getElementById('appDrawerClose');
+  if (appDrawerCloseBtn) appDrawerCloseBtn.addEventListener('click', function () {
+    document.getElementById('appDrawer').classList.remove('open');
+    document.getElementById('appDrawerOverlay').classList.remove('open');
+  });
+
+  var CLIENT_SLUG = 'kunha-p';
+  var clienteDataLoaded = false;
+
+  // Tradução manual (sem @clerk/localizations, que não tem build pra CDN
+  // sem bundler) — cobre as telas que o cliente realmente vê: login,
+  // cadastro, esqueci a senha. Tela rara/erro específico pode ficar em
+  // inglês. É config de INSTÂNCIA (Clerk.load), não de componente — passar
+  // isso pro mountSignIn não tem efeito nenhum.
+  var CLERK_LOCALIZATION = {
+    locale: 'pt-BR',
+    formButtonPrimary: 'Continuar',
+    dividerText: 'ou',
+    formFieldLabel__emailAddress: 'E-mail',
+    formFieldLabel__password: 'Senha',
+    formFieldLabel__confirmPassword: 'Confirmar senha',
+    formFieldLabel__newPassword: 'Nova senha',
+    formFieldAction__forgotPassword: 'Esqueceu a senha?',
+    formFieldInputPlaceholder__emailAddress: 'Digite seu e-mail',
+    signIn: {
+      start: {
+        title: 'Entrar',
+        subtitle: 'Acesse sua conta pra continuar',
+        actionText: 'Não tem conta?',
+        actionLink: 'Cadastre-se',
+      },
+      password: { title: 'Digite sua senha' },
+      forgotPassword: {
+        title: 'Redefinir senha',
+        subtitle: 'pra redefinir sua senha',
+        subtitle_email: 'Primeiro, digite o código enviado pro seu e-mail',
+        formTitle: 'Código de redefinição',
+        resendButton: 'Não recebeu o código? Reenviar',
+      },
+      resetPassword: {
+        title: 'Definir nova senha',
+        formButtonPrimary: 'Redefinir senha',
+        successMessage: 'Senha alterada com sucesso. Entrando, aguarde um instante.',
+      },
+      forgotPasswordAlternativeMethods: {
+        title: 'Esqueceu a senha?',
+        blockButton__resetPassword: 'Redefinir sua senha',
+      },
+      noAvailableMethods: {
+        title: 'Não foi possível entrar',
+        message: 'Não foi possível continuar o login.',
+        subtitle: 'Ocorreu um erro',
+      },
+    },
+    signUp: {
+      start: {
+        title: 'Criar conta',
+        subtitle: 'Preencha os dados pra começar',
+        actionText: 'Já tem conta?',
+        actionLink: 'Entrar',
+      },
+    },
+  };
+
+  function initAuthSections() {
+    if (!window.Clerk) { setTimeout(initAuthSections, 100); return; }
+    window.Clerk.load({ localization: CLERK_LOCALIZATION }).then(function () {
+      hideClerkBadge();
+      window.Clerk.addListener(function () { renderAuthState(); });
+      renderAuthState();
+    }).catch(function (err) {
+      document.getElementById('financeiroGate').innerHTML = '<p class="auth-gate-text">Erro carregando login: ' + err.message + '</p>';
+    });
+  }
+
+  function setDisplay(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = value;
+  }
+
+  // Financeiro/Cadastro exigem login: enquanto não autenticado, some com o
+  // cabeçalho (logo/título/data) e o rodapé, deixando só o menu lateral e a
+  // caixa de login centralizada. Nas outras abas (Projeto/Serviços, que são
+  // públicas) o cabeçalho sempre aparece.
+  function updateChromeVisibility() {
+    var activeSection = document.querySelector('.app-section.active');
+    var key = activeSection ? activeSection.dataset.section : '';
+    var gated = key === 'financeiro' || key === 'cadastro';
+    var signedIn = !!(window.Clerk && window.Clerk.user);
+    document.body.classList.toggle('hide-chrome', gated && !signedIn);
+  }
+
+  function renderAuthState() {
+    document.querySelectorAll('.app-logout-btn').forEach(function (btn) { btn.style.display = window.Clerk.user ? 'flex' : 'none'; });
+    updateChromeVisibility();
+    if (window.Clerk.user) {
+      setDisplay('financeiroGate', 'none');
+      setDisplay('cadastroGate', 'none');
+      if (!clienteDataLoaded) loadClienteData();
+    } else {
+      clienteDataLoaded = false;
+      setDisplay('financeiroGate', 'block');
+      setDisplay('cadastroGate', 'block');
+      setDisplay('financeiroLoading', 'none');
+      setDisplay('cadastroLoading', 'none');
+      setDisplay('financeiroContent', 'none');
+      setDisplay('cadastroContent', 'none');
+      setDisplay('financeiroDenied', 'none');
+      setDisplay('cadastroDenied', 'none');
+      var signInOpts = {
+        forceRedirectUrl: location.pathname,
+        signUpForceRedirectUrl: location.pathname,
+        appearance: {
+          variables: {
+            colorPrimary: '#015EC5',
+            colorText: '#0B1C33',
+            colorTextSecondary: '#5A6B85',
+            colorBackground: '#FFFFFF',
+            colorInputBackground: '#F2F6FC',
+            colorInputText: '#0B1C33',
+            fontFamily: "'Inter', sans-serif",
+            borderRadius: '10px',
+            spacingUnit: '1.15rem',
+          },
+          elements: {
+            card: { width: '100%' },
+          },
+        },
+      };
+      var financeiroSignIn = document.getElementById('financeiroSignIn');
+      if (financeiroSignIn && !financeiroSignIn.hasChildNodes()) {
+        setDisplay('financeiroGateLoading', 'none');
+        window.Clerk.mountSignIn(financeiroSignIn, signInOpts);
+      }
+      var cadastroSignIn = document.getElementById('cadastroSignIn');
+      if (cadastroSignIn && !cadastroSignIn.hasChildNodes()) {
+        setDisplay('cadastroGateLoading', 'none');
+        window.Clerk.mountSignIn(cadastroSignIn, signInOpts);
+      }
+    }
+  }
+
+  function loadClienteData() {
+    setDisplay('financeiroLoading', 'block');
+    setDisplay('cadastroLoading', 'block');
+    window.Clerk.session.getToken().then(function (token) {
+      return fetch('/api/cliente/' + CLIENT_SLUG, { headers: { Authorization: 'Bearer ' + token } });
+    }).then(function (res) {
+      setDisplay('financeiroLoading', 'none');
+      setDisplay('cadastroLoading', 'none');
+      if (res.status === 404) {
+        setDisplay('financeiroDenied', 'block');
+        setDisplay('cadastroDenied', 'block');
+        return null;
+      }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      clienteDataLoaded = true;
+      return res.json();
+    }).then(function (data) {
+      if (!data) return;
+      renderCadastro(data.cadastro);
+      renderInvoices(data.invoices);
+    }).catch(function (err) {
+      setDisplay('financeiroLoading', 'none');
+      setDisplay('cadastroLoading', 'none');
+      document.getElementById('financeiroContent').innerHTML = '<div class="empty-state">Erro carregando dados: ' + err.message + '</div>';
+      document.getElementById('financeiroContent').style.display = 'block';
+    });
+  }
+
+  function fieldRow(label, value) {
+    return '<div class="cadastro-field"><span class="cadastro-label">' + label + '</span><span class="cadastro-value">' + (value || '-') + '</span></div>';
+  }
+
+  function renderCadastro(c) {
+    var el = document.getElementById('cadastroContent');
+    el.innerHTML =
+      fieldRow('Razão Social', c.razaoSocial) +
+      fieldRow('CNPJ', c.cnpj) +
+      fieldRow('Endereço', c.endereco) +
+      fieldRow('Contato', c.contatoNome) +
+      fieldRow('E-mail', c.contatoEmail) +
+      fieldRow('Telefone', c.contatoTelefone);
+    el.style.display = 'block';
+  }
+
+  function renderInvoices(invoices) {
+    var el = document.getElementById('financeiroContent');
+    if (!invoices || invoices.length === 0) {
+      el.innerHTML = '<div class="empty-state"><b>Nenhuma fatura ainda</b>As faturas aparecem aqui assim que forem lançadas.</div>';
+      el.style.display = 'block';
+      return;
+    }
+    el.innerHTML = invoices.map(function (inv) {
+      var statusHtml = inv.paid
+        ? '<span class="status feito">Pago</span>'
+        : '<span class="status a-fazer">Pendente</span>';
+      var links = '';
+      if (inv.links && inv.links.nf) links += '<a href="' + inv.links.nf + '" target="_blank" rel="noopener">NF</a>';
+      if (inv.links && inv.links.boleto) links += '<a href="' + inv.links.boleto + '" target="_blank" rel="noopener">Boleto</a>';
+      return '<div class="invoice-row"><span class="invoice-label">' + inv.label + '</span>' + statusHtml + '<span class="invoice-links">' + links + '</span></div>';
+    }).join('');
+    el.style.display = 'block';
+  }
+
+  // Esconde o rodapé "Secured by Clerk" — combinado explicitamente com o
+  // usuário, ciente de que não é feature suportada no plano free do Clerk
+  // e pode quebrar em qualquer atualização deles. Busca por texto em vez
+  // de nome de classe porque o Clerk usa hash aleatório a cada carregamento.
+  function hideClerkBadge() {
+    function findAndHide() {
+      document.querySelectorAll('body *').forEach(function (el) {
+        if (el.children.length === 0 && el.textContent && el.textContent.trim() === 'Secured by') {
+          var node = el;
+          for (var i = 0; i < 5 && node.parentElement; i++) {
+            if (node.parentElement.textContent.trim().length > (node.textContent.trim().length + 20)) break;
+            node = node.parentElement;
+          }
+          if (node.style.display !== 'none') node.style.display = 'none';
+        }
+      });
+    }
+    findAndHide();
+    new MutationObserver(findAndHide).observe(document.body, { childList: true, subtree: true });
+  }
+
   document.getElementById('generatedAt').textContent = generatedAt
     ? 'Atualizado em ' + new Date(generatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : 'Ainda não sincronizado';
 
+  renderTimeline(); renderStages(); renderMeetings();
   showService(activeServiceKey);
+  (function () {
+      var hashKey = location.hash.replace('#', '');
+      var initial = (hashKey && document.querySelector('.app-nav-btn[data-section="' + hashKey + '"]')) ? hashKey : 'projeto';
+      showAppSection(initial);
+    })();
+  initAuthSections();
 </script>
 </body>
 </html>
