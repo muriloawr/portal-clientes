@@ -74,7 +74,6 @@ jobs:
             "Abrakadabra"
             "Detoni Beauty"
             "Nanikinha Chips"
-            "Kunha-P"
           )
           FAILED=0
           for CLIENT in "${CLIENTS[@]}"; do

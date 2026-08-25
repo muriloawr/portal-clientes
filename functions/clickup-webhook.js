@@ -49,7 +49,7 @@ const CLIENTS = [
   { name: 'Piny', projectTaskId: 'wdpu2ye60b', filePath: 'piny/index.html' },
   { name: 'AIB Beauty', projectTaskId: 'wdpu2ye60a', filePath: 'aib-beauty/index.html' },
     { name: 'Bako Cosmetics', projectTaskId: 'wdpu2ye3hg', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztn' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75n' }], filePath: 'bako/index.html' },
-  { name: 'Kunha P', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztq' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75q' }], filePath: 'kunha-p/index.html' },
+  { name: 'Kunha P', projectTaskId: 'wdpu2ygehf', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztq' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75q' }], filePath: 'kunha-p/index.html' },
   { name: 'SenseBe', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yeztk' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75m' }], filePath: 'sensebe/index.html' },
   { name: 'Bash Beauty', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezt3' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75k' }], filePath: 'bash-beauty/index.html' },
   { name: 'Nutrado', services: [{ key: 'planejamento', label: 'Planejamento', taskId: 'wdpu2yezt2' }, { key: 'social-media', label: 'Social Media', taskId: 'wdpu2yf75j' }], filePath: 'nutrado/index.html' },
@@ -62,7 +62,6 @@ const CLIENTS = [
   { name: 'Abrakadabra', projectTaskId: '86aeuct2a', filePath: 'abrakadabra/index.html' },
   { name: 'Detoni Beauty', projectTaskId: 'wdpu2ygr9z', filePath: 'detoni-beauty/index.html' },
   { name: 'Nanikinha Chips', projectTaskId: 'wdpu2ygehh', filePath: 'nanikinha-chips/index.html' },
-  { name: 'Kunha-P', projectTaskId: 'wdpu2ygehf', filePath: 'kunha-p-2/index.html' },
 ];
 
 // Nome do cliente (exatamente como está em CLIENTS[].name) → slug da URL,
