@@ -139,7 +139,7 @@
 
 <script>
   // --- dados: um objeto por mês. Novos meses entram aqui conforme as reuniões acontecem. ---
-  const generatedAt = 1789156700741;
+  const generatedAt = 1789405314495;
 
   document.getElementById('generatedAt').textContent = generatedAt
     ? 'Atualizado em ' + new Date(generatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -174,6 +174,8 @@
         { title: 'Cálculo automático de frete em pedidos manuais', deadline: '04/09', status: 'em-analise', owner: 'Murilo', hours: null },
         { title: 'LP de Prescritores', deadline: '11/09', status: 'a-fazer', owner: 'Tiago', hours: null },
         { title: 'Frete não bate com o valor pago na Frenet', deadline: '14/09', status: 'a-fazer', owner: 'Murilo', hours: null },
+        { title: 'Implementar Script Martz', deadline: '14/09', status: 'feito', owner: 'Tiago', hours: 0.75 },
+        { title: 'Investigando Erro 502 App Prescritor', deadline: '14/09', status: 'a-fazer', owner: 'Erik', hours: 2 },
         { title: 'Desenvolver App de descontos', deadline: '18/09', status: 'a-fazer', owner: 'Tiago', hours: 6 },
         { title: 'Migração de E-mails para o Martz', deadline: '21/09', status: 'a-fazer', owner: 'Murilo', hours: null },
         { title: 'Modelo de Assinatura', deadline: '30/09', status: 'em-analise', owner: 'Murilo', hours: null },
