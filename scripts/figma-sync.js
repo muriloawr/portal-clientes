@@ -510,11 +510,24 @@ const CLICKUP_REQUEST_DELAY_MS = 650; // ~92 req/min, com margem abaixo do limit
 const CLICKUP_MAX_RETRIES = 5;
 const CLICKUP_RETRY_WAIT_MS = 65000; // um pouco mais que 1 min, pra garantir que a janela virou
 
+// 502/503/504 são instabilidade passageira do lado do ClickUp, não rate
+// limit — não faz sentido esperar quase um minuto igual o 429, uma espera
+// curta já costuma resolver. Sem isso, um único solavanco passageiro derruba
+// o cliente inteiro (e o script inteiro, já que roda tudo numa execução só).
+const CLICKUP_TRANSIENT_STATUSES = [502, 503, 504];
+const CLICKUP_TRANSIENT_MAX_RETRIES = 3;
+const CLICKUP_TRANSIENT_RETRY_WAIT_MS = 3000;
+
 async function clickUpFetch(url, options, attempt = 1) {
   const res = await fetch(url, options);
   if (res.status === 429 && attempt <= CLICKUP_MAX_RETRIES) {
     console.log(`  [429] aguardando ${CLICKUP_RETRY_WAIT_MS / 1000}s antes de tentar de novo (tentativa ${attempt}/${CLICKUP_MAX_RETRIES})...`);
     await sleep(CLICKUP_RETRY_WAIT_MS);
+    return clickUpFetch(url, options, attempt + 1);
+  }
+  if (CLICKUP_TRANSIENT_STATUSES.includes(res.status) && attempt <= CLICKUP_TRANSIENT_MAX_RETRIES) {
+    console.log(`  [${res.status}] aguardando ${CLICKUP_TRANSIENT_RETRY_WAIT_MS / 1000}s antes de tentar de novo (tentativa ${attempt}/${CLICKUP_TRANSIENT_MAX_RETRIES})...`);
+    await sleep(CLICKUP_TRANSIENT_RETRY_WAIT_MS);
     return clickUpFetch(url, options, attempt + 1);
   }
   await sleep(CLICKUP_REQUEST_DELAY_MS);
