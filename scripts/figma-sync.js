@@ -99,8 +99,20 @@ async function discoverFigmaClients() {
 }
 
 async function syncClient(client) {
+  const stages = await fetchClickUpSubtasks(client.taskId);
+
+  // Uma vez que a etapa Protótipo do cliente está concluída (ou fechada), o
+  // conteúdo da página "Prototype" no Figma não muda mais pra fins de
+  // desenvolvimento — pula a leitura do Figma pra esse cliente inteiramente,
+  // em vez de ficar reconferindo os mesmos frames a cada execução.
+  const prototipoStage = stages.find(t => /prot[oó]tipo/i.test(t.name));
+  if (prototipoStage && ['concluído', 'fechado'].includes(statusKeyOf(prototipoStage))) {
+    console.log(`${client.name}: pulado (etapa Protótipo já concluída, Figma não é mais verificado)`);
+    return false;
+  }
+
+  const devTaskId = findDevelopmentTaskId(stages);
   const units = await getSyncUnits(client);
-  const devTaskId = await findDevelopmentTaskId(client.taskId);
 
   let anyFailed = false;
   for (const unit of units) {
@@ -141,7 +153,16 @@ async function getSyncUnits(client) {
   const prototypePage = (fileData.document.children || []).find(
     c => c.type === 'CANVAS' && c.name === 'Prototype',
   );
-  if (!prototypePage) throw new Error('Pagina "Prototype" nao encontrada no arquivo');
+  if (!prototypePage) {
+    // DEBUG TEMPORARIO — lista o que a API do Figma realmente devolveu, pra
+    // achar a causa exata (nome diferente, espaço escondido, arquivo errado).
+    const pages = (fileData.document.children || []).map(
+      c => `${JSON.stringify(c.name)} (type=${c.type})`,
+    );
+    throw new Error(
+      `Pagina "Prototype" nao encontrada no arquivo. fileKey=${client.fileKey} paginas encontradas: [${pages.join(', ')}]`,
+    );
+  }
 
   const units = [];
   for (const node of childrenInPanelOrder(prototypePage)) {
@@ -279,8 +300,7 @@ function resolveEffectiveNode(node) {
   return current;
 }
 
-async function findDevelopmentTaskId(clientTaskId) {
-  const stages = await fetchClickUpSubtasks(clientTaskId);
+function findDevelopmentTaskId(stages) {
   const dev = stages.find(t => /desenvolv/i.test(t.name));
   if (!dev) throw new Error('Stage "Desenvolvimento" nao encontrada na task-mae');
   return dev.id;
