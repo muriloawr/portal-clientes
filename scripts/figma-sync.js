@@ -101,21 +101,12 @@ async function discoverFigmaClients() {
 async function syncClient(client) {
   const stages = await fetchClickUpSubtasks(client.taskId);
 
-  // Uma vez que a etapa Protótipo do cliente está concluída (ou fechada), o
-  // conteúdo da página "Prototype" no Figma não muda mais pra fins de
-  // desenvolvimento — e uma vez que a própria etapa Desenvolvimento está
-  // concluída (ou fechada), as tasks de dev já foram todas criadas e não
-  // fazem mais sentido ser reconferidas. Em qualquer um dos dois casos, pula
-  // a leitura do Figma pra esse cliente inteiramente, em vez de ficar
-  // reconferindo os mesmos frames a cada execução.
-  const prototipoStage = stages.find(t => /prot[oó]tipo/i.test(t.name));
+  // Uma vez que a própria etapa Desenvolvimento do cliente está concluída
+  // (ou fechada), as tasks de dev já foram todas criadas e não faz mais
+  // sentido continuar reconferindo os mesmos frames do Figma a cada
+  // execução — pula a leitura do Figma pra esse cliente inteiramente.
   const desenvolvimentoStage = stages.find(t => /desenvolv/i.test(t.name));
-  const doneStatuses = ['concluído', 'fechado'];
-  if (prototipoStage && doneStatuses.includes(statusKeyOf(prototipoStage))) {
-    console.log(`${client.name}: pulado (etapa Protótipo já concluída, Figma não é mais verificado)`);
-    return false;
-  }
-  if (desenvolvimentoStage && doneStatuses.includes(statusKeyOf(desenvolvimentoStage))) {
+  if (desenvolvimentoStage && ['concluído', 'fechado'].includes(statusKeyOf(desenvolvimentoStage))) {
     console.log(`${client.name}: pulado (etapa Desenvolvimento já concluída, Figma não é mais verificado)`);
     return false;
   }
