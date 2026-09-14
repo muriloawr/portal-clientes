@@ -292,10 +292,19 @@ function buildPeople(tasks, members, resolveClient) {
 // --- prazos de projeto (lista "Projetos": task-mãe com status "clientes" ou "backlog") ---
 
 // A task-mãe de cada cliente-projeto (mesma que vira `projectTaskId` em
-// functions/clickup-webhook.js) já carrega start_date/due_date do projeto
-// inteiro (Kick-off/Go-Live) — não precisa olhar as etapas (subtasks) pra
-// achar isso, é só ler os dois campos direto dela.
+// functions/clickup-webhook.js) carrega start_date/due_date, mas due_date
+// normalmente é só a data de entrega/apresentação final — alguns dias antes
+// da virada de chave de verdade. A data real de Go-Live mora na subtask
+// "Go-Live" (dentro de "Reuniões", ver findGoLiveMs), então busca ela à
+// parte pro painel não contar esse intervalo normal como atraso.
 function buildClientProjectTimelines(allTasks) {
+  const byParent = new Map();
+  for (const t of allTasks) {
+    if (!t.parent) continue;
+    if (!byParent.has(t.parent)) byParent.set(t.parent, []);
+    byParent.get(t.parent).push(t);
+  }
+
   return allTasks
     .filter(t => t._listName === 'Projetos' && PROJECT_TIMELINE_STATUSES.has(statusOf(t)))
     .map(t => ({
@@ -303,8 +312,31 @@ function buildClientProjectTimelines(allTasks) {
       url: t.url,
       startMs: t.start_date ? Number(t.start_date) : null,
       dueMs: t.due_date ? Number(t.due_date) : null,
+      goLiveMs: findGoLiveMs(byParent, t.id),
     }))
     .sort((a, b) => (a.dueMs || Infinity) - (b.dueMs || Infinity));
+}
+
+// Sobe as camadas de subtask a partir da task-mãe (não assume profundidade
+// fixa, pra não quebrar se algum cliente organizar diferente de "Reuniões >
+// Go-Live") até achar uma task chamada "Go-Live". Retorna o due_date dela,
+// ou null se não existir essa etapa nesse cliente ainda.
+const GO_LIVE_NAME_RE = /go[\s-]?live/i;
+function findGoLiveMs(byParent, rootId) {
+  let queue = [rootId];
+  for (let hops = 0; hops < 4 && queue.length > 0; hops++) {
+    const next = [];
+    for (const id of queue) {
+      for (const child of byParent.get(id) || []) {
+        if (GO_LIVE_NAME_RE.test(child.name)) {
+          return child.due_date ? Number(child.due_date) : null;
+        }
+        next.push(child.id);
+      }
+    }
+    queue = next;
+  }
+  return null;
 }
 
 // --- horas contratadas (clientes recorrentes: CRO + CRM) ---
@@ -435,7 +467,7 @@ function recurringHoursEntryLiteral(e) {
 }
 
 function clientProjectLiteral(p) {
-  return `    { client: '${escapeJs(p.client)}', url: '${escapeJs(p.url)}', startMs: ${p.startMs == null ? 'null' : p.startMs}, dueMs: ${p.dueMs == null ? 'null' : p.dueMs} },`;
+  return `    { client: '${escapeJs(p.client)}', url: '${escapeJs(p.url)}', startMs: ${p.startMs == null ? 'null' : p.startMs}, dueMs: ${p.dueMs == null ? 'null' : p.dueMs}, goLiveMs: ${p.goLiveMs == null ? 'null' : p.goLiveMs} },`;
 }
 
 function teamDataToJs(teamData) {
