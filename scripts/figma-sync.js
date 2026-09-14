@@ -114,27 +114,71 @@ async function syncClient(client) {
   const devTaskId = findDevelopmentTaskId(stages);
   const units = await getSyncUnits(client);
 
-  let anyFailed = false;
+  // O ClickUp mostra subtasks recém-criadas no topo da lista por padrão, então
+  // criar na ordem de leitura do Figma (primeiro -> último) faz a ordem visual
+  // final sair invertida. Corrige em dois passos, igual ao nível de demanda:
+  //
+  // Passo 1 (ordem original do Figma): só decide o que cada unit precisa —
+  // acha (e renomeia, se preciso) o group/item existente por node-id, e
+  // planeja as demandas de cada item (sem criar nada ainda). `claimedNames`
+  // é compartilhado entre todas as units, então o dedup de demanda repetida
+  // ("Header"/"Footer" etc.) continua escolhendo sempre o primeiro item na
+  // leitura do Figma como dono, mesmo que a criação física venha invertida.
+  const claimedNames = new Set();
+  const plans = [];
   for (const unit of units) {
     const log = [];
     try {
-      let parentForFrame = devTaskId;
-      if (unit.group) {
-        parentForFrame = await findOrCreateTask(unit.group, devTaskId, client.fileKey, log);
-      }
-      const itemTaskId = await findOrCreateTask(unit.frame, parentForFrame, client.fileKey, log);
+      const groupExistingId = unit.group ? await findExistingTaskId(unit.group, log) : null;
+      const frameExistingId = await findExistingTaskId(unit.frame, log);
 
       const skipDemandaSync = unit.group && NO_DEMANDA_GROUP_NAMES.includes(unit.group.name.trim().toLowerCase());
+      let demandaPlan = { toCreate: [], failed: false };
       if (!skipDemandaSync) {
         // Só frame vira demanda — mesma regra do nível de item, pra elemento
         // solto tipo linha/vetor decorativo não virar task também aqui.
         const demandaNodes = childrenInPanelOrder(unit.frame).filter(n => isVisible(n) && n.type === 'FRAME');
         log.push(`${demandaNodes.length} demanda(s) encontrada(s) no Figma`);
         if (demandaNodes.length > 0) {
-          const failed = await syncChildrenOneLevel(demandaNodes, itemTaskId, client.fileKey, log, client.name);
-          if (failed) anyFailed = true;
+          demandaPlan = await planDemandaChildren(demandaNodes, log, client.name, claimedNames);
         }
       }
+      plans.push({ unit, groupExistingId, frameExistingId, demandaPlan, log, failed: demandaPlan.failed });
+    } catch (err) {
+      log.push(`FALHOU: '${unit.frame.name}' (${unit.frame.id}) - ${err.message}`);
+      plans.push({ unit, log, failed: true });
+    }
+  }
+
+  // Passo 2 (ordem invertida): cria de fato o que faltou — group, item e
+  // demandas planejadas — de trás pra frente, pra ordem visual final bater
+  // com a ordem de leitura do Figma. `createdIdByNodeId` evita criar a mesma
+  // Section duas vezes quando ela é compartilhada por mais de uma unit (só a
+  // primeira a precisar dela, nesse passo, cria de verdade; as outras reusam).
+  const createdIdByNodeId = new Map();
+  let anyFailed = false;
+  for (const plan of [...plans].reverse()) {
+    const { unit, log } = plan;
+    if (plan.failed && !plan.demandaPlan) {
+      anyFailed = true;
+      console.log(`${unit.frame.name}: ${log.join('; ')}`);
+      continue;
+    }
+    try {
+      let parentForFrame = devTaskId;
+      if (unit.group) {
+        parentForFrame = plan.groupExistingId
+          || createdIdByNodeId.get(unit.group.id)
+          || await createTaskForNode(unit.group, devTaskId, client.fileKey, log);
+        createdIdByNodeId.set(unit.group.id, parentForFrame);
+      }
+      const itemTaskId = plan.frameExistingId || await createTaskForNode(unit.frame, parentForFrame, client.fileKey, log);
+
+      if (plan.demandaPlan.toCreate.length > 0) {
+        const failed = await createPlannedChildren(plan.demandaPlan.toCreate, itemTaskId, client.fileKey, log);
+        if (failed) anyFailed = true;
+      }
+      if (plan.demandaPlan.failed) anyFailed = true;
     } catch (err) {
       log.push(`FALHOU: '${unit.frame.name}' (${unit.frame.id}) - ${err.message}`);
       anyFailed = true;
@@ -306,18 +350,21 @@ function findDevelopmentTaskId(stages) {
   return dev.id;
 }
 
-// Acha (por tag) ou cria uma task pra um único nó do Figma, sem checar
-// filhos nem dedupe por nome — usado pros dois primeiros níveis fixos
-// (group/Section e item) que não competem por nome com nada.
-async function findOrCreateTask(node, parentTaskId, fileKey, log) {
+// Acha (por tag) uma task pra um único nó do Figma e renomeia se preciso,
+// sem criar — usado pros dois primeiros níveis fixos (group/Section e item)
+// que não competem por nome com nada, só por node-id. Devolve null se
+// precisar ser criada (passo 2, ver syncClient).
+async function findExistingTaskId(node, log) {
   const existingTask = await findClickUpTaskByTag(nodeIdToTag(node.id));
-  if (existingTask) {
-    if (existingTask.name !== node.name) {
-      await renameClickUpTask(existingTask.id, node.name);
-      log.push(`renomeado: '${existingTask.name}' -> '${node.name}'`);
-    }
-    return existingTask.id;
+  if (!existingTask) return null;
+  if (existingTask.name !== node.name) {
+    await renameClickUpTask(existingTask.id, node.name);
+    log.push(`renomeado: '${existingTask.name}' -> '${node.name}'`);
   }
+  return existingTask.id;
+}
+
+async function createTaskForNode(node, parentTaskId, fileKey, log) {
   const created = await createClickUpTask(parentTaskId, node.name, [nodeIdToTag(node.id)]);
   await addClickUpComment(created.id, 'Ver no Figma', figmaDesignLink(fileKey, node.id));
   log.push(`criado: '${node.name}' (task ${created.id})`);
@@ -333,7 +380,15 @@ async function findOrCreateTask(node, parentTaskId, fileKey, log) {
 // hoje. `clientNameForDedup`: cada demanda nova também recebe uma tag por
 // nome (`demanda-{cliente}-{nome}`) e, se essa tag já existir em qualquer
 // outro item, a criação é pulada — evita repetir "Footer" etc. em todo item.
-async function syncChildrenOneLevel(figmaNodes, parentTaskId, fileKey, log, clientNameForDedup) {
+// Passo 1 (ordem original do Figma, chamado uma vez por item, sempre em
+// ordem): só decide o que fazer com cada nó — renomeia na hora (não afeta
+// ordem visual), mas separa quem precisa ser criado em vez de criar já.
+// `claimedNames` é compartilhado entre TODOS os itens do cliente (não só
+// esse), pra manter o dedup por nome ("repetido em outro item") escolhendo
+// sempre a primeira ocorrência na leitura do Figma como a "dona" da demanda
+// compartilhada — mesmo que a criação física, no passo 2, aconteça invertida.
+async function planDemandaChildren(figmaNodes, log, clientNameForDedup, claimedNames) {
+  const toCreate = [];
   let anyFailed = false;
   for (const node of figmaNodes) {
     try {
@@ -348,14 +403,36 @@ async function syncChildrenOneLevel(figmaNodes, parentTaskId, fileKey, log, clie
 
       const nameTag = clientNameForDedup ? nameDedupTag(clientNameForDedup, node.name) : null;
       if (nameTag) {
-        const dupTask = await findClickUpTaskByTag(nameTag);
-        if (dupTask) {
+        // `claimedNames` pega o caso de duas demandas com o mesmo nome ainda
+        // nem uma criada de verdade (só planejadas no mesmo passo 1) — a
+        // busca por tag no ClickUp não acharia nenhuma das duas ainda.
+        if (claimedNames.has(nameTag) || (await findClickUpTaskByTag(nameTag))) {
           log.push(`pulado (repetido em outro item): '${node.name}'`);
           continue;
         }
+        claimedNames.add(nameTag);
       }
 
       const tags = nameTag ? [nodeIdToTag(node.id), nameTag] : [nodeIdToTag(node.id)];
+      toCreate.push({ node, tags });
+    } catch (err) {
+      // Um nó com problema (ex: nome que gera tag inválida) não deve
+      // derrubar o resto do item — loga e segue pros outros.
+      log.push(`FALHOU: '${node.name}' (${node.id}) - ${err.message}`);
+      anyFailed = true;
+    }
+  }
+  return { toCreate, failed: anyFailed };
+}
+
+// Passo 2 (ordem invertida): o ClickUp mostra subtasks recém-criadas no topo
+// da lista por padrão, então cria de trás pra frente — a última demanda lida
+// no Figma é a primeira criada (some pro topo primeiro) e a ordem visual
+// final bate com a ordem do Figma.
+async function createPlannedChildren(toCreate, parentTaskId, fileKey, log) {
+  let anyFailed = false;
+  for (const { node, tags } of [...toCreate].reverse()) {
+    try {
       const created = await createClickUpTask(parentTaskId, node.name, tags);
       // Link só na criação — repetir a cada sync duplicaria o comentário.
       // Vai em comentário (não descrição) porque a integração nativa do
@@ -367,8 +444,6 @@ async function syncChildrenOneLevel(figmaNodes, parentTaskId, fileKey, log, clie
       await addClickUpComment(created.id, 'Ver no Figma', figmaDesignLink(fileKey, node.id));
       log.push(`criado: '${node.name}' (task ${created.id})`);
     } catch (err) {
-      // Um nó com problema (ex: nome que gera tag inválida) não deve
-      // derrubar o resto do item — loga e segue pros outros.
       log.push(`FALHOU: '${node.name}' (${node.id}) - ${err.message}`);
       anyFailed = true;
     }
