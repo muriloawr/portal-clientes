@@ -316,6 +316,7 @@ function buildClientProjectTimelines(allTasks, members) {
     .map(t => ({
       client: t.name,
       url: t.url,
+      status: statusOf(t),
       startMs: t.start_date ? Number(t.start_date) : null,
       dueMs: t.due_date ? Number(t.due_date) : null,
       goLiveMs: findGoLiveMs(byParent, t.id),
@@ -501,7 +502,7 @@ function recurringHoursEntryLiteral(e) {
 
 function clientProjectLiteral(p) {
   const assignees = p.assignees.map(a => ({ name: a.username, avatar: a.profilePicture, color: a.color }));
-  return `    { client: '${escapeJs(p.client)}', url: '${escapeJs(p.url)}', startMs: ${p.startMs == null ? 'null' : p.startMs}, dueMs: ${p.dueMs == null ? 'null' : p.dueMs}, goLiveMs: ${p.goLiveMs == null ? 'null' : p.goLiveMs}, assignees: ${JSON.stringify(assignees)} },`;
+  return `    { client: '${escapeJs(p.client)}', url: '${escapeJs(p.url)}', status: '${escapeJs(p.status)}', startMs: ${p.startMs == null ? 'null' : p.startMs}, dueMs: ${p.dueMs == null ? 'null' : p.dueMs}, goLiveMs: ${p.goLiveMs == null ? 'null' : p.goLiveMs}, assignees: ${JSON.stringify(assignees)} },`;
 }
 
 function teamDataToJs(teamData) {

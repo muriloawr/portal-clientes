@@ -2077,6 +2077,12 @@
       // próprio Go-Live passar. Cliente sem etapa "Go-Live" registrada ainda
       // cai no fallback baseado só no due_date, igual antes.
       function projectStatus(p) {
+        // Backlog = cliente ainda não começou de verdade (ver
+        // PROJECT_TIMELINE_STATUSES em team-dashboard-sync.js) — prazo/
+        // Go-Live nesse estágio é só planejamento, não vale como atraso;
+        // mostra "backlog" em laranja em vez de aplicar a lógica de prazo.
+        if (p.status === "backlog") return { accent: "warning", label: "backlog" };
+
         const todayStr = ymdSaoPaulo(Date.now());
         const dueStr = p.dueMs != null ? ymdSaoPaulo(p.dueMs) : null;
         const goLiveStr = p.goLiveMs != null ? ymdSaoPaulo(p.goLiveMs) : null;
