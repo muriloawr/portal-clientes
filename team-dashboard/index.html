@@ -516,6 +516,42 @@
       .task-row.neutral {
         border-left-color: var(--line);
       }
+      /* Linha de projeto na view "Geral": título+meta à esquerda, avatares
+         de quem está envolvido (qualquer subtask do projeto) à direita. */
+      .task-row.project-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .avatar-stack {
+        display: flex;
+        flex-shrink: 0;
+      }
+      .avatar-stack .mini-avatar {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 2px solid var(--panel);
+        margin-left: -8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        font-weight: 700;
+        color: #fff;
+        background: var(--brand);
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .avatar-stack .mini-avatar:first-child {
+        margin-left: 0;
+      }
+      .avatar-stack .mini-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
       .task-title {
         display: block;
         font-size: 13px;
@@ -2050,6 +2086,22 @@
         return { accent: "good" };
       }
 
+      // Avatar mini (foto se o ClickUp tiver, senão iniciais na cor do
+      // próprio usuário no ClickUp) — pra bater visualmente com os avatares
+      // nativos do ClickUp em vez de inventar uma paleta nova.
+      function miniAvatar(a) {
+        const inner = a.avatar
+          ? '<img src="' + escapeHtml(a.avatar) + '" alt="" />'
+          : escapeHtml(initials(a.name));
+        const style = a.avatar ? "" : ' style="background:' + escapeHtml(a.color || "var(--brand)") + '"';
+        return '<span class="mini-avatar" title="' + escapeHtml(a.name) + '"' + style + ">" + inner + "</span>";
+      }
+
+      function avatarStack(assignees) {
+        if (!assignees || assignees.length === 0) return "";
+        return '<span class="avatar-stack">' + assignees.map(miniAvatar).join("") + "</span>";
+      }
+
       function clientProjectRow(p) {
         const status = projectStatus(p);
         const startLabel = p.startMs
@@ -2065,11 +2117,12 @@
             ? " · " + status.label
             : "";
         return (
-          '<a class="task-row ' +
+          '<a class="task-row project-row ' +
           status.accent +
           '" href="' +
           escapeHtml(p.url) +
           '" target="_blank" rel="noopener">' +
+          '<span>' +
           '<span class="task-title">' +
           escapeHtml(p.client) +
           "</span>" +
@@ -2078,6 +2131,8 @@
           dueLabel +
           suffix +
           "</span>" +
+          "</span>" +
+          avatarStack(p.assignees) +
           "</a>"
         );
       }

@@ -80,7 +80,7 @@ export async function onRequestPost(context) {
     const resolveClient = buildClientResolver(allTasks);
     const people = buildPeople(allTasks, members, resolveClient);
     const recurringHours = await buildRecurringHours(allTasks, resolveClient, env.CLICKUP_API_TOKEN);
-    const clientProjects = buildClientProjectTimelines(allTasks);
+    const clientProjects = buildClientProjectTimelines(allTasks, members);
 
     const { content, sha } = await getGithubFile(FILE_PATH, env.GITHUB_TOKEN);
 
@@ -135,7 +135,12 @@ async function fetchWorkspaceMembers(token) {
   return (team.members || [])
     .map(m => m.user)
     .filter(Boolean)
-    .map(u => ({ id: u.id, username: u.username || `#${u.id}` }));
+    .map(u => ({
+      id: u.id,
+      username: u.username || `#${u.id}`,
+      profilePicture: u.profilePicture || null,
+      color: u.color || null,
+    }));
 }
 
 function statusOf(task) {
@@ -297,13 +302,14 @@ function buildPeople(tasks, members, resolveClient) {
 // da virada de chave de verdade. A data real de Go-Live mora na subtask
 // "Go-Live" (dentro de "Reuniões", ver findGoLiveMs), então busca ela à
 // parte pro painel não contar esse intervalo normal como atraso.
-function buildClientProjectTimelines(allTasks) {
+function buildClientProjectTimelines(allTasks, members) {
   const byParent = new Map();
   for (const t of allTasks) {
     if (!t.parent) continue;
     if (!byParent.has(t.parent)) byParent.set(t.parent, []);
     byParent.get(t.parent).push(t);
   }
+  const membersById = new Map(members.map(m => [String(m.id), m]));
 
   return allTasks
     .filter(t => t._listName === 'Projetos' && PROJECT_TIMELINE_STATUSES.has(statusOf(t)))
@@ -313,8 +319,35 @@ function buildClientProjectTimelines(allTasks) {
       startMs: t.start_date ? Number(t.start_date) : null,
       dueMs: t.due_date ? Number(t.due_date) : null,
       goLiveMs: findGoLiveMs(byParent, t.id),
+      assignees: collectProjectAssignees(byParent, t.id, membersById),
     }))
     .sort((a, b) => (a.dueMs || Infinity) - (b.dueMs || Infinity));
+}
+
+// Junta, sem repetir, todo mundo com pelo menos uma tarefa atribuída em
+// qualquer subtask do projeto (qualquer profundidade — de Protótipo/
+// Desenvolvimento até uma demanda criada pelo figma-sync lá no fundo da
+// árvore) — dá pra ver de relance qual squad está em qual projeto na view
+// "Geral", sem precisar abrir o ClickUp. Ex-funcionário (fora de
+// `membersById`, ver fetchWorkspaceMembers) não entra.
+function collectProjectAssignees(byParent, rootId, membersById) {
+  const seen = new Map();
+  let queue = byParent.get(rootId) || [];
+  let guard = 0;
+  while (queue.length > 0 && guard < 2000) {
+    const nextQueue = [];
+    for (const task of queue) {
+      guard++;
+      for (const a of task.assignees || []) {
+        const m = membersById.get(String(a.id));
+        if (m && !seen.has(m.id)) seen.set(m.id, m);
+      }
+      const children = byParent.get(task.id);
+      if (children) nextQueue.push(...children);
+    }
+    queue = nextQueue;
+  }
+  return [...seen.values()];
 }
 
 // Sobe as camadas de subtask a partir da task-mãe (não assume profundidade
@@ -467,7 +500,8 @@ function recurringHoursEntryLiteral(e) {
 }
 
 function clientProjectLiteral(p) {
-  return `    { client: '${escapeJs(p.client)}', url: '${escapeJs(p.url)}', startMs: ${p.startMs == null ? 'null' : p.startMs}, dueMs: ${p.dueMs == null ? 'null' : p.dueMs}, goLiveMs: ${p.goLiveMs == null ? 'null' : p.goLiveMs} },`;
+  const assignees = p.assignees.map(a => ({ name: a.username, avatar: a.profilePicture, color: a.color }));
+  return `    { client: '${escapeJs(p.client)}', url: '${escapeJs(p.url)}', startMs: ${p.startMs == null ? 'null' : p.startMs}, dueMs: ${p.dueMs == null ? 'null' : p.dueMs}, goLiveMs: ${p.goLiveMs == null ? 'null' : p.goLiveMs}, assignees: ${JSON.stringify(assignees)} },`;
 }
 
 function teamDataToJs(teamData) {
